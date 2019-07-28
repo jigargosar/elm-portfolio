@@ -348,19 +348,21 @@ viewPage page model =
 viewMaster { title, content } model =
     { title = title
     , body =
-        [ div [ class "pa3 vs3" ]
-            [ div [ class "vs3" ]
-                [ viewInboxItem model.route
+        [ div [ class "flex hs3" ]
+            [ div [ class "pa3 vs3" ]
+                [ div [ class "vs3" ]
+                    [ viewInboxItem model.route
+                    ]
+                , div [ class "vs3" ]
+                    [ div [ class "vs3" ] [ text "Projects" ]
+                    , div [ class "" ]
+                        (List.map (viewProjectItem model.route)
+                            (activeProjectList model.projects)
+                        )
+                    ]
                 ]
-            , div [ class "vs3" ]
-                [ div [ class "vs3" ] [ text "Projects" ]
-                , div [ class "" ]
-                    (List.map (viewProjectItem model.route)
-                        (activeProjectList model.projects)
-                    )
-                ]
+            , content
             ]
-        , content
         ]
     }
 
