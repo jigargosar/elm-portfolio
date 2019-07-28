@@ -349,8 +349,8 @@ viewMaster { title, content, model } =
                 [ div [ class "vs3" ] [ text "Projects" ]
                 , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
                 ]
-            , content
             ]
+        , content
         ]
     }
 
