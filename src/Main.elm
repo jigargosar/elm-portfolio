@@ -375,7 +375,7 @@ viewMaster { title, content } model =
     , body =
         [ div [ class "" ]
             [ div [ class "flex justify-center" ]
-                [ div [ class "w5 w-40-m dn db-ns" ] [ viewSidebar ]
+                [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-50-l" ] [ content ]
                 ]
             ]
