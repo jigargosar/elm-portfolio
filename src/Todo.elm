@@ -1,11 +1,13 @@
 module Todo exposing
-    ( Filter(..)
+    ( CompareBy(..)
+    , Filter(..)
     , Todo
     , TodoId
     , decoder
     , filter
     , filterCompleted
     , filterPending
+    , filterSort
     , idEq
     , isCompleted
     , isPending
