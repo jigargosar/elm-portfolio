@@ -331,9 +331,7 @@ viewPage page model =
             }
 
         InboxPage ->
-            { title = "Inbox"
-            , body = [ viewDefaultPage model ]
-            }
+            viewInboxPage model
 
         ProjectPage pid ->
             model.projects
