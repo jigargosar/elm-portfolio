@@ -431,15 +431,24 @@ viewMaster { title, content } model =
                 ]
 
         splitView left right =
-            div [ class "pt4 flex justify-center" ]
-                [ div [ class "w6 w-40-m dn db-ns " ] [ left ]
-                , div [ class "w-100 w-50-l" ] [ right ]
+            div [ class "flex justify-center" ]
+                [ div [ class "dn db-ns mw5 w-40-m w-30-l" ] [ left ]
+                , div [ class "w-100 w-50-m w-40-l" ] [ right ]
                 ]
+
+        sidebarHeader =
+            div [ class "bg-black-20 lh-copy pa1" ] [ text "ElmDOist" ]
+
+        contentHeader =
+            div [ class "bg-black-50 lh-copy pa1" ] [ text title ]
     in
     { title = title
     , body =
         [ div [ class "" ]
-            [ viewToolbar
+            [ div [ class "dn-ns" ] [ viewToolbar ]
+            , div [ class "dn db-ns w-100 fixed bg-black-70 white" ]
+                [ splitView sidebarHeader contentHeader ]
+            , div [ class "pt4" ] []
             , splitView viewSidebar content
             , viewIf isSidebarOpen viewSidebarOverlay
             ]
