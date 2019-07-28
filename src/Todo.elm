@@ -79,6 +79,13 @@ setModifiedAt now todo =
     { todo | modifiedAt = now }
 
 
+type Filter = 
+    Pending
+    | Completed
+    | BelongsToProject ProjectId
+    | Filter Filter
+
+
 isCompleted =
     .isDone
 
