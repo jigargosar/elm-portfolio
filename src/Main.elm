@@ -451,36 +451,26 @@ viewError error =
 
 viewProjectItem : Route -> Project -> Html Msg
 viewProjectItem route project =
-    div [ class "flex" ]
-        [ {- div [ class "pointer no-sel" ]
-                 [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
-                 ]
-             ,
-          -}
-          Html.a
-            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
-            , classList [ ( "dark-pink underline", route == Route.Project project.id ) ]
-            , title (Debug.toString project)
-            , Html.Attributes.href (Route.projectUrl project.id)
-            ]
-            [ text project.title ]
-        ]
+    viewNavItem (route == Route.Project project.id)
+        (Route.projectUrl project.id)
+        project.title
 
 
 viewInboxItem : Route -> Html Msg
 viewInboxItem route =
+    viewNavItem (route == Route.Inbox)
+        Route.inboxUrl
+        "Inbox"
+
+
+viewNavItem sel url txt =
     div [ class "flex" ]
-        [ {- div [ class "pointer no-sel" ]
-                 [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
-                 ]
-             ,
-          -}
-          Html.a
+        [ Html.a
             [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
-            , classList [ ( "dark-pink underline", route == Route.Inbox ) ]
-            , href Route.inboxUrl
+            , classList [ ( "dark-pink underline", sel ) ]
+            , href url
             ]
-            [ text "Inbox" ]
+            [ text txt ]
         ]
 
 
