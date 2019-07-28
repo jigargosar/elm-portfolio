@@ -361,13 +361,6 @@ viewDefaultPage model =
         , content =
             div [ class "pa3 vs3" ]
                 [ div [ class "vs3" ]
-                    [ viewInboxItem
-                    ]
-                , div [ class "vs3" ]
-                    [ div [ class "vs3" ] [ text "Projects" ]
-                    , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
-                    ]
-                , div [ class "vs3" ]
                     [ div [ class "" ] [ text "Pending" ]
                     , div [ class "vs3" ]
                         (List.map (viewPendingTodoItem model.edit model.projects)
