@@ -343,7 +343,7 @@ viewPage page model =
 viewDefaultPage model =
     div [ class "pa3 vs3" ]
         [ div [ class "vs3" ]
-            [ div [ class "vs3" ] [ text "Inbox" ]
+            [ viewInboxItem
             ]
         , div [ class "vs3" ]
             [ div [ class "vs3" ] [ text "Projects" ]

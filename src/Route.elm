@@ -17,7 +17,7 @@ routeParser =
     oneOf
         [ map Default top
         , map Project (s "project" </> string)
-        , map Project (s "inbox" </> string)
+        , map Inbox (s "inbox")
         ]
 
 
