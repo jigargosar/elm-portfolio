@@ -60,7 +60,7 @@ markCompleted todoId now model =
             (Todo.markCompleted
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
-                >> sortPendingTodos now
+                >> updateSortIdx now
             )
 
 
@@ -73,12 +73,12 @@ markPending todoId now model =
                 >> Todo.setSortIdx Basics.Extra.maxSafeInteger
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
-                >> sortPendingTodos now
+                >> updateSortIdx now
             )
 
 
-sortPendingTodos : Millis -> TodoDict -> TodoDict
-sortPendingTodos now todos =
+updateSortIdx : Millis -> TodoDict -> TodoDict
+updateSortIdx now todos =
     pending todos
         |> List.indexedMap Tuple.pair
         |> List.filterMap
