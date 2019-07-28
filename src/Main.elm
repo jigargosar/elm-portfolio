@@ -354,7 +354,7 @@ viewMaster { title, content } model =
                 ]
             , div [ class "vs3" ]
                 [ div [ class "vs3" ] [ text "Projects" ]
-                , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
+                , div [ class "" ] (List.map (viewProjectItem model.route) (activeProjectList model.projects))
                 ]
             ]
         , content
@@ -444,8 +444,8 @@ viewError error =
     div [ class "red" ] [ text error ]
 
 
-viewProjectItem : Project -> Html Msg
-viewProjectItem project =
+viewProjectItem : Route -> Project -> Html Msg
+viewProjectItem route project =
     div [ class "flex" ]
         [ {- div [ class "pointer no-sel" ]
                  [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
@@ -454,9 +454,8 @@ viewProjectItem project =
           -}
           Html.a
             [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
+            , classList [ ( "dark-pink underline", route == Route.Project project.id ) ]
             , title (Debug.toString project)
-
-            -- , onClick (NavTo (Route.projectUrl project.id))
             , Html.Attributes.href (Route.projectUrl project.id)
             ]
             [ text project.title ]
@@ -473,8 +472,7 @@ viewInboxItem route =
           -}
           Html.a
             [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
-            , class ""
-            , classList [ ( "pink", route == Route.Inbox ) ]
+            , classList [ ( "dark-pink underline", route == Route.Inbox ) ]
             , href Route.inboxUrl
             ]
             [ text "Inbox" ]
