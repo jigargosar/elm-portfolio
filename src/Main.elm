@@ -62,6 +62,7 @@ type alias Model =
     , page : Page
     , key : Nav.Key
     , route : Route
+    , isSidebarOpen : Bool
     }
 
 
@@ -114,7 +115,14 @@ init flags url key =
 
         emptyModel : Model
         emptyModel =
-            Model Dict.empty Dict.empty [] NoEdit page key route
+            Model Dict.empty
+                Dict.empty
+                []
+                NoEdit
+                page
+                key
+                route
+                True
 
         initHelp todos projects =
             { emptyModel | todos = todos, projects = projects }
@@ -370,6 +378,16 @@ viewMaster { title, content } model =
                         )
                     ]
                 ]
+
+        isSidebarOpen =
+            model.isSidebarOpen
+
+        viewSidebarOverlay =
+            div [ class "bg-black-60 fixed absolute--fill" ]
+                [ div [ class "w-80 shadow-1 bg-white black fixed absolute--fill" ]
+                    [ viewSidebar
+                    ]
+                ]
     in
     { title = title
     , body =
@@ -382,9 +400,18 @@ viewMaster { title, content } model =
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-50-l" ] [ content ]
                 ]
+            , viewIf isSidebarOpen viewSidebarOverlay
             ]
         ]
     }
+
+
+viewIf bool v =
+    if bool then
+        v
+
+    else
+        text ""
 
 
 viewNavItem sel url txt =
