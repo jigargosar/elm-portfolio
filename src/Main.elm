@@ -374,7 +374,9 @@ viewMaster { title, content } model =
     { title = title
     , body =
         [ div [ class "" ]
-            [ div [ class "flex justify-center" ]
+            [ div [ class "pa1 pa2-ns ttu tracked bg-black white" ]
+                [ text "toolbar" ]
+            , div [ class "flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-50-l" ] [ content ]
                 ]
