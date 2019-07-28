@@ -51,6 +51,7 @@ type Edit
 type Page
     = DefaultPage
     | ProjectPage ProjectId
+    | InboxPage
 
 
 type alias Model =
@@ -90,6 +91,9 @@ routeToPage route =
     case route of
         Route.Default ->
             DefaultPage
+
+        Route.Inbox ->
+            InboxPage
 
         Route.Project pid ->
             ProjectPage pid
@@ -322,7 +326,12 @@ view model =
 viewPage page model =
     case page of
         DefaultPage ->
-            { title = "ElmDoist"
+            { title = "Home"
+            , body = [ viewDefaultPage model ]
+            }
+
+        InboxPage ->
+            { title = "Inbox"
             , body = [ viewDefaultPage model ]
             }
 
