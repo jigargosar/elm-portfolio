@@ -20,7 +20,7 @@ type alias TodoDict =
 pending model =
     model
         |> Dict.values
-        |> Todo.filterPending
+        |> Todo.filter Todo.Pending
         |> Todo.sortPending
 
 

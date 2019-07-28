@@ -1,7 +1,9 @@
 module Todo exposing
-    ( Todo
+    ( Filter(..)
+    , Todo
     , TodoId
     , decoder
+    , filter
     , filterCompleted
     , filterPending
     , idEq
