@@ -5,6 +5,7 @@ module TodoDict exposing
     , markCompleted
     , markPending
     , pending
+    , pendingWithId
     , pendingWithProjectId
     )
 
@@ -52,10 +53,15 @@ type alias Millis =
     Int
 
 
+pendingWithId todoId =
+    Dict.get todoId
+        >> maybeFilter Todo.isPending
+
+
 markCompleted todoId now model =
-    pending model
-        |> List.filter (\t -> Todo.isPending t && Todo.idEq todoId t)
-        |> List.head
+    model
+        |> Dict.get todoId
+        |> maybeFilter Todo.isPending
         |> Maybe.map
             (Todo.markCompleted
                 >> Todo.setModifiedAt now

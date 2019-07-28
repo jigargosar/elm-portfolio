@@ -205,9 +205,7 @@ update message model =
             ( model, withNow (OnTodoCheckedWithNow todoId) )
 
         OnTodoTitleClicked todoId ->
-            TodoDict.pending model.todos
-                |> List.filter (\t -> Todo.isPending t && Todo.idEq todoId t)
-                |> List.head
+            TodoDict.pendingWithId todoId model.todos
                 |> Maybe.map
                     (\t ->
                         ( { model | edit = InlineEditTodo t }

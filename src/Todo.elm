@@ -5,10 +5,7 @@ module Todo exposing
     , TodoId
     , decoder
     , filter
-    , filterCompleted
-    , filterPending
     , filterSort
-    , idEq
     , isCompleted
     , isPending
     , mapCompleted
