@@ -40,12 +40,12 @@ completed =
 
 pendingWithProjectId pid model =
     pending model
-        |> Todo.filter (Todo.BelongsToProject pid)
+        |> Todo.filter (Todo.AndFilter Todo.Pending (Todo.BelongsToProject pid))
 
 
 completedWithProjectId pid model =
     completed model
-        |> List.filter (Todo.projectIdEq pid)
+        |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
 
 
 type alias Millis =
