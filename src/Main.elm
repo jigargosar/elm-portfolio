@@ -282,7 +282,7 @@ focusInlineEditTodoTitleCmd =
 
 sortPendingTodos : Millis -> TodoDict -> TodoDict
 sortPendingTodos now todos =
-    TodoDict.pending todos
+    TodoDict.pendingList todos
         |> List.indexedMap Tuple.pair
         |> List.filterMap
             (\( i, t ) ->
@@ -343,12 +343,12 @@ viewDefaultPage model =
             [ div [ class "" ] [ text "Pending" ]
             , div [ class "vs3" ]
                 (List.map (viewPendingTodoItem model.edit model.projects)
-                    (TodoDict.pending model.todos)
+                    (TodoDict.pendingList model.todos)
                 )
             ]
         , div [ class "vs3" ]
             [ div [ class "" ] [ text "Done" ]
-            , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completed model.todos))
+            , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completedList model.todos))
             ]
         ]
 
@@ -373,7 +373,7 @@ viewProjectPageHelp model project =
                 [ div [] [ text "Done" ]
                 , div [ class "vs3" ]
                     (List.map viewCompletedTodoItem
-                        (TodoDict.completedWithProjectId project.id model.todos)
+                        (TodoDict.completedForProjectList project.id model.todos)
                     )
                 ]
             ]

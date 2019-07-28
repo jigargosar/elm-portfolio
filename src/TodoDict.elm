@@ -1,10 +1,10 @@
 module TodoDict exposing
     ( TodoDict
-    , completed
-    , completedWithProjectId
+    , completedForProjectList
+    , completedList
     , markCompleted
     , markPending
-    , pending
+    , pendingList
     , pendingWithId
     , pendingWithProjectId
     )
@@ -29,23 +29,23 @@ filterSort f s model =
     model |> Dict.values |> Todo.filterSort f s
 
 
-pending : TodoDict -> List Todo
-pending =
+pendingList : TodoDict -> List Todo
+pendingList =
     filterSort Todo.Pending [ Todo.ByIdx ]
 
 
-completed : TodoDict -> List Todo
-completed =
+completedList : TodoDict -> List Todo
+completedList =
     filterSort Todo.Completed [ Todo.ByRecentlyModified ]
 
 
 pendingWithProjectId pid model =
-    pending model
+    pendingList model
         |> Todo.filter (Todo.AndFilter Todo.Pending (Todo.BelongsToProject pid))
 
 
-completedWithProjectId pid model =
-    completed model
+completedForProjectList pid model =
+    completedList model
         |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
 
 
@@ -84,7 +84,7 @@ markPending todoId now model =
 
 updateSortIdx : Millis -> TodoDict -> TodoDict
 updateSortIdx now todos =
-    pending todos
+    pendingList todos
         |> List.indexedMap Tuple.pair
         |> List.filterMap
             (\( i, t ) ->
