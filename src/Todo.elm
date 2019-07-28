@@ -113,6 +113,12 @@ filter filter_ =
     List.filter (matchesFilter filter_)
 
 
+type Sort
+    = ByIdx
+    | ByModifiedAtDesc
+    | ThenBy Sort
+
+
 isCompleted =
     .isDone
 
