@@ -183,7 +183,6 @@ type Msg
     | OnTodoUnChecked TodoId
     | OnTodoUnCheckedWithNow TodoId Millis
     | WrapInlineEditTodoMsg InlineEditTodoMsg
-    | NavTo String
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | OnMenuClicked
@@ -196,13 +195,14 @@ update message model =
         NoOp ->
             ( model, Cmd.none )
 
-        NavTo urlString ->
-            ( model, Nav.pushUrl model.key urlString )
-
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    if Route.fromUrl url == model.route then
+                        ( model, Nav.replaceUrl model.key (Url.toString url) )
+
+                    else
+                        ( model, Nav.pushUrl model.key (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -405,7 +405,7 @@ viewMaster { title, content } model =
     { title = title
     , body =
         [ div [ class "" ]
-            [ div [ class "pa1 pa2-ns lh-copy hs3 flex bg-black white" ]
+            [ div [ class "fixed w-100 pa1 pa2-ns lh-copy hs3 flex bg-black white" ]
                 [ div
                     [ class "pl2 tracked dn-ns"
                     , onClick OnMenuClicked
@@ -413,7 +413,7 @@ viewMaster { title, content } model =
                     [ text "|||" ]
                 , div [ class "ttu tracked" ] [ text "toolbar" ]
                 ]
-            , div [ class "flex justify-center" ]
+            , div [ class "pt4 flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-100 w-50-l" ] [ content ]
                 ]
