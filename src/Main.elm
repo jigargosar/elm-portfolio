@@ -213,7 +213,7 @@ update message model =
                 page =
                     routeToPage route
             in
-            ( { model | page = page, route = route }, Cmd.none )
+            ( { model | page = page, route = route, isSidebarOpen = False }, Cmd.none )
 
         OnDomFocusResult res ->
             res
@@ -398,7 +398,7 @@ viewMaster { title, content } model =
                 ]
             , div [ class "flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
-                , div [ class "w-50-l" ] [ content ]
+                , div [ class "w-100 w-50-l" ] [ content ]
                 ]
             , viewIf isSidebarOpen viewSidebarOverlay
             ]
