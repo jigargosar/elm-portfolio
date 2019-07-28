@@ -5,6 +5,7 @@ module Todo exposing
     , TodoId
     , decoder
     , filter
+    , filterSingle
     , filterSort
     , setCompleted
     , setModifiedAt
@@ -96,6 +97,11 @@ type alias TodoList =
 filter : Filter -> TodoList -> TodoList
 filter filter_ =
     List.filter (matchesFilter filter_)
+
+
+filterSingle : Filter -> Todo -> Maybe Todo
+filterSingle filter_ =
+    List.singleton >> filter filter_ >> List.head
 
 
 type CompareBy

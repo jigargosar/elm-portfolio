@@ -53,9 +53,10 @@ type alias Millis =
     Int
 
 
+pendingWithId : TodoId -> TodoDict -> Maybe Todo
 pendingWithId todoId =
     Dict.get todoId
-        >> Maybe.andThen (List.singleton >> Todo.filter Todo.Pending >> List.head)
+        >> Maybe.andThen (Todo.filterSingle Todo.Pending)
 
 
 markCompleted todoId now model =
