@@ -343,6 +343,9 @@ viewPage page model =
 viewDefaultPage model =
     div [ class "pa3 vs3" ]
         [ div [ class "vs3" ]
+            [ div [ class "vs3" ] [ text "Inbox" ]
+            ]
+        , div [ class "vs3" ]
             [ div [ class "vs3" ] [ text "Projects" ]
             , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
             ]
