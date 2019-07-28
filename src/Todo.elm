@@ -6,8 +6,6 @@ module Todo exposing
     , decoder
     , filter
     , filterSort
-    , isCompleted
-    , isPending
     , setCompleted
     , setModifiedAt
     , setSortIdx
