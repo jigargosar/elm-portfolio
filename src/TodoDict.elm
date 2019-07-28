@@ -64,10 +64,23 @@ markCompleted todoId now model =
             )
 
 
+ter : Bool -> a -> a -> a
+ter bool a b =
+    if bool then
+        a
+
+    else
+        b
+
+
+maybeFilter pred =
+    Maybe.andThen (\val -> ter (pred val) (Just val) Nothing)
+
+
 markPending todoId now model =
-    completed model
-        |> List.filter (\t -> Todo.isCompleted t && Todo.idEq todoId t)
-        |> List.head
+    model
+        |> Dict.get todoId
+        |> maybeFilter Todo.isCompleted
         |> Maybe.map
             (Todo.markPending
                 >> Todo.setSortIdx Basics.Extra.maxSafeInteger

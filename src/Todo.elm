@@ -95,10 +95,10 @@ matchesFilter : Filter -> Todo -> Bool
 matchesFilter filter_ todo =
     case filter_ of
         Pending ->
-            todo.isDone
+            not todo.isDone
 
         Completed ->
-            not todo.isDone
+            todo.isDone
 
         BelongsToProject pid ->
             todo.projectId == pid
