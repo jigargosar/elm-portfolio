@@ -20,6 +20,7 @@ module Todo exposing
     , toggleCompleted
     )
 
+import Compare exposing (Comparator)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)
@@ -113,10 +114,19 @@ filter filter_ =
     List.filter (matchesFilter filter_)
 
 
-type Sort
+type CompareBy
     = ByIdx
-    | ByModifiedAtDesc
-    | ThenBy Sort
+    | ByRecentlyModified
+
+
+toComparator : CompareBy -> Comparator Todo
+toComparator compareBy =
+    case compareBy of
+        ByIdx ->
+            Compare.by .sortIdx
+
+        ByRecentlyModified ->
+            Compare.by .modifiedAt |> Compare.reverse
 
 
 isCompleted =
