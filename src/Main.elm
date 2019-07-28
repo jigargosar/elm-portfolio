@@ -354,7 +354,10 @@ viewMaster { title, content } model =
                 ]
             , div [ class "vs3" ]
                 [ div [ class "vs3" ] [ text "Projects" ]
-                , div [ class "" ] (List.map (viewProjectItem model.route) (activeProjectList model.projects))
+                , div [ class "" ]
+                    (List.map (viewProjectItem model.route)
+                        (activeProjectList model.projects)
+                    )
                 ]
             ]
         , content
