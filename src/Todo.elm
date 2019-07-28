@@ -83,19 +83,32 @@ type Filter
     = Pending
     | Completed
     | BelongsToProject ProjectId
+    | AndFilter Filter Filter
 
 
 matchesFilter : Filter -> Todo -> Bool
-matchesFilter filter model =
-    case filter of
+matchesFilter filter_ todo =
+    case filter_ of
         Pending ->
-            model.isDone
+            todo.isDone
 
         Completed ->
-            not model.isDone
+            not todo.isDone
 
         BelongsToProject pid ->
-            model.projectId == pid
+            todo.projectId == pid
+
+        AndFilter a b ->
+            matchesFilter a todo && matchesFilter b todo
+
+
+type alias TodoList =
+    List Todo
+
+
+filter : Filter -> TodoList -> TodoList
+filter filter_ =
+    List.filter (matchesFilter filter_)
 
 
 isCompleted =
