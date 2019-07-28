@@ -186,6 +186,8 @@ type Msg
     | NavTo String
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
+    | OnMenuClicked
+    | OnSidebarOverlayClicked
 
 
 update : Msg -> Model -> Return
@@ -253,6 +255,12 @@ update message model =
 
                 InlineEditTodo todo ->
                     updateInlineEditTodo msg todo model
+
+        OnMenuClicked ->
+            ( { model | isSidebarOpen = True }, Cmd.none )
+
+        OnSidebarOverlayClicked ->
+            ( { model | isSidebarOpen = False }, Cmd.none )
 
 
 setAndCacheTodosIn model todos =
@@ -383,17 +391,26 @@ viewMaster { title, content } model =
             model.isSidebarOpen
 
         viewSidebarOverlay =
-            div [ class "bg-black-60 fixed absolute--fill" ]
-                [ div [ class "w-80 shadow-1 bg-white black fixed absolute--fill" ]
+            div [ class "fixed absolute--fill flex" ]
+                [ div [ class "w-80 shadow-1 bg-white black" ]
                     [ viewSidebar
                     ]
+                , div
+                    [ class "flex-grow-1 bg-black-60"
+                    , onClick OnSidebarOverlayClicked
+                    ]
+                    []
                 ]
     in
     { title = title
     , body =
         [ div [ class "" ]
             [ div [ class "pa1 pa2-ns lh-copy hs3 flex bg-black white" ]
-                [ div [ class "pl2 tracked dn-ns" ] [ text "|||" ]
+                [ div
+                    [ class "pl2 tracked dn-ns"
+                    , onClick OnMenuClicked
+                    ]
+                    [ text "|||" ]
                 , div [ class "ttu tracked" ] [ text "toolbar" ]
                 ]
             , div [ class "flex justify-center" ]
