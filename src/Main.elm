@@ -429,15 +429,18 @@ viewMaster { title, content } model =
                     [ text "|||" ]
                 , div [ class "ttu tracked" ] [ text title ]
                 ]
+
+        splitView left right =
+            div [ class "pt4 flex justify-center" ]
+                [ div [ class "w6 w-40-m dn db-ns " ] [ left ]
+                , div [ class "w-100 w-50-l" ] [ right ]
+                ]
     in
     { title = title
     , body =
         [ div [ class "" ]
             [ viewToolbar
-            , div [ class "pt4 flex justify-center" ]
-                [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
-                , div [ class "w-100 w-50-l" ] [ content ]
-                ]
+            , splitView viewSidebar content
             , viewIf isSidebarOpen viewSidebarOverlay
             ]
         ]
