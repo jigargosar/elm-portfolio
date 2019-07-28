@@ -134,6 +134,11 @@ sortWith comps =
     List.sortWith (Compare.concat (List.map toComparator comps))
 
 
+filterSort : Filter -> List CompareBy -> TodoList -> TodoList
+filterSort fil comps =
+    filter fil >> sortWith comps
+
+
 isCompleted =
     .isDone
 
