@@ -8,15 +8,10 @@ module Todo exposing
     , filterSort
     , isCompleted
     , isPending
-    , mapCompleted
     , markCompleted
     , markPending
-    , projectIdEq
     , setModifiedAt
     , setSortIdx
-    , sortCompleted
-    , sortPending
-    , toggleCompleted
     )
 
 import Compare exposing (Comparator)
@@ -71,10 +66,6 @@ markCompleted =
 
 markPending =
     setCompleted False
-
-
-toggleCompleted model =
-    mapCompleted not model
 
 
 setModifiedAt now todo =
