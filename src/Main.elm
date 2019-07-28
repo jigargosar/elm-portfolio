@@ -334,7 +334,7 @@ viewPage page model =
         ProjectPage pid ->
             model.projects
                 |> Dict.get pid
-                |> Maybe.map (viewProjectPageHelp model)
+                |> Maybe.map (viewProjectPage model)
                 |> Maybe.withDefault (viewPage DefaultPage model)
 
 
@@ -376,7 +376,7 @@ viewDefaultPage model =
         }
 
 
-viewProjectPageHelp model project =
+viewProjectPage model project =
     viewMaster
         { title = project.title
         , content =
