@@ -32,6 +32,6 @@ projectUrl pid =
     B.absolute [ "project", pid ] []
 
 
-inboxUrl : String -> String
-inboxUrl pid =
+inboxUrl : String
+inboxUrl =
     B.absolute [ "inbox" ] []

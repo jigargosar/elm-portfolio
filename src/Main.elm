@@ -441,6 +441,22 @@ viewProjectItem project =
         ]
 
 
+viewInboxItem : Html Msg
+viewInboxItem =
+    div [ class "flex" ]
+        [ {- div [ class "pointer no-sel" ]
+                 [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
+                 ]
+             ,
+          -}
+          Html.a
+            [ class "pa1 link flex-grow-1 pointer hover-bg-light-yellow lh-copy"
+            , Html.Attributes.href Route.inboxUrl
+            ]
+            [ text "Inbox" ]
+        ]
+
+
 viewPendingTodoItem : Edit -> ProjectDict -> Todo -> Html Msg
 viewPendingTodoItem edit projects todo =
     case edit of
