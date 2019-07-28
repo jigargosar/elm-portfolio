@@ -338,7 +338,7 @@ viewPage page model =
                 |> Maybe.withDefault (viewPage DefaultPage model)
 
 
-viewMaster { title, content, model } =
+viewMaster { title, content } model =
     { title = title
     , body =
         [ div [ class "pa3 vs3" ]
@@ -372,8 +372,8 @@ viewDefaultPage model =
                     , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completedList model.todos))
                     ]
                 ]
-        , model = model
         }
+        model
 
 
 viewProjectPage model project =
@@ -401,35 +401,36 @@ viewProjectPage model project =
                         )
                     ]
                 ]
-        , model = model
         }
+        model
 
 
 viewInboxPage model =
-    { title = "Inbox"
-    , body =
-        [ div [ class "pa3 vs3" ]
-            [ div [ class "hs3 flex" ]
-                [ div [] [ text "Inbox" ]
-                ]
-            , div [ class "vs3" ]
-                [ div [] [ text "Pending" ]
+    viewMaster
+        { title = "Inbox"
+        , content =
+            div [ class "pa3 vs3" ]
+                [ div [ class "hs3 flex" ]
+                    [ div [] [ text "Inbox" ]
+                    ]
                 , div [ class "vs3" ]
-                    (List.map
-                        (viewPendingTodoItem model.edit model.projects)
-                        (TodoDict.pendingWithProjectId "" model.todos)
-                    )
-                ]
-            , div [ class "vs3" ]
-                [ div [] [ text "Done" ]
+                    [ div [] [ text "Pending" ]
+                    , div [ class "vs3" ]
+                        (List.map
+                            (viewPendingTodoItem model.edit model.projects)
+                            (TodoDict.pendingWithProjectId "" model.todos)
+                        )
+                    ]
                 , div [ class "vs3" ]
-                    (List.map viewCompletedTodoItem
-                        (TodoDict.completedForProjectList "" model.todos)
-                    )
+                    [ div [] [ text "Done" ]
+                    , div [ class "vs3" ]
+                        (List.map viewCompletedTodoItem
+                            (TodoDict.completedForProjectList "" model.todos)
+                        )
+                    ]
                 ]
-            ]
-        ]
-    }
+        }
+        model
 
 
 viewError error =
