@@ -17,17 +17,23 @@ type alias TodoDict =
     Dict TodoId Todo
 
 
-pending model =
+filter : Todo.Filter -> TodoDict -> List Todo
+filter f model =
     model
         |> Dict.values
-        |> Todo.filter Todo.Pending
+        |> Todo.filter f
+
+
+pending model =
+    model
+        |> filter Todo.Pending
         |> Todo.sortPending
 
 
 completed model =
     model
         |> Dict.values
-        |> Todo.filterCompleted
+        |> Todo.filter Todo.Completed
         |> Todo.sortCompleted
 
 
