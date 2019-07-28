@@ -377,31 +377,32 @@ viewDefaultPage model =
 
 
 viewProjectPageHelp model project =
-    { title = project.title
-    , body =
-        [ div [ class "pa3 vs3" ]
-            [ div [ class "hs3 flex" ]
-                [ div [] [ text "Project:" ]
-                , div [] [ text project.title ]
-                ]
-            , div [ class "vs3" ]
-                [ div [] [ text "Pending" ]
+    viewMaster
+        { title = project.title
+        , content =
+            div [ class "pa3 vs3" ]
+                [ div [ class "hs3 flex" ]
+                    [ div [] [ text "Project:" ]
+                    , div [] [ text project.title ]
+                    ]
                 , div [ class "vs3" ]
-                    (List.map
-                        (viewPendingTodoItem model.edit model.projects)
-                        (TodoDict.pendingWithProjectId project.id model.todos)
-                    )
-                ]
-            , div [ class "vs3" ]
-                [ div [] [ text "Done" ]
+                    [ div [] [ text "Pending" ]
+                    , div [ class "vs3" ]
+                        (List.map
+                            (viewPendingTodoItem model.edit model.projects)
+                            (TodoDict.pendingWithProjectId project.id model.todos)
+                        )
+                    ]
                 , div [ class "vs3" ]
-                    (List.map viewCompletedTodoItem
-                        (TodoDict.completedForProjectList project.id model.todos)
-                    )
+                    [ div [] [ text "Done" ]
+                    , div [ class "vs3" ]
+                        (List.map viewCompletedTodoItem
+                            (TodoDict.completedForProjectList project.id model.todos)
+                        )
+                    ]
                 ]
-            ]
-        ]
-    }
+        , model = model
+        }
 
 
 viewInboxPage model =
