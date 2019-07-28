@@ -51,9 +51,13 @@ mapCompleted fn model =
     { model | isDone = fn model.isDone }
 
 
-setCompleted : Bool -> Todo -> Todo
+setCompleted : Bool -> Todo -> Maybe Todo
 setCompleted bool model =
-    { model | isDone = bool }
+    if model.isDone == bool then
+        Nothing
+
+    else
+        Just { model | isDone = bool }
 
 
 setSortIdx sortIdx model =

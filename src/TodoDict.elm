@@ -55,41 +55,26 @@ type alias Millis =
 
 pendingWithId todoId =
     Dict.get todoId
-        >> maybeFilter Todo.isPending
+        >> Maybe.andThen (List.singleton >> Todo.filter Todo.Pending >> List.head)
 
 
 markCompleted todoId now model =
     model
         |> Dict.get todoId
-        |> maybeFilter Todo.isPending
+        |> Maybe.andThen (Todo.setCompleted True)
         |> Maybe.map
-            (Todo.setCompleted True
-                >> Todo.setModifiedAt now
+            (Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updateSortIdx now
             )
 
 
-ter : Bool -> a -> a -> a
-ter bool a b =
-    if bool then
-        a
-
-    else
-        b
-
-
-maybeFilter pred =
-    Maybe.andThen (\val -> ter (pred val) (Just val) Nothing)
-
-
 markPending todoId now model =
     model
         |> Dict.get todoId
-        |> maybeFilter Todo.isCompleted
+        |> Maybe.andThen (Todo.setCompleted False)
         |> Maybe.map
-            (Todo.setCompleted False
-                >> Todo.setSortIdx Basics.Extra.maxSafeInteger
+            (Todo.setSortIdx Basics.Extra.maxSafeInteger
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updateSortIdx now
