@@ -346,6 +346,19 @@ viewPage page model =
 
 
 viewMaster { title, content } model =
+    let
+        viewProjectItem : Route -> Project -> Html Msg
+        viewProjectItem route project =
+            viewNavItem (route == Route.Project project.id)
+                (Route.projectUrl project.id)
+                project.title
+
+        viewInboxItem : Route -> Html Msg
+        viewInboxItem route =
+            viewNavItem (route == Route.Inbox)
+                Route.inboxUrl
+                "Inbox"
+    in
     { title = title
     , body =
         [ div [ class "flex hs3" ]
@@ -365,6 +378,17 @@ viewMaster { title, content } model =
             ]
         ]
     }
+
+
+viewNavItem sel url txt =
+    div [ class "flex" ]
+        [ Html.a
+            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
+            , classList [ ( "dark-pink underline", sel ) ]
+            , href url
+            ]
+            [ text txt ]
+        ]
 
 
 viewDefaultPage model =
@@ -447,31 +471,6 @@ viewInboxPage model =
 
 viewError error =
     div [ class "red" ] [ text error ]
-
-
-viewProjectItem : Route -> Project -> Html Msg
-viewProjectItem route project =
-    viewNavItem (route == Route.Project project.id)
-        (Route.projectUrl project.id)
-        project.title
-
-
-viewInboxItem : Route -> Html Msg
-viewInboxItem route =
-    viewNavItem (route == Route.Inbox)
-        Route.inboxUrl
-        "Inbox"
-
-
-viewNavItem sel url txt =
-    div [ class "flex" ]
-        [ Html.a
-            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
-            , classList [ ( "dark-pink underline", sel ) ]
-            , href url
-            ]
-            [ text txt ]
-        ]
 
 
 viewPendingTodoItem : Edit -> ProjectDict -> Todo -> Html Msg
