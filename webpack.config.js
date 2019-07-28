@@ -1,14 +1,13 @@
-var path = require('path')
-var HtmlWebpackPlugin = require('html-webpack-plugin')
-var { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 // https://webpack.js.org/configuration/
 module.exports = function(env = {}, argv) {
   console.log('env:', env)
   const isProduction = argv.mode === 'production'
   return {
-    // entry: './src/index.tsx',
-    entry: './src/index-elm.js',
+    entry: './src/index.js',
     output: {
       publicPath: '/',
     },
@@ -18,13 +17,6 @@ module.exports = function(env = {}, argv) {
     module: {
       rules: [
         { test: /\.css$/, loader: ['style-loader', 'css-loader'] },
-        // {
-        //   test: /\.elm$/,
-        //   use: [
-        //     'elm-hot-webpack-loader',
-        //     path.resolve('loaders/elm-loader.js'),
-        //   ],
-        // },
         {
           test: /\.elm$/,
           use: [
