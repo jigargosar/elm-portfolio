@@ -1,7 +1,7 @@
 {
-  "name": "react-live-dev",
+  "name": "elm-portfolio",
+  "description": "elm-portfolio",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "nodemon -w loaders -w webpack.config.js -w tsconfig.json -w package-lock.json -w elm.json -x webpack-dev-server",
@@ -9,11 +9,9 @@
     "_elm": "nodemon -e \"elm\" -w \"src/**/*.elm\" -x elm make src/Main.elm --output=src/Main.elm.js",
     "elm": "nodemon -e \"elm\" -w \"src/**/*.elm\" -x elm make src/Main.elm --output=src/Main.elm.js"
   },
+  "private": true,
   "keywords": [],
-  "author": {
-    "name": "Jigar Gosar",
-    "email": "jigar.gosar@gmail.com"
-  },
+  "author": "Jigar Gosar <jigar.gosar@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "@types/faker": "^4.1.5",
