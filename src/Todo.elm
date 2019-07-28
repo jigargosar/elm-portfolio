@@ -129,6 +129,11 @@ toComparator compareBy =
             Compare.by .modifiedAt |> Compare.reverse
 
 
+sortWith : List CompareBy -> TodoList -> TodoList
+sortWith comps =
+    List.sortWith (Compare.concat (List.map toComparator comps))
+
+
 isCompleted =
     .isDone
 
