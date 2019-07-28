@@ -20,7 +20,7 @@ module.exports = function(env = {}, argv) {
         {
           test: /\.elm$/,
           use: [
-            'elm-hot-webpack-loader',
+            // 'elm-hot-webpack-loader',
             {
               loader: 'elm-webpack-loader',
               options: {
