@@ -199,10 +199,13 @@ update message model =
 
         UrlChanged url ->
             let
+                route =
+                    Route.fromUrl url
+
                 page =
-                    Route.fromUrl url |> routeToPage
+                    routeToPage route
             in
-            ( { model | page = page }, Cmd.none )
+            ( { model | page = page, route = route }, Cmd.none )
 
         OnDomFocusResult res ->
             res
@@ -450,7 +453,7 @@ viewProjectItem project =
              ,
           -}
           Html.a
-            [ class "pa1 link flex-grow-1 pointer hover-bg-light-yellow lh-copy"
+            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
             , title (Debug.toString project)
 
             -- , onClick (NavTo (Route.projectUrl project.id))
@@ -469,7 +472,8 @@ viewInboxItem route =
              ,
           -}
           Html.a
-            [ class "pa1 link flex-grow-1 pointer hover-bg-light-yellow lh-copy"
+            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
+            , class ""
             , classList [ ( "pink", route == Route.Inbox ) ]
             , href Route.inboxUrl
             ]
