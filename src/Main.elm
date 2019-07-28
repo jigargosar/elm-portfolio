@@ -340,7 +340,7 @@ viewPage page model =
                 |> Maybe.withDefault (viewPage DefaultPage model)
 
 
-viewMaster model =
+viewMaster { content, model } =
     div [ class "pa3 vs3" ]
         [ div [ class "vs3" ]
             [ viewInboxItem
@@ -349,30 +349,35 @@ viewMaster model =
             [ div [ class "vs3" ] [ text "Projects" ]
             , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
             ]
+        , content
         ]
 
 
 viewDefaultPage model =
-    div [ class "pa3 vs3" ]
-        [ div [ class "vs3" ]
-            [ viewInboxItem
-            ]
-        , div [ class "vs3" ]
-            [ div [ class "vs3" ] [ text "Projects" ]
-            , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
-            ]
-        , div [ class "vs3" ]
-            [ div [ class "" ] [ text "Pending" ]
-            , div [ class "vs3" ]
-                (List.map (viewPendingTodoItem model.edit model.projects)
-                    (TodoDict.pendingList model.todos)
-                )
-            ]
-        , div [ class "vs3" ]
-            [ div [ class "" ] [ text "Done" ]
-            , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completedList model.todos))
-            ]
-        ]
+    viewMaster
+        { content =
+            div [ class "pa3 vs3" ]
+                [ div [ class "vs3" ]
+                    [ viewInboxItem
+                    ]
+                , div [ class "vs3" ]
+                    [ div [ class "vs3" ] [ text "Projects" ]
+                    , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
+                    ]
+                , div [ class "vs3" ]
+                    [ div [ class "" ] [ text "Pending" ]
+                    , div [ class "vs3" ]
+                        (List.map (viewPendingTodoItem model.edit model.projects)
+                            (TodoDict.pendingList model.todos)
+                        )
+                    ]
+                , div [ class "vs3" ]
+                    [ div [ class "" ] [ text "Done" ]
+                    , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completedList model.todos))
+                    ]
+                ]
+        , model = model
+        }
 
 
 viewProjectPageHelp model project =
