@@ -398,14 +398,17 @@ viewMaster { title, content } model =
                 "Inbox"
 
         viewSidebar =
-            div [ class "pa3 vs3" ]
-                [ div [ class "vs3" ] [ viewInboxItem model.route ]
-                , div [ class "vs3" ]
-                    [ div [ class "vs3" ] [ text "Projects" ]
-                    , div [ class "" ]
-                        (List.map (viewProjectItem model.route)
-                            (activeProjectList model.projects)
-                        )
+            div []
+                [ div [ class "pa1 bg-black white ttu tracked" ] [ text "ELMDOIST" ]
+                , div [ class "pa3 vs3" ]
+                    [ div [ class "vs3" ] [ viewInboxItem model.route ]
+                    , div [ class "vs3" ]
+                        [ div [ class "vs3" ] [ text "Projects" ]
+                        , div [ class "" ]
+                            (List.map (viewProjectItem model.route)
+                                (activeProjectList model.projects)
+                            )
+                        ]
                     ]
                 ]
 
@@ -423,19 +426,22 @@ viewMaster { title, content } model =
                     ]
                     []
                 ]
+
+        viewToolbar =
+            div [ class "dn-ns fixed w-100 pa1 lh-copy hs3 flex bg-black white" ]
+                [ div
+                    [ class "pl2 tracked"
+                    , onClick OnMenuClicked
+                    ]
+                    [ text "|||" ]
+                , div [ class "ttu tracked" ] [ text title ]
+                ]
     in
     { title = title
     , body =
         [ div [ class "" ]
-            [ div [ class "fixed w-100 pa1 pa2-ns lh-copy hs3 flex bg-black white" ]
-                [ div
-                    [ class "pl2 tracked dn-ns"
-                    , onClick OnMenuClicked
-                    ]
-                    [ text "|||" ]
-                , div [ class "ttu tracked" ] [ text "toolbar" ]
-                ]
-            , div [ class "pt4 flex justify-center" ]
+            [ viewToolbar
+            , div [ class "pt4 pt0-ns flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-100 w-50-l" ] [ content ]
                 ]
