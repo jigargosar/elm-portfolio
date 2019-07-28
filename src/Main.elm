@@ -64,6 +64,7 @@ type alias Model =
     , key : Nav.Key
     , route : Route
     , isSidebarOpen : Bool
+    , size : { width : Int, height : Int }
     }
 
 
@@ -124,6 +125,7 @@ init flags url key =
                 key
                 route
                 True
+                { width = 0, height = 0 }
 
         initHelp todos projects =
             { emptyModel | todos = todos, projects = projects }
@@ -135,7 +137,7 @@ init flags url key =
         (decodeTodoList flags.todoList)
         (decodeProjectList flags.projectList)
         |> unpackErr initFromError
-    , Cmd.none
+    , Browser.Dom.getViewport |> Task.perform OnViewPort
     )
 
 
@@ -179,6 +181,7 @@ type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
     | OnBrowserResize Int Int
+    | OnViewPort Browser.Dom.Viewport
     | OnTodoChecked TodoId
     | OnTodoTitleClicked TodoId
     | OnTodoCheckedWithNow TodoId Millis
@@ -197,6 +200,10 @@ m =
 
 l =
     960
+
+
+isSmall w =
+    w < m
 
 
 update : Msg -> Model -> Return
@@ -227,12 +234,19 @@ update message model =
             in
             ( { model | page = page, route = route, isSidebarOpen = False }, Cmd.none )
 
-        OnBrowserResize w h ->
+        OnBrowserResize width height ->
             let
                 _ =
-                    Debug.log "w,h" ( w, h )
+                    Debug.log "w,h" ( width, height )
             in
-            ( model, Cmd.none )
+            ( { model | size = { width = width, height = height } }, Cmd.none )
+
+        OnViewPort vp ->
+            let
+                { width, height } =
+                    vp.viewport
+            in
+            ( { model | size = { width = round width, height = round height } }, Cmd.none )
 
         OnDomFocusResult res ->
             res
@@ -407,7 +421,7 @@ viewMaster { title, content } model =
                 ]
 
         isSidebarOpen =
-            model.isSidebarOpen
+            model.isSidebarOpen && isSmall model.size.width
 
         viewSidebarOverlay =
             div [ class "fixed absolute--fill flex" ]
