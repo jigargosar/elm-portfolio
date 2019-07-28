@@ -377,7 +377,7 @@ viewDefaultPage model =
 
 
 viewProjectPageHelp model project =
-    { title = "ElmDoist"
+    { title = project.title
     , body =
         [ div [ class "pa3 vs3" ]
             [ div [ class "hs3 flex" ]
