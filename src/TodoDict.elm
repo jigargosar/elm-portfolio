@@ -63,7 +63,7 @@ markCompleted todoId now model =
         |> Dict.get todoId
         |> maybeFilter Todo.isPending
         |> Maybe.map
-            (Todo.markCompleted
+            (Todo.setCompleted True
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updateSortIdx now
@@ -88,7 +88,7 @@ markPending todoId now model =
         |> Dict.get todoId
         |> maybeFilter Todo.isCompleted
         |> Maybe.map
-            (Todo.markPending
+            (Todo.setCompleted False
                 >> Todo.setSortIdx Basics.Extra.maxSafeInteger
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)

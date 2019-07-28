@@ -8,8 +8,7 @@ module Todo exposing
     , filterSort
     , isCompleted
     , isPending
-    , markCompleted
-    , markPending
+    , setCompleted
     , setModifiedAt
     , setSortIdx
     )
@@ -52,20 +51,13 @@ mapCompleted fn model =
     { model | isDone = fn model.isDone }
 
 
+setCompleted : Bool -> Todo -> Todo
 setCompleted bool model =
-    mapCompleted (always bool) model
+    { model | isDone = bool }
 
 
 setSortIdx sortIdx model =
     { model | sortIdx = sortIdx }
-
-
-markCompleted =
-    setCompleted True
-
-
-markPending =
-    setCompleted False
 
 
 setModifiedAt now todo =
