@@ -3,6 +3,7 @@ port module Main exposing (main)
 import Basics.Extra
 import Browser
 import Browser.Dom
+import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
@@ -177,6 +178,7 @@ type InlineEditTodoMsg
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
+    | OnBrowserResize Int Int
     | OnTodoChecked TodoId
     | OnTodoTitleClicked TodoId
     | OnTodoCheckedWithNow TodoId Millis
@@ -187,6 +189,14 @@ type Msg
     | UrlChanged Url
     | OnMenuClicked
     | OnSidebarOverlayClicked
+
+
+m =
+    480
+
+
+l =
+    960
 
 
 update : Msg -> Model -> Return
@@ -216,6 +226,13 @@ update message model =
                     routeToPage route
             in
             ( { model | page = page, route = route, isSidebarOpen = False }, Cmd.none )
+
+        OnBrowserResize w h ->
+            let
+                _ =
+                    Debug.log "w,h" ( w, h )
+            in
+            ( model, Cmd.none )
 
         OnDomFocusResult res ->
             res
@@ -329,7 +346,9 @@ withNow msg =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Browser.Events.onResize OnBrowserResize
+        ]
 
 
 view : Model -> Browser.Document Msg
