@@ -358,14 +358,10 @@ viewMaster { title, content } model =
             viewNavItem (route == Route.Inbox)
                 Route.inboxUrl
                 "Inbox"
-    in
-    { title = title
-    , body =
-        [ div [ class "flex hs3" ]
-            [ div [ class "pa3 vs3" ]
-                [ div [ class "vs3" ]
-                    [ viewInboxItem model.route
-                    ]
+
+        viewSidebar =
+            div [ class "pa3 vs3 w5 w-40-m dn db-ns" ]
+                [ div [ class "vs3" ] [ viewInboxItem model.route ]
                 , div [ class "vs3" ]
                     [ div [ class "vs3" ] [ text "Projects" ]
                     , div [ class "" ]
@@ -374,7 +370,14 @@ viewMaster { title, content } model =
                         )
                     ]
                 ]
-            , content
+    in
+    { title = title
+    , body =
+        [ div [ class "flex" ]
+            [ viewSidebar
+            , div [ class "flex-grow-1" ]
+                [ content
+                ]
             ]
         ]
     }
@@ -383,7 +386,7 @@ viewMaster { title, content } model =
 viewNavItem sel url txt =
     div [ class "flex" ]
         [ Html.a
-            [ class "pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
+            [ class "truncate pa1 link flex-grow-1 pointer hov-bg-light-yellow lh-copy"
             , classList [ ( "dark-pink underline", sel ) ]
             , href url
             ]
