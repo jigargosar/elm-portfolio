@@ -224,10 +224,6 @@ update message model =
             ( { model | page = page, route = route, isSidebarOpen = False }, Cmd.none )
 
         OnBrowserResize width height ->
-            let
-                _ =
-                    Debug.log "w,h" ( width, height )
-            in
             ( { model | size = { width = width, height = height } }, Cmd.none )
 
         OnViewPort vp ->
@@ -399,7 +395,7 @@ viewMaster { title, content } model =
 
         viewSidebar =
             div []
-                [ div [ class "pa1 bg-black white ttu tracked" ] [ text "ELMDOIST" ]
+                [ div [ class "dn db-ns pa2 bg-black white ttu tracked" ] [ text "ELMDOIST" ]
                 , div [ class "pa3 vs3" ]
                     [ div [ class "vs3" ] [ viewInboxItem model.route ]
                     , div [ class "vs3" ]
@@ -443,7 +439,10 @@ viewMaster { title, content } model =
             [ viewToolbar
             , div [ class "pt4 pt0-ns flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
-                , div [ class "w-100 w-50-l" ] [ content ]
+                , div [ class "w-100 w-50-l" ]
+                    [ div [ class "dn db-ns pa2 bg-black white ttu tracked" ] [ text title ]
+                    , content
+                    ]
                 ]
             , viewIf isSidebarOpen viewSidebarOverlay
             ]
