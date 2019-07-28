@@ -340,6 +340,18 @@ viewPage page model =
                 |> Maybe.withDefault (viewPage DefaultPage model)
 
 
+viewMaster model =
+    div [ class "pa3 vs3" ]
+        [ div [ class "vs3" ]
+            [ viewInboxItem
+            ]
+        , div [ class "vs3" ]
+            [ div [ class "vs3" ] [ text "Projects" ]
+            , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
+            ]
+        ]
+
+
 viewDefaultPage model =
     div [ class "pa3 vs3" ]
         [ div [ class "vs3" ]
