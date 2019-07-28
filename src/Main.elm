@@ -326,9 +326,7 @@ view model =
 viewPage page model =
     case page of
         DefaultPage ->
-            { title = "Home"
-            , body = [ viewDefaultPage model ]
-            }
+            viewDefaultPage model
 
         InboxPage ->
             viewInboxPage model
@@ -340,22 +338,27 @@ viewPage page model =
                 |> Maybe.withDefault (viewPage DefaultPage model)
 
 
-viewMaster { content, model } =
-    div [ class "pa3 vs3" ]
-        [ div [ class "vs3" ]
-            [ viewInboxItem
+viewMaster { title, content, model } =
+    { title = title
+    , body =
+        [ div [ class "pa3 vs3" ]
+            [ div [ class "vs3" ]
+                [ viewInboxItem
+                ]
+            , div [ class "vs3" ]
+                [ div [ class "vs3" ] [ text "Projects" ]
+                , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
+                ]
+            , content
             ]
-        , div [ class "vs3" ]
-            [ div [ class "vs3" ] [ text "Projects" ]
-            , div [ class "" ] (List.map viewProjectItem (activeProjectList model.projects))
-            ]
-        , content
         ]
+    }
 
 
 viewDefaultPage model =
     viewMaster
-        { content =
+        { title = "Home"
+        , content =
             div [ class "pa3 vs3" ]
                 [ div [ class "vs3" ]
                     [ viewInboxItem
