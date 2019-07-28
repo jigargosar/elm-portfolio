@@ -63,3 +63,7 @@ html,
 a {
   color: inherit;
 }
+
+.hov-bg-light-yellow:hover {
+  background-color: #fbf1a9;
+}

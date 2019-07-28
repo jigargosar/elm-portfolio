@@ -6,7 +6,7 @@ import Browser.Dom
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
-import Html.Attributes exposing (autofocus, class, style, tabindex, title, value)
+import Html.Attributes exposing (autofocus, class, classList, href, style, tabindex, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
@@ -470,8 +470,8 @@ viewInboxItem route =
           -}
           Html.a
             [ class "pa1 link flex-grow-1 pointer hover-bg-light-yellow lh-copy"
-            , Html.Attributes.classList [ ( "pink", route == Route.Inbox ) ]
-            , Html.Attributes.href Route.inboxUrl
+            , classList [ ( "pink", route == Route.Inbox ) ]
+            , href Route.inboxUrl
             ]
             [ text "Inbox" ]
         ]
