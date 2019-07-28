@@ -125,7 +125,7 @@ init flags url key =
                 page
                 key
                 route
-                True
+                False
                 { width = 0, height = 0 }
 
         initHelp todos projects =
@@ -421,7 +421,7 @@ viewMaster { title, content } model =
                 ]
 
         viewToolbar =
-            div [ class "dn-ns fixed w-100 pa1 lh-copy hs3 flex bg-black white" ]
+            div [ class "fixed w-100 pa1 lh-copy hs3 flex bg-black-80 white" ]
                 [ div
                     [ class "pl2 tracked"
                     , onClick OnMenuClicked
@@ -434,7 +434,7 @@ viewMaster { title, content } model =
     , body =
         [ div [ class "" ]
             [ viewToolbar
-            , div [ class "pt4 pt0-ns flex justify-center" ]
+            , div [ class "pt4 flex justify-center" ]
                 [ div [ class "w6 w-40-m dn db-ns " ] [ viewSidebar ]
                 , div [ class "w-100 w-50-l" ] [ content ]
                 ]
