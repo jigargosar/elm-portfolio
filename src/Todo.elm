@@ -79,11 +79,23 @@ setModifiedAt now todo =
     { todo | modifiedAt = now }
 
 
-type Filter = 
-    Pending
+type Filter
+    = Pending
     | Completed
     | BelongsToProject ProjectId
-    | Filter Filter
+
+
+matchesFilter : Filter -> Todo -> Bool
+matchesFilter filter model =
+    case filter of
+        Pending ->
+            model.isDone
+
+        Completed ->
+            not model.isDone
+
+        BelongsToProject pid ->
+            model.projectId == pid
 
 
 isCompleted =
