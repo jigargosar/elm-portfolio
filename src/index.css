@@ -60,7 +60,6 @@ html,
   user-select: none;
 }
 
-.link:link,
-.link:visited {
-  color: unset;
+a {
+  color: inherit;
 }

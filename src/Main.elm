@@ -14,7 +14,7 @@ import Json.Encode as JE exposing (Value)
 import Project exposing (Project)
 import ProjectId exposing (ProjectId)
 import Return
-import Route
+import Route exposing (Route)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -61,6 +61,7 @@ type alias Model =
     , edit : Edit
     , page : Page
     , key : Nav.Key
+    , route : Route
     }
 
 
@@ -105,12 +106,15 @@ routeToPage route =
 init : Flags -> Url -> Nav.Key -> Return
 init flags url key =
     let
+        route =
+            Route.fromUrl url
+
         page =
-            Route.fromUrl url |> routeToPage
+            routeToPage route
 
         emptyModel : Model
         emptyModel =
-            Model Dict.empty Dict.empty [] NoEdit page key
+            Model Dict.empty Dict.empty [] NoEdit page key route
 
         initHelp todos projects =
             { emptyModel | todos = todos, projects = projects }
@@ -343,7 +347,7 @@ viewMaster { title, content } model =
     , body =
         [ div [ class "pa3 vs3" ]
             [ div [ class "vs3" ]
-                [ viewInboxItem
+                [ viewInboxItem model.route
                 ]
             , div [ class "vs3" ]
                 [ div [ class "vs3" ] [ text "Projects" ]
@@ -456,8 +460,8 @@ viewProjectItem project =
         ]
 
 
-viewInboxItem : Html Msg
-viewInboxItem =
+viewInboxItem : Route -> Html Msg
+viewInboxItem route =
     div [ class "flex" ]
         [ {- div [ class "pointer no-sel" ]
                  [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
@@ -466,6 +470,7 @@ viewInboxItem =
           -}
           Html.a
             [ class "pa1 link flex-grow-1 pointer hover-bg-light-yellow lh-copy"
+            , Html.Attributes.classList [ ( "pink", route == Route.Inbox ) ]
             , Html.Attributes.href Route.inboxUrl
             ]
             [ text "Inbox" ]
