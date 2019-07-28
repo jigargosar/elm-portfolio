@@ -12,6 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)
+import MediaQuery
 import Project exposing (Project)
 import ProjectId exposing (ProjectId)
 import Return
@@ -192,18 +193,6 @@ type Msg
     | UrlChanged Url
     | OnMenuClicked
     | OnSidebarOverlayClicked
-
-
-m =
-    480
-
-
-l =
-    960
-
-
-isSmall w =
-    w < m
 
 
 update : Msg -> Model -> Return
@@ -421,7 +410,7 @@ viewMaster { title, content } model =
                 ]
 
         isSidebarOpen =
-            model.isSidebarOpen && isSmall model.size.width
+            model.isSidebarOpen && MediaQuery.isSmall model.size.width
 
         viewSidebarOverlay =
             div [ class "fixed absolute--fill flex" ]
