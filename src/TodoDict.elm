@@ -24,22 +24,23 @@ filter f model =
         |> Todo.filter f
 
 
-pending model =
-    model
-        |> filter Todo.Pending
-        |> Todo.sortPending
+filterSort f s model =
+    model |> Dict.values |> Todo.filterSort f s
 
 
-completed model =
-    model
-        |> Dict.values
-        |> Todo.filter Todo.Completed
-        |> Todo.sortCompleted
+pending : TodoDict -> List Todo
+pending =
+    filterSort Todo.Pending [ Todo.ByIdx ]
+
+
+completed : TodoDict -> List Todo
+completed =
+    filterSort Todo.Completed [ Todo.ByRecentlyModified ]
 
 
 pendingWithProjectId pid model =
     pending model
-        |> List.filter (Todo.projectIdEq pid)
+        |> Todo.filter (Todo.BelongsToProject pid)
 
 
 completedWithProjectId pid model =
