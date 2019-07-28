@@ -29,19 +29,19 @@ module.exports = function(env = {}, argv) {
             },
           ],
         },
-        {
-          test: /\.[jt]sx?$/,
-          include: path.resolve('src'),
-          use: [
-            {
-              loader: 'ts-loader',
-              options: {
-                // to enable ts-loader work with HMR
-                // transpileOnly: true,
-              },
-            },
-          ],
-        },
+        // {
+        //   test: /\.[jt]sx?$/,
+        //   include: path.resolve('src'),
+        //   use: [
+        //     {
+        //       loader: 'ts-loader',
+        //       options: {
+        //         // to enable ts-loader work with HMR
+        //         // transpileOnly: true,
+        //       },
+        //     },
+        //   ],
+        // },
       ],
     },
     plugins: [
@@ -54,7 +54,8 @@ module.exports = function(env = {}, argv) {
       children: false,
       modules: false,
     },
-    devtool: isProduction ? 'source-map' : 'eval-source-map',
+    // devtool: isProduction ? 'source-map' : 'eval-source-map',
+    devtool: isProduction ? 'source-map' : false,
     // https://webpack.js.org/configuration/dev-server/
     devServer: {
       historyApiFallback: true,
