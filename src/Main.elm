@@ -360,7 +360,7 @@ viewMaster { title, content } model =
                 "Inbox"
 
         viewSidebar =
-            div [ class "pa3 vs3 w5 w-40-m dn db-ns" ]
+            div [ class "pa3 vs3" ]
                 [ div [ class "vs3" ] [ viewInboxItem model.route ]
                 , div [ class "vs3" ]
                     [ div [ class "vs3" ] [ text "Projects" ]
@@ -373,10 +373,10 @@ viewMaster { title, content } model =
     in
     { title = title
     , body =
-        [ div [ class "flex" ]
-            [ viewSidebar
-            , div [ class "flex-grow-1" ]
-                [ content
+        [ div [ class "" ]
+            [ div [ class "flex justify-center" ]
+                [ div [ class "w5 w-40-m dn db-ns" ] [ viewSidebar ]
+                , div [ class "w-50-l" ] [ content ]
                 ]
             ]
         ]
