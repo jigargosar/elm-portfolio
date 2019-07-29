@@ -469,7 +469,10 @@ viewMaster { title, content } model =
                         text ""
 
                     Bulk idSet ->
-                        text "Bulk Select"
+                        div [ class "flex hs3" ]
+                            [ div [ class "" ] [ text "BulkMode" ]
+                            , div [ class "" ] [ text "cancel" ]
+                            ]
 
                     InlineEditTodo _ ->
                         text ""
