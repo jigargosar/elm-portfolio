@@ -629,7 +629,11 @@ viewBulkTodoItem isSelected todo =
                  ]
              ,
           -}
-          div [ class "flex-grow-1", onClick (OnTodoTitleClicked todo.id) ]
+          div
+            [ class "flex-grow-1"
+            , classList [ ( "bg-light-yellow", isSelected ) ]
+            , onClick (OnTodoTitleClicked todo.id)
+            ]
             [ div [ class "" ] [ text todo.title ] ]
         ]
 
