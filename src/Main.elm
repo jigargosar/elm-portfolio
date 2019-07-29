@@ -397,16 +397,20 @@ subscriptions model =
 
 view : Model -> Browser.Document Msg
 view model =
-    if model.errors |> List.isEmpty |> not then
-        { title = "ElmDoist"
-        , body =
-            [ div [ class "pa3 vs3" ]
-                (List.map viewError model.errors)
-            ]
-        }
+    let
+        { title, body } =
+            viewPage model.page model
 
-    else
-        viewPage model.page model
+        viewError error =
+            div [ class "" ] [ text error ]
+
+        errorView =
+            div [ class "fixed absolute absolute--fill bg-red white" ]
+                [ div [ class "pa3 vs3" ]
+                    (List.map viewError model.errors)
+                ]
+    in
+    { title = title, body = body ++ [ viewIf (List.isEmpty model.errors |> not) errorView ] }
 
 
 viewPage page model =
@@ -605,10 +609,6 @@ viewInboxPage model =
                 ]
         }
         model
-
-
-viewError error =
-    div [ class "red" ] [ text error ]
 
 
 viewPendingTodoList : Edit -> ProjectDict -> List Todo -> List (Html Msg)
