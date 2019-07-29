@@ -1,4 +1,4 @@
-module ProjectId exposing (ProjectId, decoder, default)
+module ProjectId exposing (ProjectId,encoder,  decoder, default)
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
@@ -12,6 +12,10 @@ type alias ProjectId =
 decoder : Decoder ProjectId
 decoder =
     JD.string
+
+encoder :  ProjectId -> Value
+encoder =
+    JE.string
 
 
 default : ProjectId

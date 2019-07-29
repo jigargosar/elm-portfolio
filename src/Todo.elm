@@ -46,6 +46,19 @@ decoder =
         |> JD.required "modifiedAt" JD.int
 
 
+encoder : Todo -> Value
+encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
+    JE.object
+        [ ( "id", JE.string id )
+        , ( "title", JE.string title )
+        , ( "sortIdx", JE.int sortIdx )
+        , ( "projectId", ProjectId.encoder projectId )
+        , ( "isDone", JE.bool isDone )
+        , ( "createdAt", JE.int createdAt )
+        , ( "modifiedAt", JE.int modifiedAt )
+        ]
+
+
 mapCompleted fn model =
     { model | isDone = fn model.isDone }
 
