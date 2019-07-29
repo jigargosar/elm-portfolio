@@ -256,7 +256,15 @@ update message model =
                         |> Maybe.withDefault ( model, Cmd.none )
 
                 Bulk idSet ->
-                    ( { model | edit = Bulk idSet }, Cmd.none )
+                    let
+                        toggleMember mem set =
+                            if Set.member mem set then
+                                Set.remove mem set
+
+                            else
+                                Set.insert mem set
+                    in
+                    ( { model | edit = idSet |> toggleMember todoId |> Bulk }, Cmd.none )
 
                 InlineEditTodo _ ->
                     ( model, Cmd.none )
