@@ -123,7 +123,7 @@ init flags url key =
             Model Dict.empty
                 Dict.empty
                 []
-                NoEdit
+                (Bulk Set.empty)
                 page
                 key
                 route
