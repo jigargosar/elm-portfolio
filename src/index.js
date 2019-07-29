@@ -1,4 +1,6 @@
+import forEachObjIndexed from 'ramda/es/forEachObjIndexed'
 import fromPairs from 'ramda/es/fromPairs'
+import path from 'ramda/es/path'
 import values from 'ramda/es/values'
 import './index.css'
 // @ts-ignore
@@ -20,17 +22,24 @@ const app = Elm.Main.init({
   },
 })
 
-if (app.ports) {
-  app.ports.cacheTodoList &&
-    app.ports.cacheTodoList.subscribe(list => {
-      const taskMap = fromPairs(list.map(t => [t.id, t]))
-      console.debug('persistingTaskMap', taskMap)
-      localStorage.setItem('taskMap', JSON.stringify(taskMap))
-    })
-
-  app.ports.cacheEdit &&
-    app.ports.cacheEdit.subscribe(edit => {
-      console.log('app.ports.cacheEdit', edit)
-      localStorage.setItem('edit', JSON.stringify(edit))
-    })
+const subs = {
+  cacheTodoList: list => {
+    const taskMap = fromPairs(list.map(t => [t.id, t]))
+    console.debug('persistingTaskMap', taskMap)
+    localStorage.setItem('taskMap', JSON.stringify(taskMap))
+  },
+  cacheEdit: edit => {
+    console.log('app.ports.cacheEdit', edit)
+    localStorage.setItem('edit', JSON.stringify(edit))
+  },
 }
+
+forEachObjIndexed((listener, portName) => {
+  const subscribe = path(['ports', portName, 'subscribe'])(app)
+  if (!subscribe) {
+    console.warn('Subscription Port Not Found:', portName, app)
+    return
+  }
+  console.log('Subscription Port Attached', portName)
+  subscribe(listener)
+})(subs)
