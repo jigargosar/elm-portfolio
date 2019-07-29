@@ -414,7 +414,7 @@ view model =
 
 viewErrorOverlay errors =
     div
-        [ class "fixed absolute absolute--fill bg-black-70 white"
+        [ class "fixed absolute--fill bg-black-70 white"
         , class "f4 flex justify-center items-center"
         ]
         [ div [ class "h5 w-80 pa3 vs3 shadow-1 bg-white  black" ]
