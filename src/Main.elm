@@ -39,7 +39,16 @@ port cacheEdit : Value -> Cmd msg
 type alias Flags =
     { todoList : Value
     , projectList : Value
+    , edit : Value
     }
+
+
+flagsDecoder : Decoder Flags
+flagsDecoder =
+    JD.succeed Flags
+        |> JD.required "todoList" JD.value
+        |> JD.required "projectList" JD.value
+        |> JD.required "edit" JD.value
 
 
 type alias ProjectDict =
@@ -113,8 +122,8 @@ routeToPage route =
             DefaultPage
 
 
-init : Flags -> Url -> Nav.Key -> Return
-init flags url key =
+init : Value -> Url -> Nav.Key -> Return
+init encodedFlags url key =
     let
         route =
             Route.fromUrl url
@@ -143,11 +152,18 @@ init flags url key =
 
         initFromError ( prefix, error ) =
             { emptyModel | errors = [ prefix ++ " : " ++ JD.errorToString error ] }
+
+        initFromFlags flags =
+            Result.map3 initHelp
+                (decodeTodoList flags.todoList)
+                (decodeProjectList flags.projectList)
+                (decodeEdit flags.edit)
+                |> unpackErr initFromError
     in
-    ( Result.map3 initHelp
-        (decodeTodoList flags.todoList)
-        (decodeProjectList flags.projectList)
-        (decodeEdit flags.edit)
+    ( Result.map initFromFlags
+        (JD.decodeValue flagsDecoder encodedFlags
+            |> Result.mapError (\e -> ( "Error decoding Flags", e ))
+        )
         |> unpackErr initFromError
     , Browser.Dom.getViewport |> Task.perform OnViewPort
     )
@@ -694,7 +710,7 @@ viewCompletedTodoItem todo =
         ]
 
 
-main : Program Flags Model Msg
+main : Program Value Model Msg
 main =
     Browser.application
         { init = init
