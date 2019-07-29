@@ -256,7 +256,7 @@ update message model =
                         |> Maybe.withDefault ( model, Cmd.none )
 
                 Bulk idSet ->
-                    ( model, Cmd.none )
+                    ( { model | edit = Bulk idSet }, Cmd.none )
 
                 InlineEditTodo _ ->
                     ( model, Cmd.none )
