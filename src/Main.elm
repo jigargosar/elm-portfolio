@@ -10,7 +10,7 @@ import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline as JD
+import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
 import Project exposing (Project)
@@ -45,9 +45,9 @@ type alias Flags =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
-        |> JD.required "todoList" JD.value
-        |> JD.required "projectList" JD.value
-        |> JD.required "edit" JD.value
+        |> JDP.required "todoList" JD.value
+        |> JDP.required "projectList" JD.value
+        |> JDP.required "edit" JD.value
 
 
 type alias ProjectDict =
@@ -170,11 +170,6 @@ init encodedFlags url key =
     )
 
 
-type alias Foo =
-    { a : Bool
-    }
-
-
 setTodos : TodoDict -> Model -> Model
 setTodos todos model =
     { model | todos = todos }
@@ -195,10 +190,10 @@ type alias DomFocusResult =
 
 
 type InlineEditTodoMsg
-    = InlineEditTodoMsgSetTitle String
-    | InlineEditTodoMsgSetProjectId ProjectId
-    | InlineEditTodoMsgSave
-    | InlineEditTodoMsgCancel
+    = IET_SetTitle String
+    | IET_SetProjectId ProjectId
+    | IET_Save
+    | IET_Cancel
 
 
 type Msg
@@ -337,19 +332,19 @@ prependErrorIn model error =
 updateInlineEditTodo : InlineEditTodoMsg -> Todo -> Model -> Return
 updateInlineEditTodo msg todo model =
     case msg of
-        InlineEditTodoMsgSetTitle title ->
+        IET_SetTitle title ->
             model |> setAndCacheEdit (Edit.InlineTodo { todo | title = title })
 
-        InlineEditTodoMsgSetProjectId projectId ->
+        IET_SetProjectId projectId ->
             model
                 |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
-        InlineEditTodoMsgSave ->
+        IET_Save ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
                 |> andThen (setAndCacheEdit Edit.None)
 
-        InlineEditTodoMsgCancel ->
+        IET_Cancel ->
             setAndCacheEdit Edit.None model
 
 
@@ -677,13 +672,13 @@ viewInlineInlineEditTodoItem projects todo =
                     [ Html.Attributes.id editTodoTitleDomid
                     , class "flex-grow-1"
                     , value todo.title
-                    , onInput InlineEditTodoMsgSetTitle
+                    , onInput IET_SetTitle
                     ]
                     []
                 ]
             , viewProjectSelect projects todo
-            , button [ onClick InlineEditTodoMsgSave ] [ text "save" ]
-            , button [ onClick InlineEditTodoMsgCancel ] [ text "cancel" ]
+            , button [ onClick IET_Save ] [ text "save" ]
+            , button [ onClick IET_Cancel ] [ text "cancel" ]
             ]
         ]
         |> Html.map OnInlineEditTodoMsg
@@ -702,7 +697,7 @@ viewProjectSelect projects todo =
             Html.option [ value p.id, selectedAttrForPrjId p.id ] [ text p.title ]
     in
     div [ class "" ]
-        [ Html.select [ onInput InlineEditTodoMsgSetProjectId ]
+        [ Html.select [ onInput IET_SetProjectId ]
             (Html.option [ value "", selectedAttrForPrjId "" ] [ text "Inbox" ]
                 :: List.map viewProjectOption projectList
             )
