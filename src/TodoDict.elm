@@ -4,6 +4,7 @@ module TodoDict exposing
     , completedList
     , markCompleted
     , markPending
+    , moveAllToProjectId
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -11,6 +12,8 @@ module TodoDict exposing
 
 import Basics.Extra
 import Dict exposing (Dict)
+import ProjectId exposing (ProjectId)
+import Set exposing (Set)
 import Todo exposing (Todo, TodoId)
 
 
@@ -68,6 +71,31 @@ markCompleted todoId now model =
                 >> (\t -> Dict.insert t.id t model)
                 >> updateSortIdx now
             )
+
+
+moveAllToProjectId : ProjectId -> Set TodoId -> Millis -> TodoDict -> Maybe TodoDict
+moveAllToProjectId projectId todoIdSet now model =
+    let
+        updatedTodos =
+            todoIdSet
+                |> Set.toList
+                |> List.filterMap
+                    (\todoId ->
+                        Dict.get todoId model
+                            |> Maybe.andThen (Todo.setProjectId projectId)
+                            |> Maybe.map
+                                (Todo.setSortIdx Basics.Extra.maxSafeInteger
+                                    >> Todo.setModifiedAt now
+                                    >> Tuple.pair todoId
+                                )
+                    )
+                |> Dict.fromList
+    in
+    if updatedTodos |> Dict.isEmpty then
+        Nothing
+
+    else
+        Just (Dict.union updatedTodos model)
 
 
 markPending todoId now model =

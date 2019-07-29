@@ -214,6 +214,7 @@ type Msg
     | OnBulkCancelClicked
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
+    | OnBulkMoveToProjectSelectedWithNow ProjectId Millis
 
 
 update : Msg -> Model -> Return
@@ -322,11 +323,25 @@ update message model =
             model |> setAndCacheEdit (Edit.Bulk Set.empty)
 
         OnBulkMoveToProjectSelected projectId ->
+            ( model, OnBulkMoveToProjectSelectedWithNow projectId |> withNow )
+
+        OnBulkMoveToProjectSelectedWithNow projectId now ->
             let
                 _ =
                     Debug.log "moved to pid" projectId
             in
-            ( model, Cmd.none )
+            case model.edit of
+                Edit.None ->
+                    ( model, Cmd.none )
+
+                Edit.Bulk idSet ->
+                    TodoDict.moveAllToProjectId projectId idSet now model.todos
+                        |> Maybe.map (setAndCacheTodosIn model)
+                        |> Maybe.withDefault ( model, Cmd.none )
+                        |> andThen (setAndCacheEdit Edit.None)
+
+                Edit.InlineTodo _ ->
+                    ( model, Cmd.none )
 
 
 setAndCacheTodosIn model todos =

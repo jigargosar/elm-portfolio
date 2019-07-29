@@ -10,6 +10,7 @@ module Todo exposing
     , filterSort
     , setCompleted
     , setModifiedAt
+    , setProjectId
     , setSortIdx
     )
 
@@ -73,6 +74,15 @@ setCompleted bool model =
         Just { model | isDone = bool }
 
 
+setProjectId : ProjectId -> Todo -> Maybe Todo
+setProjectId projectId model =
+    if model.projectId == projectId then
+        Nothing
+
+    else
+        Just { model | projectId = projectId }
+
+
 setSortIdx sortIdx model =
     { model | sortIdx = sortIdx }
 
@@ -85,6 +95,7 @@ type Filter
     = Pending
     | Completed
     | BelongsToProject ProjectId
+    | NotInProject ProjectId
     | AndFilter Filter Filter
 
 
@@ -99,6 +110,9 @@ matchesFilter filter_ todo =
 
         BelongsToProject pid ->
             todo.projectId == pid
+
+        NotInProject pid ->
+            todo.projectId /= pid
 
         AndFilter a b ->
             matchesFilter a todo && matchesFilter b todo
