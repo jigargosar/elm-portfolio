@@ -1,14 +1,13 @@
-port module Main exposing (main)
+port module Main exposing (effect, main)
 
-import Basics.Extra
 import Browser
 import Browser.Dom
 import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
-import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
-import Html.Attributes exposing (autofocus, class, classList, href, style, tabindex, title, value)
+import Html exposing (Html, button, div, i, text)
+import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
@@ -118,7 +117,7 @@ routeToPage route =
         Route.Project pid ->
             ProjectPage pid
 
-        Route.NotFound url ->
+        Route.NotFound _ ->
             DefaultPage
 
 
@@ -184,11 +183,6 @@ activeProjectList projects =
     projects
         |> Dict.values
         |> List.sortBy .sortIdx
-
-
-type WithNow
-    = MarkCompleted TodoId
-    | MarkPending TodoId
 
 
 type alias Millis =
@@ -371,28 +365,13 @@ focusInlineEditTodoTitleCmd =
             )
 
 
-sortPendingTodos : Millis -> TodoDict -> TodoDict
-sortPendingTodos now todos =
-    TodoDict.pendingList todos
-        |> List.indexedMap Tuple.pair
-        |> List.filterMap
-            (\( i, t ) ->
-                if t.sortIdx == i then
-                    Nothing
-
-                else
-                    Just (Todo.setSortIdx i t |> Todo.setModifiedAt now)
-            )
-        |> List.foldl (\t -> Dict.insert t.id t) todos
-
-
 withNow : (Millis -> msg) -> Cmd msg
 withNow msg =
     Time.now |> Task.perform (Time.posixToMillis >> msg)
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize OnBrowserResize
         ]
@@ -514,7 +493,7 @@ viewMaster { title, content } model =
                     Edit.None ->
                         text ""
 
-                    Edit.Bulk idSet ->
+                    Edit.Bulk _ ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
                             , div [ class "" ] [ text "cancel" ]
