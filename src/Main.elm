@@ -462,7 +462,18 @@ viewMaster { title, content } model =
             div [ class "bg-black-20 lh-copy pa1" ] [ text "ElmDOist" ]
 
         contentHeader =
-            div [ class "w-100 bg-black-50 lh-copy pa1" ] [ text title ]
+            div [ class "flex w-100 bg-black-50 lh-copy pa1" ]
+                [ div [ class "flex-grow-1" ] [ text title ]
+                , case model.edit of
+                    NoEdit ->
+                        text ""
+
+                    Bulk idSet ->
+                        text "Bulk Select"
+
+                    InlineEditTodo _ ->
+                        text ""
+                ]
     in
     { title = title
     , body =
