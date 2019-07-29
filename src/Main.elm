@@ -442,13 +442,14 @@ viewMaster { title, content } model =
                 ]
 
         viewToolbar =
-            div [ class "fixed w-100 pa1 lh-copy hs3 flex bg-black-80 white" ]
-                [ div
-                    [ class "pl2 tracked"
+            div [ class "fixed w-100 hs3 flex bg-black-80 white" ]
+                [ div [ class "" ] []
+                , div
+                    [ class "lh-copy pa1 tracked"
                     , onClick OnMenuClicked
                     ]
                     [ text "|||" ]
-                , div [ class "ttu tracked" ] [ text title ]
+                , contentHeader
                 ]
 
         splitView left right =
@@ -461,7 +462,7 @@ viewMaster { title, content } model =
             div [ class "bg-black-20 lh-copy pa1" ] [ text "ElmDOist" ]
 
         contentHeader =
-            div [ class "bg-black-50 lh-copy pa1" ] [ text title ]
+            div [ class "w-100 bg-black-50 lh-copy pa1" ] [ text title ]
     in
     { title = title
     , body =
