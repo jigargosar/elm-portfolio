@@ -1,6 +1,5 @@
 module Edit exposing (Edit(..), decoder, encoder)
 
-import EditTodo
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)

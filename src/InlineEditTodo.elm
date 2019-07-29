@@ -1,4 +1,4 @@
-module EditTodo exposing (Msg(..))
+module InlineEditTodo exposing (Msg(..))
 
 import Project exposing (Project)
 import ProjectId exposing (ProjectId)
