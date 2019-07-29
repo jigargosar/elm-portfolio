@@ -30,7 +30,7 @@ const subs = {
     localStorage.setItem('taskMap', JSON.stringify(taskMap))
   },
   cacheEdit: edit => {
-    console.log('app.ports.cacheEdit', edit)
+    console.debug('app.ports.cacheEdit', edit)
     localStorage.setItem('edit', JSON.stringify(edit))
   },
 }

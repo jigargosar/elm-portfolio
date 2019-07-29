@@ -196,10 +196,6 @@ type InlineEditTodoMsg
     | IET_Cancel
 
 
-type BulkMsg
-    = OnBulkCancel
-
-
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -215,7 +211,8 @@ type Msg
     | OnMenuClicked
     | OnSidebarOverlayClicked
     | OnInlineEditTodoMsg InlineEditTodoMsg
-    | OnBulkMsg BulkMsg
+    | OnBulkCancelClicked
+    | OnSelectMultipleClicked
 
 
 update : Msg -> Model -> Return
@@ -317,10 +314,11 @@ update message model =
         OnSidebarOverlayClicked ->
             ( { model | isSidebarOpen = False }, Cmd.none )
 
-        OnBulkMsg msg ->
-            case msg of
-                OnBulkCancel ->
-                    model |> setAndCacheEdit Edit.None
+        OnBulkCancelClicked ->
+            model |> setAndCacheEdit Edit.None
+
+        OnSelectMultipleClicked ->
+            model |> setAndCacheEdit (Edit.Bulk Set.empty)
 
 
 setAndCacheTodosIn model todos =
@@ -497,14 +495,20 @@ viewMaster { title, content } model =
                 [ div [ class "flex-grow-1" ] [ text title ]
                 , case model.edit of
                     Edit.None ->
-                        text ""
+                        div [ class "flex hs3" ]
+                            [ div
+                                [ class "underline pointer"
+                                , onClick OnSelectMultipleClicked
+                                ]
+                                [ text "Select Multiple" ]
+                            ]
 
                     Edit.Bulk _ ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
                             , div
-                                [ class ""
-                                , onClick (OnBulkMsg OnBulkCancel)
+                                [ class "underline pointer"
+                                , onClick OnBulkCancelClicked
                                 ]
                                 [ text "cancel" ]
                             ]
@@ -652,7 +656,7 @@ viewNonEditingTodoItem todo =
         [ div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
             [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
             ]
-        , div [ class "flex-grow-1", onClick (OnTodoTitleClicked todo.id) ]
+        , div [ class "flex-grow-1 pointer", onClick (OnTodoTitleClicked todo.id) ]
             [ div [ class "" ] [ text todo.title ] ]
         ]
 
@@ -665,7 +669,7 @@ viewBulkTodoItem isSelected todo =
              ,
           -}
           div
-            [ class "flex-grow-1"
+            [ class "flex-grow-1 pointer"
             , classList [ ( "bg-light-yellow", isSelected ) ]
             , onClick (OnTodoTitleClicked todo.id)
             ]
