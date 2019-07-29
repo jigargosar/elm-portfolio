@@ -10,6 +10,7 @@ module Todo exposing
     , filterSingle
     , filterSort
     , modify
+    , modifyMultiple
     , setCompleted
     , setModifiedAt
     , setProjectId
@@ -66,6 +67,7 @@ encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
 type Msg
     = SetCompleted Bool
     | SetProjectId ProjectId
+    | SetTitle String
     | SetSortIdx Int
 
 
@@ -78,6 +80,9 @@ update msg model =
         SetProjectId projectId ->
             { model | projectId = projectId }
 
+        SetTitle title ->
+            { model | title = title }
+
         SetSortIdx sortIdx ->
             { model | sortIdx = sortIdx }
 
@@ -87,6 +92,19 @@ modify msg model =
     let
         newModel =
             update msg model
+    in
+    if newModel == model then
+        Nothing
+
+    else
+        Just newModel
+
+
+modifyMultiple : List Msg -> Todo -> Maybe Todo
+modifyMultiple msgList model =
+    let
+        newModel =
+            List.foldl (\msg -> update msg) model msgList
     in
     if newModel == model then
         Nothing

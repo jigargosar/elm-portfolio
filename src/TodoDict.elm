@@ -9,6 +9,7 @@ module TodoDict exposing
     , pendingList
     , pendingWithId
     , pendingWithProjectId
+    , setTitleAndMoveToProject
     )
 
 import Basics.Extra
@@ -129,6 +130,25 @@ markPending todoId now model =
                 >> updatePendingSortIdx now
                 >> Tuple.mapFirst (\msgList -> msgList ++ [ syncMsg ])
             )
+
+
+setTitleAndMoveToProject :
+    TodoId
+    -> { title : String, projectId : ProjectId }
+    -> Millis
+    -> TodoDict
+    -> Maybe ( List SyncMsg, TodoDict )
+setTitleAndMoveToProject todoId { title, projectId } now model =
+    let
+        _ =
+            model
+                |> Dict.get todoId
+                |> Maybe.andThen
+                    (Todo.modifyMultiple
+                        [ Todo.SetProjectId projectId, Todo.SetTitle title ]
+                    )
+    in
+    Nothing
 
 
 moveAllToProjectId :
