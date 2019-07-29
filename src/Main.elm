@@ -561,8 +561,8 @@ viewPendingTodoList edit projects todoList =
         NoEdit ->
             List.map viewNonEditingTodoItem todoList
 
-        Bulk _ ->
-            List.map viewNonEditingTodoItem todoList
+        Bulk selectedIds ->
+            List.map viewBulkTodoItem todoList
 
         InlineEditTodo editingTodo ->
             List.map
@@ -576,24 +576,17 @@ viewPendingTodoList edit projects todoList =
                 todoList
 
 
-viewPendingTodoItem : Edit -> ProjectDict -> Todo -> Html Msg
-viewPendingTodoItem edit projects todo =
-    case edit of
-        NoEdit ->
-            viewNonEditingTodoItem todo
-
-        Bulk _ ->
-            viewNonEditingTodoItem todo
-
-        InlineEditTodo editingTodo ->
-            if editingTodo.id == todo.id then
-                viewInlineInlineEditTodoItem projects editingTodo
-
-            else
-                viewNonEditingTodoItem todo
-
-
 viewNonEditingTodoItem todo =
+    div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
+        [ div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
+            [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
+            ]
+        , div [ class "flex-grow-1", onClick (OnTodoTitleClicked todo.id) ]
+            [ div [ class "" ] [ text todo.title ] ]
+        ]
+
+
+viewBulkTodoItem todo =
     div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
         [ div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
             [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
