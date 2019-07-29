@@ -10,7 +10,6 @@ import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
 import Html.Attributes exposing (autofocus, class, classList, href, style, tabindex, title, value)
 import Html.Events exposing (onClick, onInput)
-import InlineEditTodoMsg
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)
@@ -200,6 +199,13 @@ type alias DomFocusResult =
     Result String ()
 
 
+type InlineEditTodoMsg
+    = InlineEditTodoMsgSetTitle String
+    | InlineEditTodoMsgSetProjectId ProjectId
+    | InlineEditTodoMsgSave
+    | InlineEditTodoMsgCancel
+
+
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -214,7 +220,7 @@ type Msg
     | UrlChanged Url
     | OnMenuClicked
     | OnSidebarOverlayClicked
-    | OnInlineEditTodoMsg InlineEditTodoMsg.Msg
+    | OnInlineEditTodoMsg InlineEditTodoMsg
 
 
 update : Msg -> Model -> Return
@@ -333,22 +339,22 @@ prependErrorIn model error =
     prependError error model
 
 
-updateInlineEditTodo : InlineEditTodoMsg.Msg -> Todo -> Model -> Return
+updateInlineEditTodo : InlineEditTodoMsg -> Todo -> Model -> Return
 updateInlineEditTodo msg todo model =
     case msg of
-        InlineEditTodoMsg.SetTitle title ->
+        InlineEditTodoMsgSetTitle title ->
             model |> setAndCacheEdit (Edit.InlineTodo { todo | title = title })
 
-        InlineEditTodoMsg.SetProjectId projectId ->
+        InlineEditTodoMsgSetProjectId projectId ->
             model
                 |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
-        InlineEditTodoMsg.Save ->
+        InlineEditTodoMsgSave ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
                 |> andThen (setAndCacheEdit Edit.None)
 
-        InlineEditTodoMsg.Cancel ->
+        InlineEditTodoMsgCancel ->
             setAndCacheEdit Edit.None model
 
 
@@ -691,19 +697,19 @@ viewInlineInlineEditTodoItem projects todo =
                     [ Html.Attributes.id editTodoTitleDomid
                     , class "flex-grow-1"
                     , value todo.title
-                    , onInput InlineEditTodoMsg.SetTitle
+                    , onInput InlineEditTodoMsgSetTitle
                     ]
                     []
                 ]
             , viewProjectSelect projects todo
-            , button [ onClick InlineEditTodoMsg.Save ] [ text "save" ]
-            , button [ onClick InlineEditTodoMsg.Cancel ] [ text "cancel" ]
+            , button [ onClick InlineEditTodoMsgSave ] [ text "save" ]
+            , button [ onClick InlineEditTodoMsgCancel ] [ text "cancel" ]
             ]
         ]
         |> Html.map OnInlineEditTodoMsg
 
 
-viewProjectSelect : ProjectDict -> Todo -> Html InlineEditTodoMsg.Msg
+viewProjectSelect : ProjectDict -> Todo -> Html InlineEditTodoMsg
 viewProjectSelect projects todo =
     let
         projectList =
@@ -716,7 +722,7 @@ viewProjectSelect projects todo =
             Html.option [ value p.id, selectedAttrForPrjId p.id ] [ text p.title ]
     in
     div [ class "" ]
-        [ Html.select [ onInput InlineEditTodoMsg.SetProjectId ]
+        [ Html.select [ onInput InlineEditTodoMsgSetProjectId ]
             (Html.option [ value "", selectedAttrForPrjId "" ] [ text "Inbox" ]
                 :: List.map viewProjectOption projectList
             )
