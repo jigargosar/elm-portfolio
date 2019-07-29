@@ -21,9 +21,16 @@ const app = Elm.Main.init({
 })
 
 if (app.ports) {
-  app.ports.cacheTodoList.subscribe(list => {
-    const taskMap = fromPairs(list.map(t => [t.id, t]))
-    console.debug('persistingTaskMap', taskMap)
-    localStorage.setItem('taskMap', JSON.stringify(taskMap))
-  })
+  app.ports.cacheTodoList &&
+    app.ports.cacheTodoList.subscribe(list => {
+      const taskMap = fromPairs(list.map(t => [t.id, t]))
+      console.debug('persistingTaskMap', taskMap)
+      localStorage.setItem('taskMap', JSON.stringify(taskMap))
+    })
+
+  app.ports.cacheEdit &&
+    app.ports.cacheEdit.subscribe(edit => {
+      console.log('app.ports.cacheEdit', edit)
+      localStorage.setItem('edit', JSON.stringify(edit))
+    })
 }
