@@ -66,6 +66,7 @@ encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
 type Msg
     = SetCompleted Bool
     | SetProjectId ProjectId
+    | SetSortIdx Int
 
 
 update : Msg -> Todo -> Todo
@@ -76,6 +77,9 @@ update msg model =
 
         SetProjectId projectId ->
             { model | projectId = projectId }
+
+        SetSortIdx sortIdx ->
+            { model | sortIdx = sortIdx }
 
 
 modify : Msg -> Todo -> Maybe Todo

@@ -37,6 +37,29 @@ pendingList =
     filterSort Todo.Pending [ Todo.ByIdx ]
 
 
+pendingByProjectId : TodoDict -> Dict ProjectId (List Todo)
+pendingByProjectId todoDict =
+    pendingList todoDict
+        |> listGroupBy .projectId
+
+
+listGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
+listGroupBy toComparable =
+    let
+        dictUpdater : a -> Maybe (List a) -> Maybe (List a)
+        dictUpdater a =
+            Maybe.map (\listOfA -> listOfA ++ [ a ])
+                >> Maybe.withDefault [ a ]
+                >> Just
+    in
+    List.foldl
+        (\a dict ->
+            dict
+                |> Dict.update (toComparable a) (dictUpdater a)
+        )
+        Dict.empty
+
+
 completedList : TodoDict -> List Todo
 completedList =
     filterSort Todo.Completed [ Todo.ByRecentlyModified ]
@@ -129,3 +152,31 @@ updateSortIdx now todos =
                     Just (Todo.setSortIdx i t |> Todo.setModifiedAt now)
             )
         |> List.foldl (\t -> Dict.insert t.id t) todos
+
+
+updatePendingSortIdx : Millis -> TodoDict -> ( List Todo.Msg, TodoDict )
+updatePendingSortIdx now todos =
+    pendingByProjectId todos
+        |> Dict.values
+        |> List.concatMap
+            (List.indexedMap Tuple.pair
+                >> List.filterMap
+                    (\( i, t ) ->
+                        let
+                            msg =
+                                Todo.SetSortIdx i
+                        in
+                        Todo.modify msg t
+                            |> Maybe.map (Todo.setModifiedAt now >> Tuple.pair msg)
+                    )
+            )
+        |> List.foldl
+            (\( msg, todo ) ( msgList, accTodoDict ) ->
+                ( msgList ++ [ msg ], insert todo accTodoDict )
+            )
+            ( [], todos )
+
+
+insert : Todo -> TodoDict -> TodoDict
+insert todo =
+    Dict.insert todo.id todo
