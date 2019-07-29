@@ -351,7 +351,11 @@ setAndCacheTodosWithMsgIn :
     -> Millis
     -> ( List Todo.Msg, TodoDict )
     -> Return
-setAndCacheTodosWithMsgIn model now ( _, todos ) =
+setAndCacheTodosWithMsgIn model now ( syncMessages, todos ) =
+    let
+        _ =
+            Debug.log "now, syncMessages" ( now, syncMessages )
+    in
     ( setTodos todos model
     , cacheTodoList (Dict.values todos)
     )
