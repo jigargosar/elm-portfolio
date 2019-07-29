@@ -255,7 +255,7 @@ update message model =
                             )
                         |> Maybe.withDefault ( model, Cmd.none )
 
-                Bulk idList ->
+                Bulk idSet ->
                     ( model, Cmd.none )
 
                 InlineEditTodo _ ->
@@ -570,10 +570,10 @@ viewPendingTodoList edit projects todoList =
         NoEdit ->
             List.map viewNonEditingTodoItem todoList
 
-        Bulk selectedIds ->
+        Bulk idSet ->
             List.map
                 (\todo ->
-                    viewBulkTodoItem (Set.member todo.id selectedIds) todo
+                    viewBulkTodoItem (Set.member todo.id idSet) todo
                 )
                 todoList
 
