@@ -1,4 +1,4 @@
-module Edit exposing (Edit(..), encoder)
+module Edit exposing (Edit(..), decoder, encoder)
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD

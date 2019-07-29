@@ -92,6 +92,12 @@ decodeProjectList encoded =
         |> Result.mapError (\e -> ( "Error decoding projects", e ))
 
 
+decodeEdit encoded =
+    encoded
+        |> JD.decodeValue Edit.decoder
+        |> Result.mapError (\e -> ( "Error decoding Edit", e ))
+
+
 routeToPage route =
     case route of
         Route.Default ->
@@ -128,15 +134,20 @@ init flags url key =
                 False
                 { width = 0, height = 0 }
 
-        initHelp todos projects =
-            { emptyModel | todos = todos, projects = projects }
+        initHelp todos projects edit =
+            { emptyModel
+                | todos = todos
+                , projects = projects
+                , edit = edit
+            }
 
         initFromError ( prefix, error ) =
             { emptyModel | errors = [ prefix ++ " : " ++ JD.errorToString error ] }
     in
-    ( Result.map2 initHelp
+    ( Result.map3 initHelp
         (decodeTodoList flags.todoList)
         (decodeProjectList flags.projectList)
+        (decodeEdit flags.edit)
         |> unpackErr initFromError
     , Browser.Dom.getViewport |> Task.perform OnViewPort
     )
