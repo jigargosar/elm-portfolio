@@ -432,8 +432,8 @@ viewMaster { title, content } model =
 
         splitView left right =
             div [ class "flex justify-center" ]
-                [ div [ class "dn db-ns mw5 w-40-m w-30-l" ] [ left ]
-                , div [ class "w-100 w-50-m w-40-l" ] [ right ]
+                [ div [ class "dn db-ns mw5 w-30-m w-40-l" ] [ left ]
+                , div [ class "w-100 w-70-m w-40-l" ] [ right ]
                 ]
 
         sidebarHeader =
