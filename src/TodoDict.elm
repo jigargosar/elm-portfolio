@@ -156,21 +156,6 @@ moveAllToProjectId projectId todoIdSet now model =
         Just (Dict.union updatedTodos model)
 
 
-updateSortIdx : Millis -> TodoDict -> TodoDict
-updateSortIdx now todos =
-    pendingList todos
-        |> List.indexedMap Tuple.pair
-        |> List.filterMap
-            (\( i, t ) ->
-                if t.sortIdx == i then
-                    Nothing
-
-                else
-                    Just (Todo.setSortIdx i t |> Todo.setModifiedAt now)
-            )
-        |> List.foldl (\t -> Dict.insert t.id t) todos
-
-
 updatePendingSortIdx : Millis -> TodoDict -> ( List SyncMsg, TodoDict )
 updatePendingSortIdx now todos =
     pendingByProjectId todos
