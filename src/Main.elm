@@ -505,11 +505,7 @@ viewProjectPage model project =
         { title = project.title
         , content =
             div [ class "pa3 vs3" ]
-                [ div [ class "hs3 flex" ]
-                    [ div [] [ text "Project:" ]
-                    , div [] [ text project.title ]
-                    ]
-                , div [ class "vs3" ]
+                [ div [ class "vs3" ]
                     [ div [] [ text "Pending" ]
                     , div [ class "vs3" ]
                         (viewPendingTodoList model.edit
