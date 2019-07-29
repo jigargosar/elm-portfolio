@@ -97,8 +97,8 @@ markCompleted todoId now model =
         |> Maybe.map
             (Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
-                >> updateSortIdx now
-                >> Tuple.pair [ msg ]
+                >> updatePendingSortIdx now
+                >> Tuple.mapFirst (\msgList -> msgList ++ [ msg ])
             )
 
 
