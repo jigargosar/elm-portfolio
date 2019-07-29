@@ -487,7 +487,8 @@ viewDefaultPage model =
                 [ div [ class "vs3" ]
                     [ div [ class "" ] [ text "Pending" ]
                     , div [ class "vs3" ]
-                        (List.map (viewPendingTodoItem model.edit model.projects)
+                        (viewPendingTodoList model.edit
+                            model.projects
                             (TodoDict.pendingList model.todos)
                         )
                     ]
@@ -556,9 +557,23 @@ viewError error =
 
 viewPendingTodoList : Edit -> ProjectDict -> List Todo -> List (Html Msg)
 viewPendingTodoList edit projects todoList =
-    List.map
-        (viewPendingTodoItem edit projects)
-        todoList
+    case edit of
+        NoEdit ->
+            List.map viewNonEditingTodoItem todoList
+
+        Bulk _ ->
+            List.map viewNonEditingTodoItem todoList
+
+        InlineEditTodo editingTodo ->
+            List.map
+                (\todo ->
+                    if editingTodo.id == todo.id then
+                        viewInlineInlineEditTodoItem projects editingTodo
+
+                    else
+                        viewNonEditingTodoItem todo
+                )
+                todoList
 
 
 viewPendingTodoItem : Edit -> ProjectDict -> Todo -> Html Msg
