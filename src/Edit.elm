@@ -13,25 +13,23 @@ type Edit
     | Bulk (Set TodoId)
 
 
+encodeType type_ otherFields =
+    ( "type", JE.string type_ )
+        :: otherFields
+        |> JE.object
+
+
 encoder : Edit -> Value
 encoder edit =
     case edit of
         None ->
-            JE.object
-                [ ( "type", JE.string "None" )
-                ]
+            encodeType "None" []
 
         Bulk idSet ->
-            JE.object
-                [ ( "type", JE.string "Bulk" )
-                , ( "idSet", JE.set JE.string idSet )
-                ]
+            encodeType "Bulk" [ ( "idSet", JE.set JE.string idSet ) ]
 
         InlineTodo todo ->
-            JE.object
-                [ ( "type", JE.string "InlineTodo" )
-                , ( "todo", Todo.encoder todo )
-                ]
+            encodeType "InlineTodo" [ ( "todo", Todo.encoder todo ) ]
 
 
 bulkDecoder : Decoder Edit
