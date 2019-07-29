@@ -23,8 +23,30 @@ encoder edit =
 
         Bulk idSet ->
             JE.object
-                [ ( "idSet", JE.set JE.string idSet )
+                [ ( "type", JE.string "Bulk" )
+                , ( "idSet", JE.set JE.string idSet )
                 ]
 
         InlineTodo _ ->
             encoder None
+
+
+decoder : Decoder Edit
+decoder =
+    JD.field "type" JD.string
+        |> JD.andThen
+            (\type_ ->
+                case type_ of
+                    "None" ->
+                        None |> JD.succeed
+
+                    "Bulk" ->
+                        JD.field "idSet" (JD.list JD.string)
+                            |> JD.map (Set.fromList >> Bulk)
+
+                    "InlineTodo" ->
+                        JD.fail "Unable to decode inline todo"
+
+                    _ ->
+                        JD.fail ("Unable to decode Edit type: " ++ type_)
+            )
