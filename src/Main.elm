@@ -200,10 +200,6 @@ type alias DomFocusResult =
     Result String ()
 
 
-type EditMsg
-    = EditTodo EditTodo.Msg
-
-
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -218,7 +214,7 @@ type Msg
     | UrlChanged Url
     | OnMenuClicked
     | OnSidebarOverlayClicked
-    | OnEdit EditMsg
+    | OnEdit Edit.Msg
 
 
 update : Msg -> Model -> Return
@@ -308,7 +304,7 @@ update message model =
 
         OnEdit editMsg ->
             case ( model.edit, editMsg ) of
-                ( Edit.InlineTodo todo, EditTodo msg ) ->
+                ( Edit.InlineTodo todo, Edit.EditTodoMsg msg ) ->
                     updateInlineEditTodo msg todo model
 
                 _ ->
@@ -337,6 +333,7 @@ prependErrorIn model error =
     prependError error model
 
 
+updateInlineEditTodo : EditTodo.Msg -> Todo -> Model -> Return
 updateInlineEditTodo msg todo model =
     case msg of
         EditTodo.SetTitle title ->
@@ -703,7 +700,7 @@ viewInlineInlineEditTodoItem projects todo =
             , button [ onClick EditTodo.Cancel ] [ text "cancel" ]
             ]
         ]
-        |> Html.map EditTodo
+        |> Html.map Edit.EditTodoMsg
         |> Html.map OnEdit
 
 

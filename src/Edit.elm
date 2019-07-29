@@ -1,5 +1,6 @@
-module Edit exposing (Edit(..), decoder, encoder)
+module Edit exposing (Edit(..), Msg(..), decoder, encoder)
 
+import EditTodo
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)
@@ -11,6 +12,10 @@ type Edit
     = None
     | InlineTodo Todo
     | Bulk (Set TodoId)
+
+
+type Msg
+    = EditTodoMsg EditTodo.Msg
 
 
 encodeType type_ otherFields =
