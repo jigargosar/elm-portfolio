@@ -31,6 +31,12 @@ encoder edit =
             encoder None
 
 
+bulkDecoder : Decoder Edit
+bulkDecoder =
+    JD.field "idSet" (JD.list JD.string)
+        |> JD.map (Set.fromList >> Bulk)
+
+
 decoderFromType : String -> Decoder Edit
 decoderFromType type_ =
     case type_ of
@@ -38,8 +44,7 @@ decoderFromType type_ =
             None |> JD.succeed
 
         "Bulk" ->
-            JD.field "idSet" (JD.list JD.string)
-                |> JD.map (Set.fromList >> Bulk)
+            bulkDecoder
 
         "InlineTodo" ->
             JD.fail "Unable to decode inline todo"
@@ -51,7 +56,6 @@ decoderFromType type_ =
 decoder : Decoder Edit
 decoder =
     JD.oneOf
-        [ JD.field "idSet" (JD.list JD.string)
-            |> JD.map (Set.fromList >> Bulk)
+        [ bulkDecoder
         , JD.field "type" JD.string |> JD.andThen decoderFromType
         ]
