@@ -48,6 +48,7 @@ type alias Error =
 type Edit
     = NoEdit
     | InlineEditTodo Todo
+    | Bulk (List TodoId)
 
 
 type Page
@@ -267,6 +268,9 @@ update message model =
         WrapInlineEditTodoMsg msg ->
             case model.edit of
                 NoEdit ->
+                    ( model, Cmd.none )
+
+                Bulk _ ->
                     ( model, Cmd.none )
 
                 InlineEditTodo todo ->
@@ -530,14 +534,11 @@ viewInboxPage model =
         { title = "Inbox"
         , content =
             div [ class "pa3 vs3" ]
-                [ div [ class "hs3 flex" ]
-                    [ div [] [ text "Inbox" ]
-                    ]
-                , div [ class "vs3" ]
+                [ div [ class "vs3" ]
                     [ div [] [ text "Pending" ]
                     , div [ class "vs3" ]
-                        (List.map
-                            (viewPendingTodoItem model.edit model.projects)
+                        (viewPendingTodoList model.edit
+                            model.projects
                             (TodoDict.pendingWithProjectId "" model.todos)
                         )
                     ]
@@ -557,10 +558,20 @@ viewError error =
     div [ class "red" ] [ text error ]
 
 
+viewPendingTodoList : Edit -> ProjectDict -> List Todo -> List (Html Msg)
+viewPendingTodoList edit projects todoList =
+    List.map
+        (viewPendingTodoItem edit projects)
+        todoList
+
+
 viewPendingTodoItem : Edit -> ProjectDict -> Todo -> Html Msg
 viewPendingTodoItem edit projects todo =
     case edit of
         NoEdit ->
+            viewNonEditingTodoItem todo
+
+        Bulk _ ->
             viewNonEditingTodoItem todo
 
         InlineEditTodo editingTodo ->
