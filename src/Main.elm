@@ -6,6 +6,7 @@ import Browser.Dom
 import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
+import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
 import Html.Attributes exposing (autofocus, class, classList, href, style, tabindex, title, value)
 import Html.Events exposing (onClick, onInput)
@@ -47,29 +48,6 @@ type alias ProjectDict =
 
 type alias Error =
     String
-
-
-type Edit
-    = NoEdit
-    | InlineEditTodo Todo
-    | Bulk (Set TodoId)
-
-
-editEncoder : Edit -> Value
-editEncoder edit =
-    case edit of
-        NoEdit ->
-            JE.object
-                [ ( "type", JE.string "NoEdit" )
-                ]
-
-        Bulk idSet ->
-            JE.object
-                [ ( "idSet", JE.set JE.string idSet )
-                ]
-
-        InlineEditTodo _ ->
-            editEncoder NoEdit
 
 
 type Page
@@ -143,7 +121,7 @@ init flags url key =
             Model Dict.empty
                 Dict.empty
                 []
-                (Bulk Set.empty)
+                (Edit.Bulk Set.empty)
                 page
                 key
                 route
@@ -265,16 +243,16 @@ update message model =
 
         OnTodoTitleClicked todoId ->
             case model.edit of
-                NoEdit ->
+                Edit.None ->
                     TodoDict.pendingWithId todoId model.todos
                         |> Maybe.map
                             (\t ->
-                                setAndCacheEdit (InlineEditTodo t) model
+                                setAndCacheEdit (Edit.InlineEditTodo t) model
                                     |> command focusInlineEditTodoTitleCmd
                             )
                         |> Maybe.withDefault ( model, Cmd.none )
 
-                Bulk idSet ->
+                Edit.Bulk idSet ->
                     let
                         toggleMember mem set =
                             if Set.member mem set then
@@ -284,9 +262,9 @@ update message model =
                                 Set.insert mem set
                     in
                     model
-                        |> setAndCacheEdit (idSet |> toggleMember todoId |> Bulk)
+                        |> setAndCacheEdit (idSet |> toggleMember todoId |> Edit.Bulk)
 
-                InlineEditTodo _ ->
+                Edit.InlineEditTodo _ ->
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
@@ -304,13 +282,13 @@ update message model =
 
         WrapInlineEditTodoMsg msg ->
             case model.edit of
-                NoEdit ->
+                Edit.None ->
                     ( model, Cmd.none )
 
-                Bulk _ ->
+                Edit.Bulk _ ->
                     ( model, Cmd.none )
 
-                InlineEditTodo todo ->
+                Edit.InlineEditTodo todo ->
                     updateInlineEditTodo msg todo model
 
         OnMenuClicked ->
@@ -329,23 +307,23 @@ setAndCacheTodosIn model todos =
 updateInlineEditTodo msg todo model =
     case msg of
         IET_Title title ->
-            model |> setAndCacheEdit (InlineEditTodo { todo | title = title })
+            model |> setAndCacheEdit (Edit.InlineEditTodo { todo | title = title })
 
         IET_ProjectId projectId ->
             model
-                |> setAndCacheEdit (InlineEditTodo { todo | projectId = projectId })
+                |> setAndCacheEdit (Edit.InlineEditTodo { todo | projectId = projectId })
 
         IET_Save ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
-                |> andThen (setAndCacheEdit NoEdit)
+                |> andThen (setAndCacheEdit Edit.None)
 
         IET_Cancel ->
-            setAndCacheEdit NoEdit model
+            setAndCacheEdit Edit.None model
 
 
 setAndCacheEdit newEdit model =
-    ( { model | edit = newEdit }, editEncoder newEdit |> cacheEdit )
+    ( { model | edit = newEdit }, Edit.encoder newEdit |> cacheEdit )
 
 
 focusInlineEditTodoTitleCmd =
@@ -478,16 +456,16 @@ viewMaster { title, content } model =
             div [ class "flex w-100 bg-black-50 lh-copy pa1" ]
                 [ div [ class "flex-grow-1" ] [ text title ]
                 , case model.edit of
-                    NoEdit ->
+                    Edit.None ->
                         text ""
 
-                    Bulk idSet ->
+                    Edit.Bulk idSet ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
                             , div [ class "" ] [ text "cancel" ]
                             ]
 
-                    InlineEditTodo _ ->
+                    Edit.InlineEditTodo _ ->
                         text ""
                 ]
     in
@@ -603,17 +581,17 @@ viewError error =
 viewPendingTodoList : Edit -> ProjectDict -> List Todo -> List (Html Msg)
 viewPendingTodoList edit projects todoList =
     case edit of
-        NoEdit ->
+        Edit.None ->
             List.map viewNonEditingTodoItem todoList
 
-        Bulk idSet ->
+        Edit.Bulk idSet ->
             List.map
                 (\todo ->
                     viewBulkTodoItem (Set.member todo.id idSet) todo
                 )
                 todoList
 
-        InlineEditTodo editingTodo ->
+        Edit.InlineEditTodo editingTodo ->
             List.map
                 (\todo ->
                     if editingTodo.id == todo.id then
