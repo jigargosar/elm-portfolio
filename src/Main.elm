@@ -106,6 +106,7 @@ decodeEdit encoded =
         |> Result.mapError (\e -> ( "Error decoding Edit", e ))
 
 
+routeToPage : Route -> Page
 routeToPage route =
     case route of
         Route.Default ->
