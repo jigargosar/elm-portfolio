@@ -7,6 +7,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
+import EditTodo
 import Html exposing (Html, button, div, i, input, label, option, select, text, textarea)
 import Html.Attributes exposing (autofocus, class, classList, href, style, tabindex, title, value)
 import Html.Events exposing (onClick, onInput)
@@ -199,10 +200,7 @@ type alias DomFocusResult =
 
 
 type EditMsg
-    = SetTitle String
-    | SetProjectId ProjectId
-    | Save
-    | Cancel
+    = EditTodo EditTodo.Msg
 
 
 type Msg
@@ -307,16 +305,13 @@ update message model =
                 |> Maybe.map (setAndCacheTodosIn model)
                 |> Maybe.withDefault ( model, Cmd.none )
 
-        OnEdit msg ->
-            case model.edit of
-                Edit.None ->
-                    ( model, Cmd.none )
-
-                Edit.Bulk _ ->
-                    ( model, Cmd.none )
-
-                Edit.InlineTodo todo ->
+        OnEdit editMsg ->
+            case ( model.edit, editMsg ) of
+                ( Edit.InlineTodo todo, EditTodo msg ) ->
                     updateInlineEditTodo msg todo model
+
+                _ ->
+                    ( model, Cmd.none )
 
         OnMenuClicked ->
             ( { model | isSidebarOpen = True }, Cmd.none )
@@ -333,19 +328,19 @@ setAndCacheTodosIn model todos =
 
 updateInlineEditTodo msg todo model =
     case msg of
-        SetTitle title ->
+        EditTodo.SetTitle title ->
             model |> setAndCacheEdit (Edit.InlineTodo { todo | title = title })
 
-        SetProjectId projectId ->
+        EditTodo.SetProjectId projectId ->
             model
                 |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
-        Save ->
+        EditTodo.Save ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
                 |> andThen (setAndCacheEdit Edit.None)
 
-        Cancel ->
+        EditTodo.Cancel ->
             setAndCacheEdit Edit.None model
 
 
@@ -660,6 +655,7 @@ editTodoTitleDomid =
     "edit-todo-title-domid"
 
 
+viewInlineInlineEditTodoItem : ProjectDict -> Todo -> Html Msg
 viewInlineInlineEditTodoItem projects todo =
     div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
         [ div [ class "flex-grow-1" ]
@@ -668,19 +664,20 @@ viewInlineInlineEditTodoItem projects todo =
                     [ Html.Attributes.id editTodoTitleDomid
                     , class "flex-grow-1"
                     , value todo.title
-                    , onInput SetTitle
+                    , onInput EditTodo.SetTitle
                     ]
                     []
                 ]
             , viewProjectSelect projects todo
-            , button [ onClick Save ] [ text "save" ]
-            , button [ onClick Cancel ] [ text "cancel" ]
+            , button [ onClick EditTodo.Save ] [ text "save" ]
+            , button [ onClick EditTodo.Cancel ] [ text "cancel" ]
             ]
         ]
+        |> Html.map EditTodo
         |> Html.map OnEdit
 
 
-viewProjectSelect : ProjectDict -> Todo -> Html EditMsg
+viewProjectSelect : ProjectDict -> Todo -> Html EditTodo.Msg
 viewProjectSelect projects todo =
     let
         projectList =
@@ -693,7 +690,7 @@ viewProjectSelect projects todo =
             Html.option [ value p.id, selectedAttrForPrjId p.id ] [ text p.title ]
     in
     div [ class "" ]
-        [ Html.select [ onInput SetProjectId ]
+        [ Html.select [ onInput EditTodo.SetProjectId ]
             (Html.option [ value "", selectedAttrForPrjId "" ] [ text "Inbox" ]
                 :: List.map viewProjectOption projectList
             )
