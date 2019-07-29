@@ -7,7 +7,7 @@ import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, optgroup, option, select, text)
-import Html.Attributes exposing (class, classList, href, placeholder, title, value)
+import Html.Attributes exposing (attribute, class, classList, href, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
@@ -213,6 +213,7 @@ type Msg
     | OnInlineEditTodoMsg InlineEditTodoMsg
     | OnBulkCancelClicked
     | OnSelectMultipleClicked
+    | OnBulkMoveInput ProjectId
 
 
 update : Msg -> Model -> Return
@@ -319,6 +320,13 @@ update message model =
 
         OnSelectMultipleClicked ->
             model |> setAndCacheEdit (Edit.Bulk Set.empty)
+
+        OnBulkMoveInput projectId ->
+            let
+                _ =
+                    Debug.log "moved to pid" projectId
+            in
+            ( model, Cmd.none )
 
 
 setAndCacheTodosIn model todos =
@@ -531,9 +539,9 @@ viewMaster { title, content } model =
                         :: List.map viewProjectOption projectList
             in
             div [ class "flex-shrink-1" ]
-                [ select [ class "w-100 flex-shrink-1", onInput (\_ -> NoOp) ]
+                [ select [ class "w-100 flex-shrink-1", onInput OnBulkMoveInput ]
                     [ optgroup
-                        [ Html.Attributes.attribute "label" "Move To..."
+                        [ attribute "label" "Move To..."
                         ]
                         viewOptions
                     ]
