@@ -32,6 +32,9 @@ import Url exposing (Url)
 port cacheTodoList : List Todo -> Cmd msg
 
 
+port cacheEdit : Value -> Cmd msg
+
+
 type alias Flags =
     { todoList : Value
     , projectList : Value
@@ -50,6 +53,23 @@ type Edit
     = NoEdit
     | InlineEditTodo Todo
     | Bulk (Set TodoId)
+
+
+editEncoder : Edit -> Value
+editEncoder edit =
+    case edit of
+        NoEdit ->
+            JE.object
+                [ ( "type", JE.string "NoEdit" )
+                ]
+
+        Bulk idSet ->
+            JE.object
+                [ ( "idSet", JE.set JE.string idSet )
+                ]
+
+        InlineEditTodo _ ->
+            editEncoder NoEdit
 
 
 type Page
@@ -333,6 +353,10 @@ updateInlineEditTodo msg todo model =
 
 setNoEdit model =
     { model | edit = NoEdit }
+
+
+setAndCacheEdit newEdit model =
+    ( { model | edit = newEdit }, editEncoder newEdit |> cacheEdit )
 
 
 focusInlineEditTodoTitleCmd =
