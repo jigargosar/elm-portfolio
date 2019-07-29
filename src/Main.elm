@@ -514,7 +514,7 @@ viewMaster { title, content } model =
                     Edit.Bulk _ ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
-                            , viewBulkProjectSelect
+                            , viewMoveToProjectsMenu (activeProjectList model.projects)
                             , div
                                 [ class "underline pointer"
                                 , onClick OnBulkCancelClicked
@@ -559,6 +559,18 @@ viewMaster { title, content } model =
             ]
         ]
     }
+
+
+viewMoveToProjectsMenu projectList =
+    let
+        viewProjectMenuItem p =
+            div [ class "truncate pa1" ] [ text p.title ]
+    in
+    div [ class "relative" ]
+        [ div [ class "" ] [ text "Move To..." ]
+        , div [ class "bg-black-90 absolute truncate w4 " ]
+            (List.map viewProjectMenuItem projectList)
+        ]
 
 
 viewIf bool v =
