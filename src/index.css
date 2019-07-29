@@ -67,3 +67,16 @@ a {
 .hov-bg-light-yellow:hover {
   background-color: #fbf1a9;
 }
+
+.hover-db-parent .hover-db-child{
+  display: none;
+}
+
+.hover-db-parent:hover .hover-db-child{
+  display: block;
+}
+
+
+.c-default {
+  cursor:default;
+}

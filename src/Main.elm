@@ -213,7 +213,7 @@ type Msg
     | OnInlineEditTodoMsg InlineEditTodoMsg
     | OnBulkCancelClicked
     | OnSelectMultipleClicked
-    | OnBulkMoveInput ProjectId
+    | OnBulkMoveToProjectSelected ProjectId
 
 
 update : Msg -> Model -> Return
@@ -321,7 +321,7 @@ update message model =
         OnSelectMultipleClicked ->
             model |> setAndCacheEdit (Edit.Bulk Set.empty)
 
-        OnBulkMoveInput projectId ->
+        OnBulkMoveToProjectSelected projectId ->
             let
                 _ =
                     Debug.log "moved to pid" projectId
@@ -539,7 +539,7 @@ viewMaster { title, content } model =
                         :: List.map viewProjectOption projectList
             in
             div [ class "flex-shrink-1" ]
-                [ select [ class "w-100 flex-shrink-1", onInput OnBulkMoveInput ]
+                [ select [ class "w-100 flex-shrink-1", onInput OnBulkMoveToProjectSelected ]
                     [ optgroup
                         [ attribute "label" "Move To..."
                         ]
@@ -564,12 +564,18 @@ viewMaster { title, content } model =
 viewMoveToProjectsMenu projectList =
     let
         viewProjectMenuItem p =
-            div [ class "truncate pa1" ] [ text p.title ]
+            div
+                [ class "w4 truncate pa2 hover-bg-black  pointer"
+                , onClick (OnBulkMoveToProjectSelected p.id)
+                ]
+                [ text p.title ]
     in
-    div [ class "relative" ]
-        [ div [ class "" ] [ text "Move To..." ]
-        , div [ class "bg-black-90 absolute truncate w4 " ]
-            (List.map viewProjectMenuItem projectList)
+    div [ class "relative hover-db-parent" ]
+        [ div [ class "c-default" ] [ text "Move To..." ]
+        , div [ class "hover-db-child bg-black-90 absolute" ]
+            (viewProjectMenuItem { id = "", title = "Inbox" }
+                :: List.map viewProjectMenuItem projectList
+            )
         ]
 
 
