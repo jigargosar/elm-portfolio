@@ -1,6 +1,7 @@
 module Todo exposing
     ( CompareBy(..)
     , Filter(..)
+    , Msg(..)
     , Todo
     , TodoId
     , decoder
@@ -8,6 +9,7 @@ module Todo exposing
     , filter
     , filterSingle
     , filterSort
+    , modify
     , setCompleted
     , setModifiedAt
     , setProjectId
@@ -61,8 +63,32 @@ encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
         ]
 
 
-mapCompleted fn model =
-    { model | isDone = fn model.isDone }
+type Msg
+    = SetCompleted Bool
+    | SetProjectId ProjectId
+
+
+update : Msg -> Todo -> Todo
+update msg model =
+    case msg of
+        SetCompleted bool ->
+            { model | isDone = bool }
+
+        SetProjectId projectId ->
+            { model | projectId = projectId }
+
+
+modify : Msg -> Todo -> Maybe Todo
+modify msg model =
+    let
+        newModel =
+            update msg model
+    in
+    if newModel == model then
+        Nothing
+
+    else
+        Just newModel
 
 
 setCompleted : Bool -> Todo -> Maybe Todo

@@ -291,7 +291,7 @@ update message model =
 
         OnTodoCheckedWithNow todoId now ->
             TodoDict.markCompleted todoId now model.todos
-                |> Maybe.map (setAndCacheTodosIn model)
+                |> Maybe.map (setAndCacheTodosWithMsgIn model)
                 |> Maybe.withDefault ( model, Cmd.none )
 
         OnTodoUnChecked todoId ->
@@ -341,6 +341,13 @@ update message model =
 
 
 setAndCacheTodosIn model todos =
+    ( setTodos todos model
+    , cacheTodoList (Dict.values todos)
+    )
+
+
+setAndCacheTodosWithMsgIn : Model -> ( List Todo.Msg, TodoDict ) -> Return
+setAndCacheTodosWithMsgIn model ( _, todos ) =
     ( setTodos todos model
     , cacheTodoList (Dict.values todos)
     )

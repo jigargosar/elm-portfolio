@@ -62,14 +62,20 @@ pendingWithId todoId =
         >> Maybe.andThen (Todo.filterSingle Todo.Pending)
 
 
+markCompleted : TodoId -> Millis -> TodoDict -> Maybe ( List Todo.Msg, TodoDict )
 markCompleted todoId now model =
+    let
+        msg =
+            Todo.SetCompleted True
+    in
     model
         |> Dict.get todoId
-        |> Maybe.andThen (Todo.setCompleted True)
+        |> Maybe.andThen (Todo.modify msg)
         |> Maybe.map
             (Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updateSortIdx now
+                >> Tuple.pair [ msg ]
             )
 
 
