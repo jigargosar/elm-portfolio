@@ -512,8 +512,8 @@ viewProjectPage model project =
                 , div [ class "vs3" ]
                     [ div [] [ text "Pending" ]
                     , div [ class "vs3" ]
-                        (List.map
-                            (viewPendingTodoItem model.edit model.projects)
+                        (viewPendingTodoList model.edit
+                            model.projects
                             (TodoDict.pendingWithProjectId project.id model.todos)
                         )
                     ]
