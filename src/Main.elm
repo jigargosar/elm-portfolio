@@ -588,10 +588,12 @@ viewNonEditingTodoItem todo =
 
 viewBulkTodoItem todo =
     div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
-        [ div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
-            [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
-            ]
-        , div [ class "flex-grow-1", onClick (OnTodoTitleClicked todo.id) ]
+        [ {- div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
+                 [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
+                 ]
+             ,
+          -}
+          div [ class "flex-grow-1", onClick (OnTodoTitleClicked todo.id) ]
             [ div [ class "" ] [ text todo.title ] ]
         ]
 
