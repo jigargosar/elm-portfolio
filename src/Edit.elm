@@ -9,7 +9,7 @@ import Todo exposing (Todo, TodoId)
 
 type Edit
     = None
-    | InlineEditTodo Todo
+    | InlineTodo Todo
     | Bulk (Set TodoId)
 
 
@@ -26,5 +26,5 @@ encoder edit =
                 [ ( "idSet", JE.set JE.string idSet )
                 ]
 
-        InlineEditTodo _ ->
+        InlineTodo _ ->
             encoder None

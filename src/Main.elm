@@ -247,7 +247,7 @@ update message model =
                     TodoDict.pendingWithId todoId model.todos
                         |> Maybe.map
                             (\t ->
-                                setAndCacheEdit (Edit.InlineEditTodo t) model
+                                setAndCacheEdit (Edit.InlineTodo t) model
                                     |> command focusInlineEditTodoTitleCmd
                             )
                         |> Maybe.withDefault ( model, Cmd.none )
@@ -264,7 +264,7 @@ update message model =
                     model
                         |> setAndCacheEdit (idSet |> toggleMember todoId |> Edit.Bulk)
 
-                Edit.InlineEditTodo _ ->
+                Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
@@ -288,7 +288,7 @@ update message model =
                 Edit.Bulk _ ->
                     ( model, Cmd.none )
 
-                Edit.InlineEditTodo todo ->
+                Edit.InlineTodo todo ->
                     updateInlineEditTodo msg todo model
 
         OnMenuClicked ->
@@ -307,11 +307,11 @@ setAndCacheTodosIn model todos =
 updateInlineEditTodo msg todo model =
     case msg of
         IET_Title title ->
-            model |> setAndCacheEdit (Edit.InlineEditTodo { todo | title = title })
+            model |> setAndCacheEdit (Edit.InlineTodo { todo | title = title })
 
         IET_ProjectId projectId ->
             model
-                |> setAndCacheEdit (Edit.InlineEditTodo { todo | projectId = projectId })
+                |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
         IET_Save ->
             Dict.insert todo.id todo model.todos
@@ -465,7 +465,7 @@ viewMaster { title, content } model =
                             , div [ class "" ] [ text "cancel" ]
                             ]
 
-                    Edit.InlineEditTodo _ ->
+                    Edit.InlineTodo _ ->
                         text ""
                 ]
     in
@@ -591,7 +591,7 @@ viewPendingTodoList edit projects todoList =
                 )
                 todoList
 
-        Edit.InlineEditTodo editingTodo ->
+        Edit.InlineTodo editingTodo ->
             List.map
                 (\todo ->
                     if editingTodo.id == todo.id then
