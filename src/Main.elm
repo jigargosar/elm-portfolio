@@ -326,10 +326,6 @@ update message model =
             ( model, OnBulkMoveToProjectSelectedWithNow projectId |> withNow )
 
         OnBulkMoveToProjectSelectedWithNow projectId now ->
-            let
-                _ =
-                    Debug.log "moved to pid" projectId
-            in
             case model.edit of
                 Edit.None ->
                     ( model, Cmd.none )
