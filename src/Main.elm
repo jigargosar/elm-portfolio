@@ -243,14 +243,22 @@ update message model =
             ( model, withNow (OnTodoCheckedWithNow todoId) )
 
         OnTodoTitleClicked todoId ->
-            TodoDict.pendingWithId todoId model.todos
-                |> Maybe.map
-                    (\t ->
-                        ( { model | edit = InlineEditTodo t }
-                        , focusInlineEditTodoTitleCmd
-                        )
-                    )
-                |> Maybe.withDefault ( model, Cmd.none )
+            case model.edit of
+                NoEdit ->
+                    TodoDict.pendingWithId todoId model.todos
+                        |> Maybe.map
+                            (\t ->
+                                ( { model | edit = InlineEditTodo t }
+                                , focusInlineEditTodoTitleCmd
+                                )
+                            )
+                        |> Maybe.withDefault ( model, Cmd.none )
+
+                Bulk idList ->
+                    ( model, Cmd.none )
+
+                InlineEditTodo _ ->
+                    ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
             TodoDict.markCompleted todoId now model.todos
