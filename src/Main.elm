@@ -413,9 +413,14 @@ view model =
 
 
 viewErrorOverlay errors =
-    div [ class "f4 flex justify-center items-center fixed absolute absolute--fill bg-black-90 white" ]
-        [ div [ class "pa3 vs3" ]
-            (List.map viewErrorItem errors)
+    div
+        [ class "fixed absolute absolute--fill bg-black-70 white"
+        , class "f4 flex justify-center items-center"
+        ]
+        [ div [ class "h5 w-80 pa3 vs3 shadow-1 bg-white  black" ]
+            [ div [ class "pa1 b red" ] [ text "Error:" ]
+            , div [ class "pa1" ] (List.map viewErrorItem errors)
+            ]
         ]
 
 
