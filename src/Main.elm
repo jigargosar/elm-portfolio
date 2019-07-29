@@ -269,9 +269,8 @@ update message model =
                     TodoDict.pendingWithId todoId model.todos
                         |> Maybe.map
                             (\t ->
-                                ( { model | edit = InlineEditTodo t }
-                                , focusInlineEditTodoTitleCmd
-                                )
+                                setAndCacheEdit (InlineEditTodo t) model
+                                    |> command focusInlineEditTodoTitleCmd
                             )
                         |> Maybe.withDefault ( model, Cmd.none )
 
@@ -284,7 +283,8 @@ update message model =
                             else
                                 Set.insert mem set
                     in
-                    ( { model | edit = idSet |> toggleMember todoId |> Bulk }, Cmd.none )
+                    model
+                        |> setAndCacheEdit (idSet |> toggleMember todoId |> Bulk)
 
                 InlineEditTodo _ ->
                     ( model, Cmd.none )
@@ -329,30 +329,19 @@ setAndCacheTodosIn model todos =
 updateInlineEditTodo msg todo model =
     case msg of
         IET_Title title ->
-            ( { model
-                | edit = InlineEditTodo { todo | title = title }
-              }
-            , Cmd.none
-            )
+            model |> setAndCacheEdit (InlineEditTodo { todo | title = title })
 
         IET_ProjectId projectId ->
-            ( { model
-                | edit = InlineEditTodo { todo | projectId = projectId }
-              }
-            , Cmd.none
-            )
+            model
+                |> setAndCacheEdit (InlineEditTodo { todo | projectId = projectId })
 
         IET_Save ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
-                |> Tuple.mapFirst setNoEdit
+                |> andThen (setAndCacheEdit NoEdit)
 
         IET_Cancel ->
-            ( setNoEdit model, Cmd.none )
-
-
-setNoEdit model =
-    { model | edit = NoEdit }
+            setAndCacheEdit NoEdit model
 
 
 setAndCacheEdit newEdit model =
