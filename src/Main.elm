@@ -6,8 +6,8 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
-import Html exposing (Html, button, div, i, option, select, text)
-import Html.Attributes exposing (class, classList, href, title, value)
+import Html exposing (Html, button, div, i, optgroup, option, select, text)
+import Html.Attributes exposing (class, classList, href, placeholder, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
@@ -525,12 +525,18 @@ viewMaster { title, content } model =
 
                 viewProjectOption p =
                     option [ value p.id ] [ text p.title ]
+
+                viewOptions =
+                    option [ value "" ] [ text "Inbox" ]
+                        :: List.map viewProjectOption projectList
             in
             div [ class "flex-shrink-1" ]
                 [ select [ class "w-100 flex-shrink-1", onInput (\_ -> NoOp) ]
-                    (option [ value "" ] [ text "Inbox" ]
-                        :: List.map viewProjectOption projectList
-                    )
+                    [ optgroup
+                        [ Html.Attributes.attribute "label" "Move To..."
+                        ]
+                        viewOptions
+                    ]
                 ]
     in
     { title = title
