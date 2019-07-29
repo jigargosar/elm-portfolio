@@ -196,6 +196,10 @@ type InlineEditTodoMsg
     | IET_Cancel
 
 
+type BulkMsg
+    = OnBulkCancel
+
+
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -211,6 +215,7 @@ type Msg
     | OnMenuClicked
     | OnSidebarOverlayClicked
     | OnInlineEditTodoMsg InlineEditTodoMsg
+    | OnBulkMsg BulkMsg
 
 
 update : Msg -> Model -> Return
@@ -311,6 +316,11 @@ update message model =
 
         OnSidebarOverlayClicked ->
             ( { model | isSidebarOpen = False }, Cmd.none )
+
+        OnBulkMsg msg ->
+            case msg of
+                OnBulkCancel ->
+                    model |> setAndCacheEdit Edit.None
 
 
 setAndCacheTodosIn model todos =
@@ -492,7 +502,11 @@ viewMaster { title, content } model =
                     Edit.Bulk _ ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
-                            , div [ class "" ] [ text "cancel" ]
+                            , div
+                                [ class ""
+                                , onClick (OnBulkMsg OnBulkCancel)
+                                ]
+                                [ text "cancel" ]
                             ]
 
                     Edit.InlineTodo _ ->
