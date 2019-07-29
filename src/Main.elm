@@ -402,7 +402,8 @@ view model =
             viewPage model.page model
 
         errors =
-            model.errors
+            -- model.errors
+            [ "Testing errors" ]
     in
     { title = title
     , body =
@@ -412,7 +413,7 @@ view model =
 
 
 viewErrorOverlay errors =
-    div [ class "fixed absolute absolute--fill bg-red white" ]
+    div [ class "f4 flex justify-center items-center fixed absolute absolute--fill bg-black-90 white" ]
         [ div [ class "pa3 vs3" ]
             (List.map viewErrorItem errors)
         ]
