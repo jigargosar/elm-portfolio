@@ -349,7 +349,7 @@ setAndCacheTodosIn model todos =
 setAndCacheTodosWithMsgIn :
     Model
     -> Millis
-    -> ( List Todo.Msg, TodoDict )
+    -> ( List TodoDict.SyncMsg, TodoDict )
     -> Return
 setAndCacheTodosWithMsgIn model now ( syncMessages, todos ) =
     let
