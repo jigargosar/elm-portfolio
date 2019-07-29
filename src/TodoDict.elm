@@ -110,6 +110,27 @@ markCompleted todoId now model =
             )
 
 
+markPending : TodoId -> Millis -> TodoDict -> Maybe ( List SyncMsg, TodoDict )
+markPending todoId now model =
+    let
+        msg =
+            Todo.SetCompleted False
+
+        syncMsg =
+            TodoSync todoId msg
+    in
+    model
+        |> Dict.get todoId
+        |> Maybe.andThen (Todo.modify msg)
+        |> Maybe.map
+            (Todo.setSortIdx Basics.Extra.maxSafeInteger
+                >> Todo.setModifiedAt now
+                >> (\t -> Dict.insert t.id t model)
+                >> updatePendingSortIdx now
+                >> Tuple.mapFirst (\msgList -> msgList ++ [ syncMsg ])
+            )
+
+
 moveAllToProjectId : ProjectId -> Set TodoId -> Millis -> TodoDict -> Maybe TodoDict
 moveAllToProjectId projectId todoIdSet now model =
     let
@@ -133,18 +154,6 @@ moveAllToProjectId projectId todoIdSet now model =
 
     else
         Just (Dict.union updatedTodos model)
-
-
-markPending todoId now model =
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen (Todo.setCompleted False)
-        |> Maybe.map
-            (Todo.setSortIdx Basics.Extra.maxSafeInteger
-                >> Todo.setModifiedAt now
-                >> (\t -> Dict.insert t.id t model)
-                >> updateSortIdx now
-            )
 
 
 updateSortIdx : Millis -> TodoDict -> TodoDict

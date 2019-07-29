@@ -299,7 +299,7 @@ update message model =
 
         OnTodoUnCheckedWithNow todoId now ->
             TodoDict.markPending todoId now model.todos
-                |> Maybe.map (setAndCacheTodosIn model)
+                |> Maybe.map (setAndCacheTodosWithMsgIn model now)
                 |> Maybe.withDefault ( model, Cmd.none )
 
         OnInlineEditTodoMsg msg ->
