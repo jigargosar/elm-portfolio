@@ -1,5 +1,6 @@
 module Edit exposing (Edit(..), decoder, encoder)
 
+import InlineEditTodoMsg
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
 import Json.Encode as JE exposing (Value)

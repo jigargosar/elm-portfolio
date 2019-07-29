@@ -1,4 +1,4 @@
-module InlineEditTodo exposing (Msg(..))
+module InlineEditTodoMsg exposing (Msg(..))
 
 import Project exposing (Project)
 import ProjectId exposing (ProjectId)
@@ -10,3 +10,7 @@ type Msg
     | SetProjectId ProjectId
     | Save
     | Cancel
+
+
+type alias Model =
+    Todo
