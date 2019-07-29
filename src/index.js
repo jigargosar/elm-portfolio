@@ -19,6 +19,7 @@ const app = Elm.Main.init({
     todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
     // todoList: [{}],
     projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
+    edit: JSON.parse(localStorage.getItem('edit')),
   },
 })
 

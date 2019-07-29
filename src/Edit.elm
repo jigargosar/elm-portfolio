@@ -31,22 +31,27 @@ encoder edit =
             encoder None
 
 
+decoderFromType : String -> Decoder Edit
+decoderFromType type_ =
+    case type_ of
+        "None" ->
+            None |> JD.succeed
+
+        "Bulk" ->
+            JD.field "idSet" (JD.list JD.string)
+                |> JD.map (Set.fromList >> Bulk)
+
+        "InlineTodo" ->
+            JD.fail "Unable to decode inline todo"
+
+        _ ->
+            JD.fail ("Unable to decode Edit type: " ++ type_)
+
+
 decoder : Decoder Edit
 decoder =
-    JD.field "type" JD.string
-        |> JD.andThen
-            (\type_ ->
-                case type_ of
-                    "None" ->
-                        None |> JD.succeed
-
-                    "Bulk" ->
-                        JD.field "idSet" (JD.list JD.string)
-                            |> JD.map (Set.fromList >> Bulk)
-
-                    "InlineTodo" ->
-                        JD.fail "Unable to decode inline todo"
-
-                    _ ->
-                        JD.fail ("Unable to decode Edit type: " ++ type_)
-            )
+    JD.oneOf
+        [ JD.field "idSet" (JD.list JD.string)
+            |> JD.map (Set.fromList >> Bulk)
+        , JD.field "type" JD.string |> JD.andThen decoderFromType
+        ]
