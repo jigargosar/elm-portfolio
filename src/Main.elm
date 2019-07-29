@@ -401,16 +401,25 @@ view model =
         { title, body } =
             viewPage model.page model
 
-        viewError error =
-            div [ class "" ] [ text error ]
-
-        errorView =
-            div [ class "fixed absolute absolute--fill bg-red white" ]
-                [ div [ class "pa3 vs3" ]
-                    (List.map viewError model.errors)
-                ]
+        errors =
+            model.errors
     in
-    { title = title, body = body ++ [ viewIf (List.isEmpty model.errors |> not) errorView ] }
+    { title = title
+    , body =
+        body
+            ++ [ viewUnless (List.isEmpty errors) (viewErrorOverlay errors) ]
+    }
+
+
+viewErrorOverlay errors =
+    div [ class "fixed absolute absolute--fill bg-red white" ]
+        [ div [ class "pa3 vs3" ]
+            (List.map viewErrorItem errors)
+        ]
+
+
+viewErrorItem error =
+    div [ class "" ] [ text error ]
 
 
 viewPage page model =
@@ -526,6 +535,10 @@ viewIf bool v =
 
     else
         text ""
+
+
+viewUnless bool v =
+    viewIf (not bool) v
 
 
 viewNavItem sel url txt =
