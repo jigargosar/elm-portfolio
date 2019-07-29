@@ -170,9 +170,9 @@ init encodedFlags url key =
     )
 
 
-mapTodos : (TodoDict -> TodoDict) -> Model -> Model
-mapTodos mapper model =
-    { model | todos = mapper model.todos }
+type alias Foo =
+    { a : Bool
+    }
 
 
 setTodos : TodoDict -> Model -> Model
