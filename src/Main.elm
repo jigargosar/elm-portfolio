@@ -6,7 +6,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
-import Html exposing (Html, button, div, i, text)
+import Html exposing (Html, button, div, i, option, select, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
@@ -506,6 +506,7 @@ viewMaster { title, content } model =
                     Edit.Bulk _ ->
                         div [ class "flex hs3" ]
                             [ div [ class "" ] [ text "BulkMode" ]
+                            , viewBulkProjectSelect
                             , div
                                 [ class "underline pointer"
                                 , onClick OnBulkCancelClicked
@@ -515,6 +516,21 @@ viewMaster { title, content } model =
 
                     Edit.InlineTodo _ ->
                         text ""
+                ]
+
+        viewBulkProjectSelect =
+            let
+                projectList =
+                    activeProjectList model.projects
+
+                viewProjectOption p =
+                    option [ value p.id ] [ text p.title ]
+            in
+            div [ class "flex-shrink-1" ]
+                [ select [ class "w-100 flex-shrink-1", onInput (\_ -> NoOp) ]
+                    (option [ value "" ] [ text "Inbox" ]
+                        :: List.map viewProjectOption projectList
+                    )
                 ]
     in
     { title = title
