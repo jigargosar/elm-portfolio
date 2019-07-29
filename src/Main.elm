@@ -562,7 +562,11 @@ viewPendingTodoList edit projects todoList =
             List.map viewNonEditingTodoItem todoList
 
         Bulk selectedIds ->
-            List.map viewBulkTodoItem todoList
+            List.map
+                (\todo ->
+                    viewBulkTodoItem (List.member todo.id selectedIds) todo
+                )
+                todoList
 
         InlineEditTodo editingTodo ->
             List.map
@@ -586,7 +590,7 @@ viewNonEditingTodoItem todo =
         ]
 
 
-viewBulkTodoItem todo =
+viewBulkTodoItem isSelected todo =
     div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
         [ {- div [ class "pointer no-sel", onClick (OnTodoChecked todo.id) ]
                  [ i [ class "material-icons" ] [ text "radio_button_unchecked" ]
