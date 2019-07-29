@@ -214,7 +214,7 @@ type Msg
     | UrlChanged Url
     | OnMenuClicked
     | OnSidebarOverlayClicked
-    | OnEdit Edit.Msg
+    | OnInlineEditTodoMsg EditTodo.Msg
 
 
 update : Msg -> Model -> Return
@@ -302,9 +302,9 @@ update message model =
                 |> Maybe.map (setAndCacheTodosIn model)
                 |> Maybe.withDefault ( model, Cmd.none )
 
-        OnEdit editMsg ->
-            case ( model.edit, editMsg ) of
-                ( Edit.InlineTodo todo, Edit.EditTodoMsg msg ) ->
+        OnInlineEditTodoMsg msg ->
+            case model.edit of
+                Edit.InlineTodo todo ->
                     updateInlineEditTodo msg todo model
 
                 _ ->
@@ -700,8 +700,7 @@ viewInlineInlineEditTodoItem projects todo =
             , button [ onClick EditTodo.Cancel ] [ text "cancel" ]
             ]
         ]
-        |> Html.map Edit.EditTodoMsg
-        |> Html.map OnEdit
+        |> Html.map OnInlineEditTodoMsg
 
 
 viewProjectSelect : ProjectDict -> Todo -> Html EditTodo.Msg
