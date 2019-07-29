@@ -152,7 +152,8 @@ init encodedFlags url key =
             }
 
         initFromError ( prefix, error ) =
-            { emptyModel | errors = [ prefix ++ " : " ++ JD.errorToString error ] }
+            emptyModel
+                |> prependError (prefix ++ " : " ++ JD.errorToString error)
 
         initFromFlags flags =
             Result.map3 initHelp
@@ -261,7 +262,7 @@ update message model =
         OnDomFocusResult res ->
             res
                 |> Result.map (\_ -> ( model, Cmd.none ))
-                |> unpackErr (\err -> { model | errors = err :: model.errors } |> pure)
+                |> unpackErr (prependErrorIn model >> pure)
 
         OnTodoChecked todoId ->
             ( model, withNow (OnTodoCheckedWithNow todoId) )
@@ -329,6 +330,11 @@ setAndCacheTodosIn model todos =
 prependError : String -> Model -> Model
 prependError error model =
     { model | errors = error :: model.errors }
+
+
+prependErrorIn : Model -> String -> Model
+prependErrorIn model error =
+    prependError error model
 
 
 updateInlineEditTodo msg todo model =
