@@ -326,6 +326,11 @@ setAndCacheTodosIn model todos =
     )
 
 
+prependError : String -> Model -> Model
+prependError error model =
+    { model | errors = error :: model.errors }
+
+
 updateInlineEditTodo msg todo model =
     case msg of
         EditTodo.SetTitle title ->
