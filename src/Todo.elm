@@ -4,6 +4,7 @@ module Todo exposing
     , Todo
     , TodoId
     , decoder
+    , encoder
     , filter
     , filterSingle
     , filterSort

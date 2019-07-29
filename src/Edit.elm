@@ -27,8 +27,11 @@ encoder edit =
                 , ( "idSet", JE.set JE.string idSet )
                 ]
 
-        InlineTodo _ ->
-            encoder None
+        InlineTodo todo ->
+            JE.object
+                [ ( "type", JE.string "InlineTodo" )
+                , ( "todo", Todo.encoder todo )
+                ]
 
 
 bulkDecoder : Decoder Edit
