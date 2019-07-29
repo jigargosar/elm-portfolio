@@ -402,8 +402,8 @@ view model =
             viewPage model.page model
 
         errors =
-            -- model.errors
-            [ "Testing errors" ]
+            -- [ "Testing errors" ]
+            model.errors
     in
     { title = title
     , body =
