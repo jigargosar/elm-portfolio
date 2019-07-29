@@ -17,6 +17,7 @@ import Project exposing (Project)
 import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
+import Set exposing (Set)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -48,7 +49,7 @@ type alias Error =
 type Edit
     = NoEdit
     | InlineEditTodo Todo
-    | Bulk (List TodoId)
+    | Bulk (Set TodoId)
 
 
 type Page
@@ -572,7 +573,7 @@ viewPendingTodoList edit projects todoList =
         Bulk selectedIds ->
             List.map
                 (\todo ->
-                    viewBulkTodoItem (List.member todo.id selectedIds) todo
+                    viewBulkTodoItem (Set.member todo.id selectedIds) todo
                 )
                 todoList
 
