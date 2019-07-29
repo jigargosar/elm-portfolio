@@ -332,7 +332,7 @@ update message model =
 
                 Edit.Bulk idSet ->
                     TodoDict.moveAllToProjectId projectId idSet now model.todos
-                        |> Maybe.map (setAndCacheTodosIn model)
+                        |> Maybe.map (setAndCacheTodosWithMsgIn model now)
                         |> Maybe.withDefault ( model, Cmd.none )
                         |> andThen (setAndCacheEdit Edit.None)
 

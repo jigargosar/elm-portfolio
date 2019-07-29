@@ -131,29 +131,50 @@ markPending todoId now model =
             )
 
 
-moveAllToProjectId : ProjectId -> Set TodoId -> Millis -> TodoDict -> Maybe TodoDict
+moveAllToProjectId :
+    ProjectId
+    -> Set TodoId
+    -> Millis
+    -> TodoDict
+    -> Maybe ( List SyncMsg, TodoDict )
 moveAllToProjectId projectId todoIdSet now model =
     let
-        updatedTodos =
+        msg =
+            Todo.SetProjectId projectId
+
+        ( syncMsgList, updatedTodoDict ) =
             todoIdSet
                 |> Set.toList
                 |> List.filterMap
                     (\todoId ->
+                        let
+                            syncMsg =
+                                TodoSync todoId msg
+                        in
                         Dict.get todoId model
-                            |> Maybe.andThen (Todo.setProjectId projectId)
+                            |> Maybe.andThen (Todo.modify msg)
                             |> Maybe.map
                                 (Todo.setSortIdx Basics.Extra.maxSafeInteger
                                     >> Todo.setModifiedAt now
                                     >> Tuple.pair todoId
+                                    >> Tuple.pair syncMsg
                                 )
                     )
-                |> Dict.fromList
+                |> List.foldl
+                    (\( m, t ) ( mList, tList ) ->
+                        ( mList ++ [ m ], tList ++ [ t ] )
+                    )
+                    ( [], [] )
+                |> Tuple.mapSecond Dict.fromList
     in
-    if updatedTodos |> Dict.isEmpty then
+    if updatedTodoDict |> Dict.isEmpty then
         Nothing
 
     else
-        Just (Dict.union updatedTodos model)
+        Dict.union updatedTodoDict model
+            |> updatePendingSortIdx now
+            |> Tuple.mapFirst (\ml -> syncMsgList ++ ml)
+            |> Just
 
 
 updatePendingSortIdx : Millis -> TodoDict -> ( List SyncMsg, TodoDict )
