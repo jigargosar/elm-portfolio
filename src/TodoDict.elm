@@ -131,16 +131,21 @@ update now todoId msg model =
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
-        |> Set.foldl (\todoId -> andThen (updateSingle now todoId message)) ( model, [] )
+        |> Set.foldl (\todoId -> andThen (update_ now todoId message)) ( model, [] )
 
 
-updateSingle : Millis -> TodoId -> Msg -> TodoDict -> Return
-updateSingle now todoId message model =
+update_ : Millis -> TodoId -> Msg -> TodoDict -> Return
+update_ now todoId message model =
     case message of
         MarkComplete ->
             let
+                msg =
+                    Todo.SetCompleted True
+
                 _ =
-                    2
+                    model
+                        |> Dict.get todoId
+                        |> Maybe.andThen (Todo.modifyWithNow now msg)
             in
             ( model, [] )
 
