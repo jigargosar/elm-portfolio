@@ -201,16 +201,6 @@ type InlineEditTodoMsg
     | IET_Cancel
 
 
-type WithNow
-    = UpdateTodo TodoId TodoDict.Msg
-
-
-type Continue
-    = SetEditAndCache Edit
-    | SetAndCacheTodos Millis TodoDict.Return
-    | WrapWithNow WithNow
-    | OnNow WithNow Millis
-    | Next Continue
 
 
 type Msg
@@ -232,7 +222,6 @@ type Msg
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
     | OnBulkMoveToProjectSelectedWithNow ProjectId Millis
-    | OnContinue Continue
 
 
 update : Msg -> Model -> Return
@@ -355,29 +344,7 @@ update message model =
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
-        OnContinue msg ->
-            continue msg model
 
-
-continue message model =
-    case message of
-        SetEditAndCache edit ->
-            setAndCacheEdit edit model
-
-        SetAndCacheTodos now ret ->
-            setAndCacheTodosWithMsgIn model now ret
-
-        WrapWithNow msg ->
-            ( model, withNow (OnNow msg >> OnContinue) )
-
-        OnNow msg now ->
-            case msg of
-                UpdateTodo todoId todoMsg ->
-                    TodoDict.update now todoId todoMsg model.todos
-                        |> setAndCacheTodosWithMsgIn model now
-
-        Next msg ->
-            continue msg model
 
 
 setAndCacheTodosIn model todos =
