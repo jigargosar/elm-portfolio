@@ -227,7 +227,7 @@ updatePendingSortIdx now todos =
                     (\( i, t ) ->
                         let
                             msg =
-                                Todo.SetSortOrder (Todo.OrderByIdx {idx=i, updatedAt=now})
+                                Todo.SetSortIdx i
 
                             syncMsg =
                                 TodoSync t.id msg

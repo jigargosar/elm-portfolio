@@ -2,9 +2,9 @@ module Todo exposing
     ( CompareBy(..)
     , Filter(..)
     , Msg(..)
-    , SortOrder(..)
     , Todo
     , TodoId
+    , TodoList
     , decoder
     , encoder
     , filter
@@ -12,9 +12,7 @@ module Todo exposing
     , filterSort
     , modify
     , modifyMultiple
-    , setCompleted
     , setModifiedAt
-    , setProjectId
     , setSortIdx
     )
 
@@ -34,69 +32,15 @@ type alias Millis =
     Int
 
 
-type SortOrder
-    = OrderByIdx { idx : Int, updatedAt : Millis }
-    | OrderLast { updatedAt : Millis }
-
-
 type alias Todo =
     { id : TodoId
     , title : String
     , sortIdx : Int
-    , sortOrder : SortOrder
     , projectId : ProjectId
     , isDone : Bool
     , createdAt : Int
     , modifiedAt : Int
     }
-
-
-sortOrderDecoder : Decoder SortOrder
-sortOrderDecoder =
-    let
-        legacyDecoder =
-            JD.map2 (\sortIdx modifiedAt -> OrderByIdx { idx = sortIdx, updatedAt = modifiedAt })
-                (JD.field "sortIdx" JD.int)
-                (JD.field "modifiedAt" JD.int)
-
-        decoder_ =
-            JD.field "type" JD.string
-                |> JD.andThen
-                    (\type_ ->
-                        case type_ of
-                            "OrderByIdx" ->
-                                JD.succeed (\idx updatedAt -> { idx = idx, updatedAt = updatedAt })
-                                    |> JD.required "idx" JD.int
-                                    |> JD.required "updatedAt" JD.int
-                                    |> JD.map OrderByIdx
-
-                            "OrderLast" ->
-                                JD.succeed (\updatedAt -> { updatedAt = updatedAt })
-                                    |> JD.required "updatedAt" JD.int
-                                    |> JD.map OrderLast
-
-                            _ ->
-                                JD.fail ("Unknown SortOrder: " ++ type_)
-                    )
-    in
-    JD.oneOf [ decoder_, legacyDecoder ]
-
-
-sortOrderEncoder : SortOrder -> Value
-sortOrderEncoder so =
-    case so of
-        OrderByIdx rec ->
-            JE.object
-                [ ( "type", JE.string "OrderByIdx" )
-                , ( "idx", JE.int rec.idx )
-                , ( "updatedAt", JE.int rec.updatedAt )
-                ]
-
-        OrderLast rec ->
-            JE.object
-                [ ( "type", JE.string "OrderLast" )
-                , ( "updatedAt", JE.int rec.updatedAt )
-                ]
 
 
 decoder : Decoder Todo
@@ -105,7 +49,6 @@ decoder =
         |> JD.required "id" JD.string
         |> JD.required "title" JD.string
         |> JD.required "sortIdx" JD.int
-        |> JD.custom sortOrderDecoder
         |> JD.optional "projectId" ProjectId.decoder ProjectId.default
         |> JD.required "isDone" JD.bool
         |> JD.required "createdAt" JD.int
@@ -113,12 +56,11 @@ decoder =
 
 
 encoder : Todo -> Value
-encoder { id, title, sortIdx, sortOrder, projectId, isDone, createdAt, modifiedAt } =
+encoder { id, title, sortIdx,  projectId, isDone, createdAt, modifiedAt } =
     JE.object
         [ ( "id", JE.string id )
         , ( "title", JE.string title )
         , ( "sortIdx", JE.int sortIdx )
-        , ( "sortOrder", sortOrderEncoder sortOrder )
         , ( "projectId", ProjectId.encoder projectId )
         , ( "isDone", JE.bool isDone )
         , ( "createdAt", JE.int createdAt )
@@ -131,7 +73,6 @@ type Msg
     | SetProjectId ProjectId
     | SetTitle String
     | SetSortIdx Int
-    | SetSortOrder SortOrder
 
 
 update : Msg -> Todo -> Todo
@@ -149,9 +90,6 @@ update msg model =
         SetSortIdx sortIdx ->
             { model | sortIdx = sortIdx }
 
-        SetSortOrder sortOrder ->
-            { model | sortOrder = sortOrder }
-
 
 modify : Msg -> Todo -> Maybe Todo
 modify msg model =
@@ -166,51 +104,6 @@ modify msg model =
         Just newModel
 
 
-modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
-modifyWithNow now msg todo =
-    case msg of
-        SetCompleted bool ->
-            { todo | isDone = bool }
-                |> updateModifiedAt now todo
-
-        SetProjectId projectId ->
-            { todo | projectId = projectId }
-                |> updateModifiedAt now todo
-
-        SetTitle title ->
-            { todo | title = title }
-                |> updateModifiedAt now todo
-
-        SetSortIdx sortIdx ->
-            case todo.sortOrder of
-                OrderByIdx rec ->
-                    if rec.idx == sortIdx then
-                        Nothing
-
-                    else
-                        modifyWithNow now
-                            (SetSortOrder (OrderByIdx { idx = sortIdx, updatedAt = now }))
-                            todo
-
-                OrderLast _ ->
-                    modifyWithNow now
-                        (SetSortOrder (OrderByIdx { idx = sortIdx, updatedAt = now }))
-                        todo
-
-        SetSortOrder sortOrder ->
-            { todo | sortOrder = sortOrder }
-                |> updateModifiedAt now todo
-
-
-updateModifiedAt : Millis -> Todo -> Todo -> Maybe Todo
-updateModifiedAt now oldTodo newTodo =
-    if oldTodo == newTodo then
-        Nothing
-
-    else
-        setModifiedAt now newTodo |> Just
-
-
 modifyMultiple : List Msg -> Todo -> Maybe Todo
 modifyMultiple msgList model =
     let
@@ -222,24 +115,6 @@ modifyMultiple msgList model =
 
     else
         Just newModel
-
-
-setCompleted : Bool -> Todo -> Maybe Todo
-setCompleted bool model =
-    if model.isDone == bool then
-        Nothing
-
-    else
-        Just { model | isDone = bool }
-
-
-setProjectId : ProjectId -> Todo -> Maybe Todo
-setProjectId projectId model =
-    if model.projectId == projectId then
-        Nothing
-
-    else
-        Just { model | projectId = projectId }
 
 
 setSortIdx sortIdx model =
@@ -296,28 +171,11 @@ type CompareBy
     | ByRecentlyModified
 
 
-sortOrderComparator : Comparator SortOrder
-sortOrderComparator =
-    let
-        toTup so =
-            case so of
-                OrderByIdx rec ->
-                    ( rec.idx, rec.updatedAt )
-
-                OrderLast rec ->
-                    ( Basics.Extra.maxSafeInteger, rec.updatedAt )
-
-        tupComparator =
-            Compare.concat [ Compare.by Tuple.first, Compare.by Tuple.second ]
-    in
-    Compare.compose toTup tupComparator
-
-
 toComparator : CompareBy -> Comparator Todo
 toComparator compareBy =
     case compareBy of
         ByIdx ->
-            Compare.compose .sortOrder sortOrderComparator
+            Compare.by .sortIdx
 
         ByRecentlyModified ->
             Compare.by .modifiedAt |> Compare.reverse
