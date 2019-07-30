@@ -5,13 +5,10 @@ module TodoDict exposing
     , TodoDict
     , completedForProjectList
     , completedList
-    , markCompleted
-    , markPending
     , moveAllToProjectId
     , pendingList
     , pendingWithId
     , pendingWithProjectId
-    , setTitleAndMoveToProject
     )
 
 import Basics.Extra
@@ -96,7 +93,7 @@ pendingWithId todoId =
 type Msg
     = MarkComplete
     | MarkPending
-    | SetTitleAndMoveToProject { title : String, projectId : String }
+    | SetTitle String
     | MoveToProject ProjectId
 
 
@@ -122,9 +119,8 @@ update now todoId msg model =
             markPending todoId now model
                 |> unwrapNothing
 
-        SetTitleAndMoveToProject rec ->
-            setTitleAndMoveToProject todoId rec now model
-                |> unwrapNothing
+        SetTitle title ->
+            nc
 
         MoveToProject pid ->
             nc
@@ -175,23 +171,6 @@ markPending todoId now model =
             )
 
 
-setTitleAndMoveToProject :
-    TodoId
-    -> { title : String, projectId : ProjectId }
-    -> Millis
-    -> TodoDict
-    -> Maybe ( List SyncMsg, TodoDict )
-setTitleAndMoveToProject todoId { title, projectId } now model =
-    let
-        _ =
-            model
-                |> Dict.get todoId
-                |> Maybe.andThen
-                    (Todo.modifyMultiple
-                        [ Todo.SetProjectId projectId, Todo.SetTitle title ]
-                    )
-    in
-    Nothing
 
 
 moveAllToProjectId :
