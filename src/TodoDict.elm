@@ -132,7 +132,7 @@ getAllByIdSet todoIdSet model =
         |> List.filterMap (\todoId -> Dict.get todoId model)
 
 
-getModifiedTodoList: Millis -> Set TodoId -> Todo.Msg -> TodoDict -> List Todo
+getModifiedTodoList : Millis -> Set TodoId -> Todo.Msg -> TodoDict -> List Todo
 getModifiedTodoList now todoIdSet msg model =
     todoIdSet
         |> Set.toList
@@ -148,11 +148,14 @@ updateBulk now todoIdSet message model =
     case message of
         MarkComplete ->
             let
-                msg = Todo.SetCompleted True
+                msg =
+                    Todo.SetCompleted True
+
+                updatedTodoList =
+                    model
+                        |> getModifiedTodoList now todoIdSet msg
             in
-            
-            model
-                |> getModifiedTodoList now todoIdSet msg
+            updatedTodoList
                 |> List.foldl
                     (\todo ->
                         Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
