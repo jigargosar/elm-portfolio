@@ -159,9 +159,11 @@ update_ now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     (Todo.modifyWithNow now msg
-                        >> Maybe.map (\t -> insertWithMsg t msg model
-                            |> andThen (moveToBottom now t.id)
-                        )
+                        >> Maybe.map
+                            (\t ->
+                                insertWithMsg t msg model
+                                    |> andThen (moveToBottom now t.id)
+                            )
                     )
                 |> Maybe.withDefault ( model, [] )
 
@@ -182,12 +184,14 @@ andThen fn ( model, msgStack ) =
     in
     ( newModel, newMsgStack ++ msgStack )
 
-moveToBottom: Millis -> TodoId -> TodoDict -> Return
-moveToBottom now todoId model = 
+
+moveToBottom : Millis -> TodoId -> TodoDict -> Return
+moveToBottom now todoId model =
     let
-        _=1
+        _ =
+            1
     in
-    (model, [])
+    ( model, [] )
 
 
 type SyncMsg
