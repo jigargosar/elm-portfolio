@@ -28,6 +28,15 @@ type alias TodoId =
     String
 
 
+type alias Millis =
+    Int
+
+
+type SortOrder
+    = OrderByIdx { idx : Int, updatedAt : Millis }
+    | OrderLast { updatedAt : Millis }
+
+
 type alias Todo =
     { id : TodoId
     , title : String
