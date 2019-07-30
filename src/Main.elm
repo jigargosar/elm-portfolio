@@ -197,6 +197,7 @@ type InlineEditTodoMsg
     = IET_SetTitle String
     | IET_SetProjectId ProjectId
     | IET_Save
+    | IET_SaveWithNow Millis
     | IET_Cancel
 
 
@@ -387,6 +388,9 @@ updateInlineEditTodo msg todo model =
                 |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
         IET_Save ->
+            ( model, withNow (IET_SaveWithNow >> OnInlineEditTodoMsg ) )
+
+        IET_SaveWithNow now ->
             Dict.insert todo.id todo model.todos
                 |> setAndCacheTodosIn model
                 |> andThen (setAndCacheEdit Edit.None)
