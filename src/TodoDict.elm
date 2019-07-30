@@ -8,7 +8,7 @@ module TodoDict exposing
     , pendingList
     , pendingWithId
     , pendingWithProjectId
-    , update_
+    , update
 
     )
 
@@ -106,11 +106,11 @@ type alias Return =
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
-        |> Set.foldl (\todoId -> andThen (update_ now todoId message)) ( model, [] )
+        |> Set.foldl (\todoId -> andThen (update now todoId message)) ( model, [] )
 
 
-update_ : Millis -> TodoId -> Msg -> TodoDict -> Return
-update_ now todoId message model =
+update : Millis -> TodoId -> Msg -> TodoDict -> Return
+update now todoId message model =
     case message of
         MarkComplete ->
             let

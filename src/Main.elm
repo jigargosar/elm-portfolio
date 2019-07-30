@@ -294,14 +294,14 @@ update message model =
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
-            TodoDict.update_ now todoId TodoDict.MarkComplete model.todos
+            TodoDict.update now todoId TodoDict.MarkComplete model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnTodoUnChecked todoId ->
             ( model, withNow (OnTodoUnCheckedWithNow todoId) )
 
         OnTodoUnCheckedWithNow todoId now ->
-            TodoDict.update_ now todoId TodoDict.MarkPending model.todos
+            TodoDict.update now todoId TodoDict.MarkPending model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnInlineEditTodoMsg msg ->
