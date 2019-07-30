@@ -187,11 +187,26 @@ andThen fn ( model, msgStack ) =
 
 moveToBottom : Millis -> TodoId -> TodoDict -> Return
 moveToBottom now todoId model =
-    let
-        _ =
-            1
-    in
-    ( model, [] )
+    model
+        |> Dict.get todoId
+        |> Maybe.andThen
+            (\todo ->
+                let
+                    bottomIdx =
+                        todo.projectId
+                            |> (\pid -> pendingWithProjectId pid model)
+                            |> (List.Extra.last
+                                    >> Maybe.map (.sortIdx >> (+) 1)
+                                    >> Maybe.withDefault 0
+                               )
+
+                    msg =
+                        Todo.SetSortIdx bottomIdx
+                in
+                Todo.modifyWithNow now msg todo
+                    |> Maybe.map (\t -> insertWithMsg t msg model)
+            )
+        |> Maybe.withDefault ( model, [] )
 
 
 type SyncMsg
