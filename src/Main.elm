@@ -351,15 +351,14 @@ setAndCacheTodosIn model todos =
 setAndCacheTodosWithMsgIn :
     Model
     -> Millis
-    -> ( List TodoDict.SyncMsg, TodoDict )
+    -> ( TodoDict, List TodoDict.SyncMsg )
     -> Return
-setAndCacheTodosWithMsgIn model now ( syncMessages, todos ) =
+setAndCacheTodosWithMsgIn model now ( todos, syncMessages ) =
     let
         _ =
             Debug.log "now, syncMessages" ( now, syncMessages )
     in
     setAndCacheTodosIn model todos
-    
 
 
 cacheTodosEffect : Model -> Cmd Msg
