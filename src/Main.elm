@@ -371,7 +371,10 @@ continue message model =
             ( model, withNow (OnNow msg >> OnContinue) )
 
         OnNow msg now ->
-            ( model, Cmd.none )
+            case msg of
+                UpdateTodo todoId todoMsg ->
+                    TodoDict.update now todoId todoMsg model.todos
+                        |> setAndCacheTodosWithMsgIn model now
 
         Next msg ->
             continue msg model
