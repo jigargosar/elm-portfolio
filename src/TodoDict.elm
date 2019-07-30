@@ -9,7 +9,6 @@ module TodoDict exposing
     , pendingWithId
     , pendingWithProjectId
     , update
-
     )
 
 import Basics.Extra
@@ -103,6 +102,7 @@ type Msg
 type alias Return =
     ( TodoDict, List SyncMsg )
 
+
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
@@ -129,6 +129,23 @@ update now todoId message model =
             let
                 msg =
                     Todo.SetCompleted False
+            in
+            model
+                |> Dict.get todoId
+                |> Maybe.andThen
+                    (Todo.modifyWithNow now msg
+                        >> Maybe.map
+                            (\t ->
+                                insertWithMsg t msg model
+                                    |> andThen (moveToBottom now t.id)
+                            )
+                    )
+                |> Maybe.withDefault ( model, [] )
+
+        MoveToProject pid ->
+            let
+                msg =
+                    Todo.SetProjectId pid
             in
             model
                 |> Dict.get todoId
