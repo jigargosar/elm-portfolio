@@ -126,9 +126,39 @@ update now todoId msg model =
             nc
 
 
-updateBulk : Millis -> TodoId -> Msg -> TodoDict -> Return
-updateBulk now todoIdSet msg model =
-    case msg of
+getAllByIdSet todoIdSet model =
+    todoIdSet
+        |> Set.toList
+        |> List.filterMap (\todoId -> Dict.get todoId model)
+
+
+getModifiedTodoList: Millis -> Set TodoId -> Todo.Msg -> TodoDict -> List Todo
+getModifiedTodoList now todoIdSet msg model =
+    todoIdSet
+        |> Set.toList
+        |> List.filterMap
+            (\todoId ->
+                Dict.get todoId model
+                    |> Maybe.andThen (Todo.modifyWithNow now msg)
+            )
+
+
+updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
+updateBulk now todoIdSet message model =
+    case message of
+        MarkComplete ->
+            let
+                msg = Todo.SetCompleted True
+            in
+            
+            model
+                |> getModifiedTodoList now todoIdSet msg
+                |> List.foldl
+                    (\todo ->
+                        Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
+                    )
+                    ( model, [] )
+
         _ ->
             ( model, [] )
 

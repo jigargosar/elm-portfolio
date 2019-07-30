@@ -12,6 +12,7 @@ module Todo exposing
     , filterSort
     , modify
     , modifyMultiple
+    , modifyWithNow
     , setModifiedAt
     , setSortIdx
     )
@@ -56,7 +57,7 @@ decoder =
 
 
 encoder : Todo -> Value
-encoder { id, title, sortIdx,  projectId, isDone, createdAt, modifiedAt } =
+encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
     JE.object
         [ ( "id", JE.string id )
         , ( "title", JE.string title )
@@ -102,6 +103,12 @@ modify msg model =
 
     else
         Just newModel
+
+
+modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
+modifyWithNow now msg todo =
+    modify msg todo
+        |> Maybe.map (setModifiedAt now)
 
 
 modifyMultiple : List Msg -> Todo -> Maybe Todo
