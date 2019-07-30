@@ -124,7 +124,7 @@ update now todoId msg model =
             setTitleAndMoveToProject todoId rec now model
                 |> unwrapNothing
 
-        _ ->
+        MoveToProject pid ->
             nc
 
 
