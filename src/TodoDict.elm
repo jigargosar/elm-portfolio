@@ -146,7 +146,7 @@ update_ now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     (Todo.modifyWithNow now msg
-                        >> Maybe.map (\t -> ( insert t model, [ TodoSync t.id msg ] ))
+                        >> Maybe.map (\t -> insertWithMsg t msg model)
                     )
                 |> Maybe.withDefault ( model, [] )
 
@@ -159,16 +159,18 @@ update_ now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     (Todo.modifyWithNow now msg
-                        >> Maybe.map (\t -> ( insert t model, [ TodoSync t.id msg ] ))
+                        >> Maybe.map (\t -> insertWithMsg t msg model)
                     )
                 |> Maybe.withDefault ( model, [] )
 
         _ ->
             ( model, [] )
 
+
 insertWithMsg : Todo -> Todo.Msg -> TodoDict -> Return
 insertWithMsg todo todoMsg model =
     ( insert todo model, [ TodoSync todo.id todoMsg ] )
+
 
 andThen : (TodoDict -> Return) -> Return -> Return
 andThen fn ( model, msgStack ) =
