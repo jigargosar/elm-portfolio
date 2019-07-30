@@ -35,18 +35,24 @@ type alias Millis =
 type SortOrder
     = OrderByIdx { idx : Int, updatedAt : Millis }
     | OrderLast { updatedAt : Millis }
+    | OrderByLegacyIdx Int
+    
 
 
 type alias Todo =
     { id : TodoId
     , title : String
     , sortIdx : Int
+    , sortOrder: SortOrder
     , projectId : ProjectId
     , isDone : Bool
     , createdAt : Int
     , modifiedAt : Int
     }
 
+sortOrderDecoder: Decoder SortOrder
+sortOrderDecoder = 
+    JD.field "sortIdx" (JD.map OrderByLegacyIdx JD.int)
 
 decoder : Decoder Todo
 decoder =
@@ -54,6 +60,7 @@ decoder =
         |> JD.required "id" JD.string
         |> JD.required "title" JD.string
         |> JD.required "sortIdx" JD.int
+        |> JD.custom (sortOrderDecoder)
         |> JD.optional "projectId" ProjectId.decoder ProjectId.default
         |> JD.required "isDone" JD.bool
         |> JD.required "createdAt" JD.int

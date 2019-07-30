@@ -29,7 +29,7 @@ import Url exposing (Url)
 -- PORTS
 
 
-port cacheTodoList : List Todo -> Cmd msg
+port cacheTodoList : Value -> Cmd msg
 
 
 port cacheEdit : Value -> Cmd msg
@@ -342,7 +342,8 @@ update message model =
 
 setAndCacheTodosIn model todos =
     ( setTodos todos model
-    , cacheTodoList (Dict.values todos)
+        |> pure
+        |> effect cacheTodosEffect
     )
 
 
@@ -357,8 +358,15 @@ setAndCacheTodosWithMsgIn model now ( syncMessages, todos ) =
             Debug.log "now, syncMessages" ( now, syncMessages )
     in
     ( setTodos todos model
-    , cacheTodoList (Dict.values todos)
+        |> pure
+        |> effect cacheTodosEffect
+    
     )
+
+
+cacheTodosEffect : Model -> Cmd Msg
+cacheTodosEffect model =
+    cacheTodoList (Dict.values model.todos |> JE.list Todo.encoder)
 
 
 prependError : String -> Model -> Model
