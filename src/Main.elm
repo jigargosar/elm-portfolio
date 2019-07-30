@@ -200,14 +200,15 @@ type InlineEditTodoMsg
     | IET_SaveWithNow Millis
     | IET_Cancel
 
-type WithNow = 
-    UpdateTodo TodoId TodoDict.Msg 
+
+type WithNow
+    = UpdateTodo TodoId TodoDict.Msg
+
 
 type Continue
     = SetEditAndCache Edit
     | WrapWithNow WithNow
     | OnNow WithNow Millis
-    
 
 
 type Msg
@@ -229,7 +230,7 @@ type Msg
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
     | OnBulkMoveToProjectSelectedWithNow ProjectId Millis
-    | Continuation (List Continue)
+    | Continuation Continue
 
 
 update : Msg -> Model -> Return
@@ -352,8 +353,8 @@ update message model =
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
-        Continuation msgList ->
-            List.foldl (continue >> andThen) ( model, Cmd.none ) msgList
+        Continuation msg ->
+            continue msg model 
 
 
 continue message model =
@@ -362,11 +363,11 @@ continue message model =
             setAndCacheEdit edit model
 
         WrapWithNow msg ->
-            ( model, Cmd.none )
+            ( model, withNow (OnNow msg >> Continuation ) )
 
         OnNow msg now ->
             ( model, Cmd.none )
-                    
+
 
 setAndCacheTodosIn model todos =
     setTodos todos model
