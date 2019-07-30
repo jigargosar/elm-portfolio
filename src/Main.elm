@@ -209,6 +209,7 @@ type Continue
     = SetEditAndCache Edit
     | WrapWithNow WithNow
     | OnNow WithNow Millis
+    | Next Continue
 
 
 type Msg
@@ -230,7 +231,7 @@ type Msg
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
     | OnBulkMoveToProjectSelectedWithNow ProjectId Millis
-    | Continuation Continue
+    | OnContinue Continue
 
 
 update : Msg -> Model -> Return
@@ -353,7 +354,7 @@ update message model =
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
-        Continuation msg ->
+        OnContinue msg ->
             continue msg model 
 
 
@@ -363,10 +364,13 @@ continue message model =
             setAndCacheEdit edit model
 
         WrapWithNow msg ->
-            ( model, withNow (OnNow msg >> Continuation ) )
+            ( model, withNow (OnNow msg >> OnContinue ) )
 
         OnNow msg now ->
             ( model, Cmd.none )
+
+        Next msg ->
+            continue msg model
 
 
 setAndCacheTodosIn model todos =
