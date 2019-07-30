@@ -17,6 +17,7 @@ module Todo exposing
     , setSortIdx
     )
 
+import Basics.Extra
 import Compare exposing (Comparator)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
@@ -245,11 +246,28 @@ type CompareBy
     | ByRecentlyModified
 
 
+sortOrderComparator : Comparator SortOrder
+sortOrderComparator =
+    let
+        toTup so =
+            case so of
+                OrderByIdx rec ->
+                    ( rec.idx, rec.updatedAt )
+
+                OrderLast rec ->
+                    ( Basics.Extra.maxSafeInteger, rec.updatedAt )
+
+        tupComparator =
+            Compare.concat [ Compare.by Tuple.first, Compare.by Tuple.second ]
+    in
+    Compare.compose toTup tupComparator
+
+
 toComparator : CompareBy -> Comparator Todo
 toComparator compareBy =
     case compareBy of
         ByIdx ->
-            Compare.by .sortIdx
+            Compare.compose .sortOrder sortOrderComparator
 
         ByRecentlyModified ->
             Compare.by .modifiedAt |> Compare.reverse
@@ -287,14 +305,6 @@ filterPending =
 
 filterCompleted =
     List.filter isCompleted
-
-
-sortPending =
-    List.sortBy (\t -> t.sortIdx)
-
-
-sortCompleted =
-    List.sortWith (descend .modifiedAt)
 
 
 ascend : (a -> comparable) -> a -> a -> Order
