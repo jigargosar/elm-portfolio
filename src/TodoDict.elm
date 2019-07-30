@@ -113,6 +113,9 @@ update now todoId msg model =
         MarkComplete ->
             markCompleted todoId now model 
                 |> unwrapNothing
+        MarkPending ->
+            markPending todoId now model 
+                |> unwrapNothing
     
         _ ->
             nc
