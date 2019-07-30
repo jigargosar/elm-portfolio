@@ -10,6 +10,7 @@ module TodoDict exposing
     , pendingWithProjectId
     , update
     , updateBulk
+    , andThen
     )
 
 import Basics.Extra

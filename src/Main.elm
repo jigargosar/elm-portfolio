@@ -388,11 +388,13 @@ updateInlineEditTodo msg todo model =
                 |> setAndCacheEdit (Edit.InlineTodo { todo | projectId = projectId })
 
         IET_Save ->
-            ( model, withNow (IET_SaveWithNow >> OnInlineEditTodoMsg ) )
+            ( model, withNow (IET_SaveWithNow >> OnInlineEditTodoMsg) )
 
         IET_SaveWithNow now ->
-            Dict.insert todo.id todo model.todos
-                |> setAndCacheTodosIn model
+            model.todos
+                |> TodoDict.update now todo.id (TodoDict.SetTitle todo.title)
+                |> TodoDict.andThen (TodoDict.update now todo.id (TodoDict.MoveToProject todo.projectId))
+                |> setAndCacheTodosWithMsgIn model now
                 |> andThen (setAndCacheEdit Edit.None)
 
         IET_Cancel ->
