@@ -10,6 +10,7 @@ module Todo exposing
     , filter
     , filterSingle
     , filterSort
+    , matchesFilter
     , modify
     , modifyMultiple
     , modifyWithNow

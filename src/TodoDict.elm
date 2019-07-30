@@ -197,9 +197,23 @@ andThen fn ( model, msgStack ) =
 moveToBottom : Millis -> List Todo -> TodoDict -> Return
 moveToBottom now todoList model =
     let
-        _ =
+        todoListbyProjectId =
             todoList
                 |> List.foldl (\todo -> Dict.remove todo.id) model
+                |> pendingByProjectId
+
+        getLastSortIdxInProject pid byPid =
+            byPid
+                |> Dict.get pid
+                |> Maybe.andThen List.Extra.last
+                |> Maybe.map .sortIdx
+                
+
+        append todo byPid =
+            byPid
+                |> getLastSortIdxInProject todo.projectId
+                |> Maybe.map ( (+) 1)
+                |> Maybe.withDefault 0
     in
     ( model, [] )
 
