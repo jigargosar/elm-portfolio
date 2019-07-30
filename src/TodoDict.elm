@@ -141,13 +141,14 @@ update_ now todoId message model =
             let
                 msg =
                     Todo.SetCompleted True
-
-                _ =
-                    model
-                        |> Dict.get todoId
-                        |> Maybe.andThen (Todo.modifyWithNow now msg)
             in
-            ( model, [] )
+            model
+                |> Dict.get todoId
+                |> Maybe.andThen
+                    (Todo.modifyWithNow now msg
+                        >> Maybe.map (\t -> ( insert t model, [ TodoSync t.id msg ] ))
+                    )
+                |> Maybe.withDefault ( model, [] )
 
         MarkPending ->
             ( model, [] )
