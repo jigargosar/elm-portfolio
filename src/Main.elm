@@ -200,9 +200,14 @@ type InlineEditTodoMsg
     | IET_SaveWithNow Millis
     | IET_Cancel
 
+type WithNow = 
+    UpdateTodo TodoId TodoDict.Msg 
 
 type Continue
     = SetEditAndCache Edit
+    | WrapWithNow WithNow
+    | OnNow WithNow Millis
+    
 
 
 type Msg
@@ -351,11 +356,17 @@ update message model =
             List.foldl (continue >> andThen) ( model, Cmd.none ) msgList
 
 
-continue msg model =
-    case msg of
+continue message model =
+    case message of
         SetEditAndCache edit ->
             setAndCacheEdit edit model
 
+        WrapWithNow msg ->
+            ( model, Cmd.none )
+
+        OnNow msg now ->
+            ( model, Cmd.none )
+                    
 
 setAndCacheTodosIn model todos =
     setTodos todos model
