@@ -87,6 +87,8 @@ pendingWithId todoId =
         >> Maybe.andThen (Todo.filterSingle Todo.Pending)
 
 
+-- UPDATE
+
 type SyncMsg
     = TodoSync TodoId Todo.Msg
 
