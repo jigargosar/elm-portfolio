@@ -13,6 +13,8 @@ module TodoDict exposing
 
 import Basics.Extra
 import Dict exposing (Dict)
+import Dict.Extra
+import List.Extra
 import ProjectId exposing (ProjectId)
 import Set exposing (Set)
 import Todo exposing (Todo, TodoId)
@@ -194,6 +196,11 @@ andThen fn ( model, msgStack ) =
 
 moveToBottom : Millis -> List Todo -> TodoDict -> Return
 moveToBottom now todoList model =
+    let
+        _ =
+            todoList
+                |> List.foldl (\todo -> Dict.remove todo.id) model
+    in
     ( model, [] )
 
 
