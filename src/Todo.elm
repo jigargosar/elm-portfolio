@@ -130,6 +130,7 @@ type Msg
     | SetProjectId ProjectId
     | SetTitle String
     | SetSortIdx Int
+    | SetSortOrder SortOrder
 
 
 update : Msg -> Todo -> Todo
@@ -146,6 +147,9 @@ update msg model =
 
         SetSortIdx sortIdx ->
             { model | sortIdx = sortIdx }
+        
+        SetSortOrder sortOrder ->
+            { model | sortOrder = sortOrder }
 
 
 modify : Msg -> Todo -> Maybe Todo
