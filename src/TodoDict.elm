@@ -161,9 +161,38 @@ updateBulk now todoIdSet message model =
                         Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
                     )
                     ( model, [] )
+        MarkPending ->
+            let
+                msg =
+                    Todo.SetCompleted False
+
+                updatedTodoList =
+                    model
+                        |> getModifiedTodoList now todoIdSet msg
+            in
+            updatedTodoList
+                |> List.foldl
+                    (\todo ->
+                        Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
+                    )
+                    ( model, [] )
+                |> andThen (moveToBottom now updatedTodoList)
 
         _ ->
             ( model, [] )
+
+andThen : (TodoDict -> Return) -> Return -> Return 
+andThen fn (model, msgStack) =
+    let
+        (newModel, newMsgStack) = 
+            fn model    
+    in
+        (newModel, newMsgStack ++ msgStack)
+    
+
+moveToBottom now todoList model = 
+    ( model, [])
+
 
 
 type SyncMsg
