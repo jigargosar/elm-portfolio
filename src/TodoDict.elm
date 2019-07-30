@@ -103,32 +103,6 @@ type Msg
 type alias Return =
     ( TodoDict, List SyncMsg )
 
-
--- update : Millis -> TodoId -> Msg -> TodoDict -> Return
--- update now todoId msg model =
---     let
---         nc =
---             ( model, [] )
-
---         unwrapNothing =
---             Maybe.withDefault nc
---     in
---     case msg of
---         MarkComplete ->
---             markCompleted todoId now model
---                 |> unwrapNothing
-
---         MarkPending ->
---             markPending todoId now model
---                 |> unwrapNothing
-
---         SetTitle title ->
---             nc
-
---         MoveToProject pid ->
---             nc
-
-
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
