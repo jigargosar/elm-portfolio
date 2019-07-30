@@ -1,8 +1,8 @@
 module Todo exposing
     ( CompareBy(..)
     , Filter(..)
-    , SortOrder(..)
     , Msg(..)
+    , SortOrder(..)
     , Todo
     , TodoId
     , decoder
@@ -16,7 +16,6 @@ module Todo exposing
     , setModifiedAt
     , setProjectId
     , setSortIdx
-
     )
 
 import Basics.Extra
@@ -149,7 +148,7 @@ update msg model =
 
         SetSortIdx sortIdx ->
             { model | sortIdx = sortIdx }
-        
+
         SetSortOrder sortOrder ->
             { model | sortOrder = sortOrder }
 
@@ -165,6 +164,51 @@ modify msg model =
 
     else
         Just newModel
+
+
+modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
+modifyWithNow now msg todo =
+    case msg of
+        SetCompleted bool ->
+            { todo | isDone = bool }
+                |> updateModifiedAt now todo
+
+        SetProjectId projectId ->
+            { todo | projectId = projectId }
+                |> updateModifiedAt now todo
+
+        SetTitle title ->
+            { todo | title = title }
+                |> updateModifiedAt now todo
+
+        SetSortIdx sortIdx ->
+            case todo.sortOrder of
+                OrderByIdx rec ->
+                    if rec.idx == sortIdx then
+                        Nothing
+
+                    else
+                        modifyWithNow now
+                            (SetSortOrder (OrderByIdx { idx = sortIdx, updatedAt = now }))
+                            todo
+
+                OrderLast _ ->
+                    modifyWithNow now
+                        (SetSortOrder (OrderByIdx { idx = sortIdx, updatedAt = now }))
+                        todo
+
+        SetSortOrder sortOrder ->
+            { todo | sortOrder = sortOrder }
+                |> updateModifiedAt now todo
+
+
+updateModifiedAt : Millis -> Todo -> Todo -> Maybe Todo
+updateModifiedAt now oldTodo newTodo =
+    if oldTodo == newTodo then
+        Nothing
+
+    else
+        setModifiedAt now newTodo |> Just
 
 
 modifyMultiple : List Msg -> Todo -> Maybe Todo
