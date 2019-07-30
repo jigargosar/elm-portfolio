@@ -35,24 +35,67 @@ type alias Millis =
 type SortOrder
     = OrderByIdx { idx : Int, updatedAt : Millis }
     | OrderLast { updatedAt : Millis }
-    | OrderByLegacyIdx Int
-    
 
 
 type alias Todo =
     { id : TodoId
     , title : String
     , sortIdx : Int
-    , sortOrder: SortOrder
+    , sortOrder : SortOrder
     , projectId : ProjectId
     , isDone : Bool
     , createdAt : Int
     , modifiedAt : Int
     }
 
-sortOrderDecoder: Decoder SortOrder
-sortOrderDecoder = 
-    JD.field "sortIdx" (JD.map OrderByLegacyIdx JD.int)
+
+sortOrderDecoder : Decoder SortOrder
+sortOrderDecoder =
+    let
+        legacyDecoder =
+            JD.map2 (\sortIdx modifiedAt -> OrderByIdx { idx = sortIdx, updatedAt = modifiedAt })
+                (JD.field "sortIdx" JD.int)
+                (JD.field "modifiedAt" JD.int)
+
+        decoder_ =
+            JD.field "type" JD.string
+                |> JD.andThen
+                    (\type_ ->
+                        case type_ of
+                            "OrderByIdx" ->
+                                JD.succeed (\idx updatedAt -> { idx = idx, updatedAt = updatedAt })
+                                    |> JD.required "idx" JD.int
+                                    |> JD.required "updatedAt" JD.int
+                                    |> JD.map OrderByIdx
+
+                            "OrderLast" ->
+                                JD.succeed (\updatedAt -> { updatedAt = updatedAt })
+                                    |> JD.required "updatedAt" JD.int
+                                    |> JD.map OrderLast
+
+                            _ ->
+                                JD.fail ("Unknown SortOrder: " ++ type_)
+                    )
+    in
+    JD.oneOf [ decoder_, legacyDecoder ]
+
+
+sortOrderEncoder : SortOrder -> Value
+sortOrderEncoder so =
+    case so of
+        OrderByIdx rec ->
+            JE.object
+                [ ( "type", JE.string "OrderByIdx" )
+                , ( "idx", JE.int rec.idx )
+                , ( "updatedAt", JE.int rec.updatedAt )
+                ]
+
+        OrderLast rec ->
+            JE.object
+                [ ( "type", JE.string "OrderLast" )
+                , ( "updatedAt", JE.int rec.updatedAt )
+                ]
+
 
 decoder : Decoder Todo
 decoder =
@@ -60,7 +103,7 @@ decoder =
         |> JD.required "id" JD.string
         |> JD.required "title" JD.string
         |> JD.required "sortIdx" JD.int
-        |> JD.custom (sortOrderDecoder)
+        |> JD.custom sortOrderDecoder
         |> JD.optional "projectId" ProjectId.decoder ProjectId.default
         |> JD.required "isDone" JD.bool
         |> JD.required "createdAt" JD.int
@@ -68,11 +111,12 @@ decoder =
 
 
 encoder : Todo -> Value
-encoder { id, title, sortIdx, projectId, isDone, createdAt, modifiedAt } =
+encoder { id, title, sortIdx, sortOrder, projectId, isDone, createdAt, modifiedAt } =
     JE.object
         [ ( "id", JE.string id )
         , ( "title", JE.string title )
         , ( "sortIdx", JE.int sortIdx )
+        , ( "sortOrder", sortOrderEncoder sortOrder )
         , ( "projectId", ProjectId.encoder projectId )
         , ( "isDone", JE.bool isDone )
         , ( "createdAt", JE.int createdAt )
