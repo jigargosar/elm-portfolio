@@ -22,9 +22,9 @@ import Todo exposing (Todo, TodoId)
 type alias TodoDict =
     Dict TodoId Todo
 
+
 type alias Millis =
     Int
-
 
 
 filter : Todo.Filter -> TodoDict -> List Todo
@@ -90,36 +90,43 @@ pendingWithId todoId =
 
 -- UPDATE
 
-type Msg 
+
+type Msg
     = MarkComplete
-    | MarkPending 
-    | SetTitleAndMoveToProject {title:String, projectId:String}
+    | MarkPending
+    | SetTitleAndMoveToProject { title : String, projectId : String }
     | MoveToProject ProjectId
 
 
-type alias Return = (List SyncMsg, TodoDict)
+type alias Return =
+    ( List SyncMsg, TodoDict )
 
-update :  Millis -> TodoId -> Msg -> TodoDict -> Return
-update now todoId msg model = 
+
+update : Millis -> TodoId -> Msg -> TodoDict -> Return
+update now todoId msg model =
     let
-        nc = 
-            ([], model)
-        
+        nc =
+            ( [], model )
+
         unwrapNothing =
             Maybe.withDefault nc
     in
-    
     case msg of
         MarkComplete ->
-            markCompleted todoId now model 
+            markCompleted todoId now model
                 |> unwrapNothing
+
         MarkPending ->
-            markPending todoId now model 
+            markPending todoId now model
                 |> unwrapNothing
-    
+
+        SetTitleAndMoveToProject rec ->
+            setTitleAndMoveToProject todoId rec now model
+                |> unwrapNothing
+
         _ ->
             nc
-            
+
 
 type SyncMsg
     = TodoSync TodoId Todo.Msg
