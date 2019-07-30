@@ -207,6 +207,7 @@ type WithNow
 
 type Continue
     = SetEditAndCache Edit
+    | SetAndCacheTodos Millis TodoDict.Return
     | WrapWithNow WithNow
     | OnNow WithNow Millis
     | Next Continue
@@ -355,7 +356,7 @@ update message model =
                     ( model, Cmd.none )
 
         OnContinue msg ->
-            continue msg model 
+            continue msg model
 
 
 continue message model =
@@ -363,8 +364,11 @@ continue message model =
         SetEditAndCache edit ->
             setAndCacheEdit edit model
 
+        SetAndCacheTodos now ret ->
+            setAndCacheTodosWithMsgIn model now ret
+
         WrapWithNow msg ->
-            ( model, withNow (OnNow msg >> OnContinue ) )
+            ( model, withNow (OnNow msg >> OnContinue) )
 
         OnNow msg now ->
             ( model, Cmd.none )
