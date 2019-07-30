@@ -201,6 +201,10 @@ type InlineEditTodoMsg
     | IET_Cancel
 
 
+type Continue
+    = SetEditAndCache Edit
+
+
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -220,6 +224,7 @@ type Msg
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
     | OnBulkMoveToProjectSelectedWithNow ProjectId Millis
+    | Continuation (List Continue)
 
 
 update : Msg -> Model -> Return
@@ -341,6 +346,15 @@ update message model =
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
+
+        Continuation msgList ->
+            List.foldl (continue >> andThen) ( model, Cmd.none ) msgList
+
+
+continue msg model =
+    case msg of
+        SetEditAndCache edit ->
+            setAndCacheEdit edit model
 
 
 setAndCacheTodosIn model todos =
