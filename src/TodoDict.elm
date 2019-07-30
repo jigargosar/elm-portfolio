@@ -1,7 +1,6 @@
 module TodoDict exposing
-    ( SyncMsg
-    , update
-    , Msg(..)
+    ( Msg(..)
+    , SyncMsg
     , TodoDict
     , completedForProjectList
     , completedList
@@ -9,6 +8,7 @@ module TodoDict exposing
     , pendingList
     , pendingWithId
     , pendingWithProjectId
+    , update
     )
 
 import Basics.Extra
@@ -98,14 +98,14 @@ type Msg
 
 
 type alias Return =
-    ( List SyncMsg, TodoDict )
+    ( TodoDict, List SyncMsg )
 
 
 update : Millis -> TodoId -> Msg -> TodoDict -> Return
 update now todoId msg model =
     let
         nc =
-            ( [], model )
+            ( model, [] )
 
         unwrapNothing =
             Maybe.withDefault nc
@@ -130,7 +130,7 @@ type SyncMsg
     = TodoSync TodoId Todo.Msg
 
 
-markCompleted : TodoId -> Millis -> TodoDict -> Maybe ( List SyncMsg, TodoDict )
+markCompleted : TodoId -> Millis -> TodoDict -> Maybe Return
 markCompleted todoId now model =
     let
         msg =
@@ -146,11 +146,11 @@ markCompleted todoId now model =
             (Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updatePendingSortIdx now
-                >> Tuple.mapFirst (\msgList -> msgList ++ [ syncMsg ])
+                >> Tuple.mapSecond (\msgList -> msgList ++ [ syncMsg ])
             )
 
 
-markPending : TodoId -> Millis -> TodoDict -> Maybe ( List SyncMsg, TodoDict )
+markPending : TodoId -> Millis -> TodoDict -> Maybe Return
 markPending todoId now model =
     let
         msg =
@@ -167,10 +167,8 @@ markPending todoId now model =
                 >> Todo.setModifiedAt now
                 >> (\t -> Dict.insert t.id t model)
                 >> updatePendingSortIdx now
-                >> Tuple.mapFirst (\msgList -> msgList ++ [ syncMsg ])
+                >> Tuple.mapSecond (\msgList -> msgList ++ [ syncMsg ])
             )
-
-
 
 
 moveAllToProjectId :
@@ -178,13 +176,13 @@ moveAllToProjectId :
     -> Set TodoId
     -> Millis
     -> TodoDict
-    -> Maybe ( List SyncMsg, TodoDict )
+    -> Maybe Return
 moveAllToProjectId projectId todoIdSet now model =
     let
         msg =
             Todo.SetProjectId projectId
 
-        ( syncMsgList, updatedTodoDict ) =
+        ( updatedTodoDict, syncMsgList ) =
             todoIdSet
                 |> Set.toList
                 |> List.filterMap
@@ -199,15 +197,15 @@ moveAllToProjectId projectId todoIdSet now model =
                                 (Todo.setSortIdx Basics.Extra.maxSafeInteger
                                     >> Todo.setModifiedAt now
                                     >> Tuple.pair todoId
-                                    >> Tuple.pair syncMsg
+                                    >> (\something -> ( something, syncMsg ))
                                 )
                     )
                 |> List.foldl
-                    (\( m, t ) ( mList, tList ) ->
-                        ( mList ++ [ m ], tList ++ [ t ] )
+                    (\( t, m ) ( tList, mList ) ->
+                        ( tList ++ [ t ], mList ++ [ m ] )
                     )
                     ( [], [] )
-                |> Tuple.mapSecond Dict.fromList
+                |> Tuple.mapFirst Dict.fromList
     in
     if updatedTodoDict |> Dict.isEmpty then
         Nothing
@@ -215,11 +213,11 @@ moveAllToProjectId projectId todoIdSet now model =
     else
         Dict.union updatedTodoDict model
             |> updatePendingSortIdx now
-            |> Tuple.mapFirst (\ml -> syncMsgList ++ ml)
+            |> Tuple.mapSecond (\ml -> syncMsgList ++ ml)
             |> Just
 
 
-updatePendingSortIdx : Millis -> TodoDict -> ( List SyncMsg, TodoDict )
+updatePendingSortIdx : Millis -> TodoDict -> Return
 updatePendingSortIdx now todos =
     pendingByProjectId todos
         |> Dict.values
@@ -235,14 +233,14 @@ updatePendingSortIdx now todos =
                                 TodoSync t.id msg
                         in
                         Todo.modify msg t
-                            |> Maybe.map (Todo.setModifiedAt now >> Tuple.pair syncMsg)
+                            |> Maybe.map (Todo.setModifiedAt now >> \fst -> (fst, syncMsg))
                     )
             )
         |> List.foldl
-            (\( msg, todo ) ( msgList, accTodoDict ) ->
-                ( msgList ++ [ msg ], insert todo accTodoDict )
+            (\( todo, msg ) ( accTodoDict, msgList ) ->
+                ( insert todo accTodoDict, msgList ++ [ msg ] )
             )
-            ( [], todos )
+            ( todos, [] )
 
 
 insert : Todo -> TodoDict -> TodoDict
