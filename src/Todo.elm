@@ -1,6 +1,7 @@
 module Todo exposing
     ( CompareBy(..)
     , Filter(..)
+    , SortOrder(..)
     , Msg(..)
     , Todo
     , TodoId
@@ -15,6 +16,7 @@ module Todo exposing
     , setModifiedAt
     , setProjectId
     , setSortIdx
+
     )
 
 import Basics.Extra
