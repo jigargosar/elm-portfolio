@@ -126,6 +126,13 @@ update now todoId msg model =
             nc
 
 
+updateBulk : Millis -> TodoId -> Msg -> TodoDict -> Return
+updateBulk now todoIdSet msg model =
+    case msg of
+        _ ->
+            ( model, [] )
+
+
 type SyncMsg
     = TodoSync TodoId Todo.Msg
 
@@ -233,7 +240,7 @@ updatePendingSortIdx now todos =
                                 TodoSync t.id msg
                         in
                         Todo.modify msg t
-                            |> Maybe.map (Todo.setModifiedAt now >> \fst -> (fst, syncMsg))
+                            |> Maybe.map (Todo.setModifiedAt now >> (\fst -> ( fst, syncMsg )))
                     )
             )
         |> List.foldl
