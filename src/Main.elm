@@ -333,9 +333,6 @@ update message model =
                     ( model, Cmd.none )
 
                 Edit.Bulk idSet ->
-                    -- TodoDict.moveAllToProjectId projectId idSet now model.todos
-                    --     |> Maybe.map (setAndCacheTodosWithMsgIn model now)
-                    --     |> Maybe.withDefault ( model, Cmd.none )
                     model.todos
                         |> TodoDict.updateBulk now idSet (TodoDict.MoveToProject projectId)
                         |> setAndCacheTodosWithMsgIn model now
