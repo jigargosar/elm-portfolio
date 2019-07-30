@@ -170,6 +170,7 @@ moveToBottom now todoId model =
                     bottomIdx =
                         todo.projectId
                             |> (\pid -> pendingWithProjectId pid model)
+                            |> List.filter (.id >> (/=) todo.id)
                             |> (List.Extra.last
                                     >> Maybe.map (.sortIdx >> (+) 1)
                                     >> Maybe.withDefault 0
