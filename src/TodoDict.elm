@@ -22,6 +22,10 @@ import Todo exposing (Todo, TodoId)
 type alias TodoDict =
     Dict TodoId Todo
 
+type alias Millis =
+    Int
+
+
 
 filter : Todo.Filter -> TodoDict -> List Todo
 filter f model =
@@ -77,17 +81,15 @@ completedForProjectList pid model =
         |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
 
 
-type alias Millis =
-    Int
-
-
 pendingWithId : TodoId -> TodoDict -> Maybe Todo
 pendingWithId todoId =
     Dict.get todoId
         >> Maybe.andThen (Todo.filterSingle Todo.Pending)
 
 
+
 -- UPDATE
+
 
 type SyncMsg
     = TodoSync TodoId Todo.Msg
