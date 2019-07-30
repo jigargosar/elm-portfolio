@@ -161,8 +161,18 @@ update now todoId message model =
                     )
                 |> Maybe.withDefault ( model, [] )
 
-        _ ->
-            ( model, [] )
+        SetTitle title ->
+            let
+                msg =
+                    Todo.SetTitle title
+            in
+            model
+                |> Dict.get todoId
+                |> Maybe.andThen
+                    (Todo.modifyWithNow now msg
+                        >> Maybe.map (\t -> insertWithMsg t msg model)
+                    )
+                |> Maybe.withDefault ( model, [] )
 
 
 insertWithMsg : Todo -> Todo.Msg -> TodoDict -> Return
