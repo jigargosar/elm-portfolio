@@ -197,23 +197,47 @@ andThen fn ( model, msgStack ) =
 moveToBottom : Millis -> List Todo -> TodoDict -> Return
 moveToBottom now todoList model =
     let
-        todoListbyProjectId =
+        pendingByProjectIdDict =
             todoList
                 |> List.foldl (\todo -> Dict.remove todo.id) model
                 |> pendingByProjectId
 
-        getLastSortIdxInProject pid byPid =
+        getNextSortIdxInProject pid byPid =
             byPid
                 |> Dict.get pid
                 |> Maybe.andThen List.Extra.last
-                |> Maybe.map .sortIdx
-                
+                |> Maybe.map (.sortIdx >> (+) 1)
+                |> Maybe.withDefault 0
+
+        updateSortIdxForAppend todo byPid =
+            byPid
+                |> getNextSortIdxInProject todo.projectId
+                |> (Todo.SetSortIdx
+                        >> (\msg ->
+                                ( Todo.modifyWithNow now msg todo
+                                    |> Maybe.withDefault todo
+                                , msg
+                                )
+                           )
+                   )
 
         append todo byPid =
-            byPid
-                |> getLastSortIdxInProject todo.projectId
-                |> Maybe.map ( (+) 1)
-                |> Maybe.withDefault 0
+            Dict.update todo.projectId
+                (Maybe.withDefault []
+                    >> (\l -> l ++ [ todo ])
+                    >> Just
+                )
+                byPid
+
+        _ =
+            todoList
+                |> List.foldl
+                    (\todo ( ( updatedTodoList, byPid ), msgStack ) ->
+                        updateSortIdxForAppend todo byPid
+                            |> Tuple.mapBoth (\t -> ( t :: updatedTodoList, append t byPid ))
+                                (\msg -> msg :: msgStack)
+                    )
+                    ( ( [], pendingByProjectIdDict ), [] )
     in
     ( model, [] )
 
