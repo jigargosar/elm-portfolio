@@ -151,26 +151,6 @@ setTitleAndMoveToProject todoId { title, projectId } now model =
     Nothing
 
 
-
-type Patch = 
-    TodoPatch TodoId Todo.Msg
-
-update : TodoId -> Todo.Msg -> Millis -> TodoDict -> (TodoDict , List Patch)
-update todoId msg now model = 
-    let
-        
-        patch =
-            TodoPatch todoId msg
-    in
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen (Todo.modify msg)
-        |> Maybe.map
-            (Todo.setModifiedAt now
-                >> (\t -> (Dict.insert t.id t model, [patch]))            
-        )
-        |> Maybe.withDefault (model , [])
-
 moveAllToProjectId :
     ProjectId
     -> Set TodoId
