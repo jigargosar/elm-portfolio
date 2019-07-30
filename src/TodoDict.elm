@@ -161,6 +161,7 @@ updateBulk now todoIdSet message model =
                         Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
                     )
                     ( model, [] )
+
         MarkPending ->
             let
                 msg =
@@ -181,18 +182,19 @@ updateBulk now todoIdSet message model =
         _ ->
             ( model, [] )
 
-andThen : (TodoDict -> Return) -> Return -> Return 
-andThen fn (model, msgStack) =
+
+andThen : (TodoDict -> Return) -> Return -> Return
+andThen fn ( model, msgStack ) =
     let
-        (newModel, newMsgStack) = 
-            fn model    
+        ( newModel, newMsgStack ) =
+            fn model
     in
-        (newModel, newMsgStack ++ msgStack)
-    
+    ( newModel, newMsgStack ++ msgStack )
 
-moveToBottom now todoList model = 
-    ( model, [])
 
+moveToBottom : Millis -> List Todo -> TodoDict -> Return
+moveToBottom now todoList model =
+    ( model, [] )
 
 
 type SyncMsg
