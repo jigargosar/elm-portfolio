@@ -170,9 +170,13 @@ init encodedFlags url key =
     )
 
 
-setTodos : TodoDict -> Model -> Model
+setTodos : TodoDict -> Model -> Maybe Model
 setTodos todos model =
-    { model | todos = todos }
+    if todos == model.todos then
+        Nothing
+
+    else
+        { model | todos = todos } |> Just
 
 
 activeProjectList projects =
@@ -290,17 +294,15 @@ update message model =
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
-            TodoDict.markCompleted todoId now model.todos
-                |> Maybe.map (setAndCacheTodosWithMsgIn model now)
-                |> Maybe.withDefault ( model, Cmd.none )
+            TodoDict.update now todoId TodoDict.MarkComplete model.todos
+                |> setAndCacheTodosWithMsgIn model now
 
         OnTodoUnChecked todoId ->
             ( model, withNow (OnTodoUnCheckedWithNow todoId) )
 
         OnTodoUnCheckedWithNow todoId now ->
-            TodoDict.markPending todoId now model.todos
-                |> Maybe.map (setAndCacheTodosWithMsgIn model now)
-                |> Maybe.withDefault ( model, Cmd.none )
+            TodoDict.update now todoId TodoDict.MarkPending model.todos
+                |> setAndCacheTodosWithMsgIn model now
 
         OnInlineEditTodoMsg msg ->
             case model.edit of
@@ -341,10 +343,9 @@ update message model =
 
 
 setAndCacheTodosIn model todos =
-    ( setTodos todos model
-        |> pure
-        |> effect cacheTodosEffect
-    )
+    setTodos todos model
+        |> Maybe.map (pure >> effect cacheTodosEffect)
+        |> Maybe.withDefault ( model, Cmd.none )
 
 
 setAndCacheTodosWithMsgIn :
@@ -357,11 +358,8 @@ setAndCacheTodosWithMsgIn model now ( syncMessages, todos ) =
         _ =
             Debug.log "now, syncMessages" ( now, syncMessages )
     in
-    ( setTodos todos model
-        |> pure
-        |> effect cacheTodosEffect
+    setAndCacheTodosIn model todos
     
-    )
 
 
 cacheTodosEffect : Model -> Cmd Msg

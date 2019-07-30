@@ -1,5 +1,7 @@
 module TodoDict exposing
     ( SyncMsg
+    , update
+    , Msg(..)
     , TodoDict
     , completedForProjectList
     , completedList
