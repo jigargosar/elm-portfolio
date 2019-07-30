@@ -128,58 +128,24 @@ update now todoId msg model =
             nc
 
 
-getAllByIdSet todoIdSet model =
-    todoIdSet
-        |> Set.toList
-        |> List.filterMap (\todoId -> Dict.get todoId model)
-
-
-getModifiedTodoList : Millis -> Set TodoId -> Todo.Msg -> TodoDict -> List Todo
-getModifiedTodoList now todoIdSet msg model =
-    todoIdSet
-        |> Set.toList
-        |> List.filterMap
-            (\todoId ->
-                Dict.get todoId model
-                    |> Maybe.andThen (Todo.modifyWithNow now msg)
-            )
-
-
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
 updateBulk now todoIdSet message model =
+    todoIdSet
+        |> Set.foldl (\todoId -> andThen (updateSingle now todoId message)) ( model, [] )
+
+
+updateSingle : Millis -> TodoId -> Msg -> TodoDict -> Return
+updateSingle now todoId message model =
     case message of
         MarkComplete ->
             let
-                msg =
-                    Todo.SetCompleted True
-
-                updatedTodoList =
-                    model
-                        |> getModifiedTodoList now todoIdSet msg
+                _ =
+                    2
             in
-            updatedTodoList
-                |> List.foldl
-                    (\todo ->
-                        Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
-                    )
-                    ( model, [] )
+            ( model, [] )
 
         MarkPending ->
-            let
-                msg =
-                    Todo.SetCompleted False
-
-                updatedTodoList =
-                    model
-                        |> getModifiedTodoList now todoIdSet msg
-            in
-            updatedTodoList
-                |> List.foldl
-                    (\todo ->
-                        Tuple.mapBoth (insert todo) ((::) (TodoSync todo.id msg))
-                    )
-                    ( model, [] )
-                |> andThen (moveAllToBottom now updatedTodoList)
+            ( model, [] )
 
         _ ->
             ( model, [] )
@@ -192,15 +158,6 @@ andThen fn ( model, msgStack ) =
             fn model
     in
     ( newModel, newMsgStack ++ msgStack )
-
-
-moveAllToBottom : Millis -> List Todo -> TodoDict -> Return
-moveAllToBottom now todoList model =
-    let
-        _ =
-            List.foldl (\t -> Dict.remove t.id) model
-    in
-    ( model, [] )
 
 
 type SyncMsg
