@@ -49,29 +49,6 @@ async function hello(ctx) {
   ctx.body = { msg: 'ECHO', payload: 'payload10' }
 }
 
-
-// async function add(ctx) {
-//   await ctx.render('new')
-// }
-//
-//
-// async function show(ctx) {
-//   const id = ctx.params.id
-//   const post = posts[id]
-//   if (!post) ctx.throw(404, 'invalid post id')
-//   await ctx.render('show', { post: post })
-// }
-//
-//
-// async function create(ctx) {
-//   const post = ctx.request.body
-//   const id = posts.push(post) - 1
-//   post.created_at = new Date()
-//   post.id = id
-//   ctx.redirect('/')
-// }
-
-
 if (!module.parent) app.listen(3000)
 
 
