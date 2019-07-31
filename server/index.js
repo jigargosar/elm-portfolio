@@ -37,8 +37,9 @@ router.get('/db', async ctx => {
     ctx.body = config.get('db')
   })
 router.post('/db', ctx => {
-      console.log(ctx.req.body)
-      ctx.body = { echoBody: ctx.req.body }
+      const incomingBody = ctx.request.body
+      console.log("incomingBody",incomingBody, ctx)
+      ctx.body = incomingBody
     },
   )
 // .get('/post/new', add)

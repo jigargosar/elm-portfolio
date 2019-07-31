@@ -179,7 +179,7 @@ init encodedFlags url key =
                     , body =
                         Http.jsonBody
                             (dbEncoder { todos = m.todos, projects = m.projects })
-                    , expect = Http.expectString log1NoOp
+                    , expect = Http.expectJson log1NoOp dbDecoder
                     }
             )
 
