@@ -187,7 +187,7 @@ type Msg
     | OnBulkCancelClicked
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
-    | OnBulkMoveToProjectSelectedWithNow TC.Update Millis
+    | OnUpdateTodoCollectionWithNow TC.Update Millis
 
 
 
@@ -307,18 +307,21 @@ update message model =
 
                 Edit.Bulk idSet ->
                     ( model
-                    , OnBulkMoveToProjectSelectedWithNow
+                    , updateTodoCmd
                         (TC.IdSet idSet (TC.MoveToProject projectId))
-                        |> withNow
                     )
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
-        OnBulkMoveToProjectSelectedWithNow updateConfig now ->
+        OnUpdateTodoCollectionWithNow updateConfig now ->
             TC.update updateConfig now model.todos
                 |> setAndCacheTodosWithMsgIn model now
                 |> andThen (updateEdit Edit.None)
+
+
+updateTodoCmd updateConfig =
+    withNow (OnUpdateTodoCollectionWithNow updateConfig)
 
 
 setAndCacheTodosWithMsgIn :
