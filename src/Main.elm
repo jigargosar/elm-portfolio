@@ -266,7 +266,13 @@ update message model =
                         |> updateEdit (idSet |> toggleMember todoId |> Edit.Bulk)
 
                 Edit.InlineTodo _ ->
-                    ( model, Cmd.none )
+                    TC.pendingWithId todoId model.todos
+                        |> Maybe.map
+                            (\t ->
+                                updateEdit (Edit.InlineTodo t) model
+                                    |> command focusInlineEditTodoTitleCmd
+                            )
+                        |> Maybe.withDefault ( model, Cmd.none )
 
         OnInlineEditTodoMsg msg ->
             case model.edit of
