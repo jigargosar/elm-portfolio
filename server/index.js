@@ -13,12 +13,11 @@ const app = module.exports = new Koa()
 const config = new Conf({
   cwd: process.cwd(),
   clearInvalidConfig: false,
-  configName:'fake-db',
+  configName: 'fake-db',
   defaults: {
     db: createFakeDB(),
   },
 })
-
 
 
 // console.log(config.get('db'))
@@ -33,10 +32,10 @@ app.use(koaBody())
 // route definitions
 
 router.get('/', hello)
-router.get('/hello', hello)
-router.get(['/all', '/db'], async ctx => {
-  ctx.body = config.get('db')
-})
+  .get('/hello', hello)
+  .get(['/all', '/db'], async ctx => {
+    ctx.body = config.get('db')
+  })
 // .get('/post/new', add)
 // .get('/post/:id', show)
 // .post('/post', create);
