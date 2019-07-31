@@ -5,7 +5,7 @@ module TodoDict exposing
     , TodoDict
     , completedForProjectList
     , completedList
-    , moveAllToProjectId
+
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -217,119 +217,6 @@ moveToBottom now todoId model =
 
 type SyncMsg
     = TodoSync TodoId Todo.Msg
-
-
-markCompleted : TodoId -> Millis -> TodoDict -> Maybe Return
-markCompleted todoId now model =
-    let
-        msg =
-            Todo.SetCompleted True
-
-        syncMsg =
-            TodoSync todoId msg
-    in
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen (Todo.modify msg)
-        |> Maybe.map
-            (Todo.setModifiedAt now
-                >> (\t -> Dict.insert t.id t model)
-                >> updatePendingSortIdx now
-                >> Tuple.mapSecond (\msgList -> msgList ++ [ syncMsg ])
-            )
-
-
-markPending : TodoId -> Millis -> TodoDict -> Maybe Return
-markPending todoId now model =
-    let
-        msg =
-            Todo.SetCompleted False
-
-        syncMsg =
-            TodoSync todoId msg
-    in
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen (Todo.modify msg)
-        |> Maybe.map
-            (Todo.setSortIdx Basics.Extra.maxSafeInteger
-                >> Todo.setModifiedAt now
-                >> (\t -> Dict.insert t.id t model)
-                >> updatePendingSortIdx now
-                >> Tuple.mapSecond (\msgList -> msgList ++ [ syncMsg ])
-            )
-
-
-moveAllToProjectId :
-    ProjectId
-    -> Set TodoId
-    -> Millis
-    -> TodoDict
-    -> Maybe Return
-moveAllToProjectId projectId todoIdSet now model =
-    let
-        msg =
-            Todo.SetProjectId projectId
-
-        ( updatedTodoDict, syncMsgList ) =
-            todoIdSet
-                |> Set.toList
-                |> List.filterMap
-                    (\todoId ->
-                        let
-                            syncMsg =
-                                TodoSync todoId msg
-                        in
-                        Dict.get todoId model
-                            |> Maybe.andThen (Todo.modify msg)
-                            |> Maybe.map
-                                (Todo.setSortIdx Basics.Extra.maxSafeInteger
-                                    >> Todo.setModifiedAt now
-                                    >> Tuple.pair todoId
-                                    >> (\something -> ( something, syncMsg ))
-                                )
-                    )
-                |> List.foldl
-                    (\( t, m ) ( tList, mList ) ->
-                        ( tList ++ [ t ], mList ++ [ m ] )
-                    )
-                    ( [], [] )
-                |> Tuple.mapFirst Dict.fromList
-    in
-    if updatedTodoDict |> Dict.isEmpty then
-        Nothing
-
-    else
-        Dict.union updatedTodoDict model
-            |> updatePendingSortIdx now
-            |> Tuple.mapSecond (\ml -> syncMsgList ++ ml)
-            |> Just
-
-
-updatePendingSortIdx : Millis -> TodoDict -> Return
-updatePendingSortIdx now todos =
-    pendingByProjectId todos
-        |> Dict.values
-        |> List.concatMap
-            (List.indexedMap Tuple.pair
-                >> List.filterMap
-                    (\( i, t ) ->
-                        let
-                            msg =
-                                Todo.SetSortIdx i
-
-                            syncMsg =
-                                TodoSync t.id msg
-                        in
-                        Todo.modify msg t
-                            |> Maybe.map (Todo.setModifiedAt now >> (\fst -> ( fst, syncMsg )))
-                    )
-            )
-        |> List.foldl
-            (\( todo, msg ) ( accTodoDict, msgList ) ->
-                ( insert todo accTodoDict, msgList ++ [ msg ] )
-            )
-            ( todos, [] )
 
 
 insert : Todo -> TodoDict -> TodoDict
