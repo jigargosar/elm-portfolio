@@ -38,6 +38,12 @@ bulkDecoder =
         |> JD.map (Set.fromList >> Bulk)
 
 
+inlineTodoDecoder : Decoder Edit
+inlineTodoDecoder =
+    JD.field "todo" Todo.decoder
+        |> JD.map InlineTodo
+
+
 decoderFromType : String -> Decoder Edit
 decoderFromType type_ =
     case type_ of
@@ -48,7 +54,7 @@ decoderFromType type_ =
             bulkDecoder
 
         "InlineTodo" ->
-            JD.fail "Unable to decode inline todo"
+            inlineTodoDecoder
 
         _ ->
             JD.fail ("Unable to decode Edit type: " ++ type_)

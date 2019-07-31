@@ -60,8 +60,9 @@ module.exports = {
   },
   // devtool: isProduction ? 'source-map' : 'eval-source-map',
   devtool: isProduction ? 'source-map' : false,
-  // https://webpack.js.org/configuration/dev-server/
+          // https://webpack.js.org/configuration/dev-server/
   devServer: {
+
     historyApiFallback: true,
     overlay: {
       warnings: true,
