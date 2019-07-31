@@ -185,6 +185,7 @@ type Msg
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
     | UpdateTodos TC.Update Millis
+    | UpdateTodosThenUpdateEdit TC.Update Edit Millis
 
 
 
@@ -310,20 +311,29 @@ update message model =
 
         UpdateTodos updateConfig now ->
             TC.update updateConfig now model.todos
-                |> setAndCacheTodosWithMsgIn model now
+                |> updateTodosIn model now
                 |> andThen (updateEdit Edit.None)
+
+        UpdateTodosThenUpdateEdit updateConfig editConfig now ->
+            TC.update updateConfig now model.todos
+                |> updateTodosIn model now
+                |> andThen (updateEdit editConfig)
 
 
 updateTodoCmd updateConfig =
     withNow (UpdateTodos updateConfig)
 
 
-setAndCacheTodosWithMsgIn :
+updateTodoThenUpdateEditCmd updateConfig editConfig =
+    withNow (UpdateTodosThenUpdateEdit updateConfig editConfig)
+
+
+updateTodosIn :
     Model
     -> Millis
     -> ( TodoCollection, List SyncMsg )
     -> Return
-setAndCacheTodosWithMsgIn model now ( todos, syncMessages ) =
+updateTodosIn model now ( todos, syncMessages ) =
     let
         _ =
             Debug.log "now, syncMessages" ( now, syncMessages )
