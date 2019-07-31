@@ -13,7 +13,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
-import Project exposing (Project, ProjectList)
+import Project exposing (Project)
 import ProjectCollection as PC exposing (ProjectCollection)
 import ProjectId exposing (ProjectId)
 import Return
@@ -22,7 +22,7 @@ import Set exposing (Set)
 import Sync exposing (SyncMsg, SyncQueue)
 import Task
 import Time
-import Todo exposing (Todo, TodoId, TodoList)
+import Todo exposing (Todo, TodoId)
 import TodoCollection as TC exposing (TodoCollection)
 import Url exposing (Url)
 
