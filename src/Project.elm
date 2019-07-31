@@ -1,6 +1,7 @@
 module Project exposing
     ( Project
     , decoder
+    , encoder
     , setModifiedAt
     )
 
@@ -27,6 +28,17 @@ decoder =
         |> JD.required "sortIdx" JD.int
         |> JD.required "createdAt" JD.int
         |> JD.required "modifiedAt" JD.int
+
+
+encoder : Project -> Value
+encoder { id, title, sortIdx, createdAt, modifiedAt } =
+    JE.object
+        [ ( "id", JE.string id )
+        , ( "title", JE.string title )
+        , ( "sortIdx", JE.int sortIdx )
+        , ( "createdAt", JE.int createdAt )
+        , ( "modifiedAt", JE.int modifiedAt )
+        ]
 
 
 setModifiedAt now todo =

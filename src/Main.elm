@@ -169,15 +169,33 @@ init encodedFlags url key =
         |> unpackErr initFromError
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
-        , Http.get { url = "/api/all", expect = Http.expectJson onHttpResult dbDecoder }
+        , Http.get { url = "/api/db", expect = Http.expectJson onHttpResult dbDecoder }
         ]
     )
+        |> effect
+            (\m ->
+                Http.post
+                    { url = "/api/db"
+                    , body =
+                        Http.jsonBody
+                            (dbEncoder { todos = m.todos, projects = m.projects })
+                    , expect = Http.expectString log1NoOp
+                    }
+            )
 
 
 type alias DB =
     { todos : TodoDict
     , projects : ProjectDict
     }
+
+
+dbEncoder : DB -> Value
+dbEncoder { todos, projects } =
+    JE.object
+        [ ( "todoList", todos |> Dict.values |> JE.list Todo.encoder )
+        , ( "projectList", projects |> Dict.values |> JE.list Project.encoder )
+        ]
 
 
 dbDecoder : Decoder DB
@@ -189,6 +207,15 @@ dbDecoder =
 
 onHttpResult : Result Http.Error DB -> Msg
 onHttpResult result =
+    let
+        _ =
+            result
+                |> Result.mapError (Debug.log "onHttpResultError")
+    in
+    NoOp
+
+
+log1NoOp result =
     let
         _ =
             Debug.log "onHttpResult" result
