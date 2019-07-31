@@ -44,8 +44,8 @@ port cacheEdit : Value -> Cmd msg
 type alias Flags =
     { todoList : TodoList
     , projectList : ProjectList
-    , syncQueue : Value
-    , edit : Value
+    , syncQueue : SyncQueue
+    , edit : Edit
     }
 
 
@@ -54,8 +54,8 @@ flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todoList" Todo.listDecoder
         |> JDP.required "projectList" Project.listDecoder
-        |> JDP.required "syncQueue" JD.value
-        |> JDP.required "edit" JD.value
+        |> JDP.required "syncQueue" Sync.queueDecoder
+        |> JDP.required "edit" Edit.decoder
 
 
 type alias Error =
@@ -84,24 +84,6 @@ type alias Model =
 
 type alias Return =
     Return.Return Msg Model
-
-
-dictFromListBy : (item -> comparable) -> List item -> Dict comparable item
-dictFromListBy keyFn =
-    List.map (\item -> ( keyFn item, item )) >> Dict.fromList
-
-
-decodeProjectList encoded =
-    encoded
-        |> JD.decodeValue (JD.list Project.decoder)
-        |> Result.map (dictFromListBy .id)
-        |> Result.mapError (\e -> ( "Error decoding projects", e ))
-
-
-decodeEdit encoded =
-    encoded
-        |> JD.decodeValue Edit.decoder
-        |> Result.mapError (\e -> ( "Error decoding Edit", e ))
 
 
 routeToPage : Route -> Page
@@ -142,31 +124,21 @@ init encodedFlags url key =
                 False
                 { width = 0, height = 0 }
 
-        initHelp flags edit syncQueue =
-            { emptyModel
-                | todos = TodoDict.fromList flags.todoList
-                , projects = ProjectDict.fromList flags.projectList
-                , edit = edit
-                , syncQueue = syncQueue
-            }
-
-        initFromError ( prefix, error ) =
+        initFromError error =
             emptyModel
-                |> prependError (prefix ++ " : " ++ JD.errorToString error)
+                |> prependError (JD.errorToString error)
 
         initFromFlags : Flags -> Model
         initFromFlags flags =
-            Result.map2 (initHelp flags)
-                (decodeEdit flags.edit)
-                (JD.decodeValue Sync.queueDecoder flags.syncQueue
-                    |> Result.mapError (\e -> ( "Error decoding syncQueue", e ))
-                )
-                |> unpackErr initFromError
+            { emptyModel
+                | todos = TodoDict.fromList flags.todoList
+                , projects = ProjectDict.fromList flags.projectList
+                , edit = flags.edit
+                , syncQueue = flags.syncQueue
+            }
     in
-    ( Result.map initFromFlags
-        (JD.decodeValue flagsDecoder encodedFlags
-            |> Result.mapError (\e -> ( "Error decoding Flags", e ))
-        )
+    ( JD.decodeValue flagsDecoder encodedFlags
+        |> Result.map initFromFlags
         |> unpackErr initFromError
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
