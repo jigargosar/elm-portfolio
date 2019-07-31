@@ -310,15 +310,20 @@ update message model =
                     ( model, Cmd.none )
 
                 Edit.Bulk idSet ->
-                    model.todos
-                        |> TodoCollection.updateBulk now
+                    model
+                        |> bulkUpdateTodo now
                             idSet
                             (TodoCollection.MoveToProject projectId)
-                        |> setAndCacheTodosWithMsgIn model now
                         |> andThen (updateEdit Edit.None)
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
+
+
+bulkUpdateTodo now idSet tcMsg model =
+    model.todos
+        |> TodoCollection.updateBulk now idSet tcMsg
+        |> setAndCacheTodosWithMsgIn model now
 
 
 setAndCacheTodosWithMsgIn :
