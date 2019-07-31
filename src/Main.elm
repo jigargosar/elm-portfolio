@@ -274,7 +274,7 @@ update message model =
                     TodoDict.pendingWithId todoId model.todos
                         |> Maybe.map
                             (\t ->
-                                updateEditTo (Edit.InlineTodo t) model
+                                updateEdit (Edit.InlineTodo t) model
                                     |> command focusInlineEditTodoTitleCmd
                             )
                         |> Maybe.withDefault ( model, Cmd.none )
@@ -289,7 +289,7 @@ update message model =
                                 Set.insert mem set
                     in
                     model
-                        |> updateEditTo (idSet |> toggleMember todoId |> Edit.Bulk)
+                        |> updateEdit (idSet |> toggleMember todoId |> Edit.Bulk)
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
@@ -320,10 +320,10 @@ update message model =
             ( { model | isSidebarOpen = False }, Cmd.none )
 
         OnBulkCancelClicked ->
-            model |> updateEditTo Edit.None
+            model |> updateEdit Edit.None
 
         OnSelectMultipleClicked ->
-            model |> updateEditTo (Edit.Bulk Set.empty)
+            model |> updateEdit (Edit.Bulk Set.empty)
 
         OnBulkMoveToProjectSelected projectId ->
             ( model, OnBulkMoveToProjectSelectedWithNow projectId |> withNow )
@@ -337,7 +337,7 @@ update message model =
                     model.todos
                         |> TodoDict.updateBulk now idSet (TodoDict.MoveToProject projectId)
                         |> setAndCacheTodosWithMsgIn model now
-                        |> andThen (updateEditTo Edit.None)
+                        |> andThen (updateEdit Edit.None)
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
@@ -381,11 +381,11 @@ updateInlineEditTodo : InlineEditTodoMsg -> Todo -> Model -> Return
 updateInlineEditTodo msg todo model =
     case msg of
         IET_SetTitle title ->
-            model |> updateEditTo (Edit.InlineTodo { todo | title = title })
+            model |> updateEdit (Edit.InlineTodo { todo | title = title })
 
         IET_SetProjectId projectId ->
             model
-                |> updateEditTo (Edit.InlineTodo { todo | projectId = projectId })
+                |> updateEdit (Edit.InlineTodo { todo | projectId = projectId })
 
         IET_Save ->
             ( model, withNow (IET_SaveWithNow >> OnInlineEditTodoMsg) )
@@ -396,14 +396,16 @@ updateInlineEditTodo msg todo model =
                 |> TodoDict.andThen
                     (TodoDict.update now todo.id (TodoDict.MoveToProject todo.projectId))
                 |> setAndCacheTodosWithMsgIn model now
-                |> andThen (updateEditTo Edit.None)
+                |> andThen (updateEdit Edit.None)
 
         IET_Cancel ->
-            updateEditTo Edit.None model
+            updateEdit Edit.None model
 
 
-updateEditTo newEdit model =
-    ( { model | edit = newEdit }, Edit.encoder newEdit |> cacheEdit )
+updateEdit newEdit model =
+    ( { model | edit = newEdit }
+    , Edit.encoder newEdit |> cacheEdit
+    )
 
 
 focusInlineEditTodoTitleCmd =
