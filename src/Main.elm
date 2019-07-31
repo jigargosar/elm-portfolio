@@ -14,7 +14,7 @@ import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
 import Project exposing (Project, ProjectList)
-import ProjectCollection exposing (ProjectCollection)
+import ProjectCollection as PC exposing (ProjectCollection)
 import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
@@ -53,7 +53,7 @@ flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todos" TC.decoder
-        |> JDP.required "projects" ProjectCollection.decoder
+        |> JDP.required "projects" PC.decoder
         |> JDP.required "syncQueue" Sync.queueDecoder
         |> JDP.required "edit" Edit.decoder
 
@@ -124,7 +124,7 @@ init encodedFlags url key =
             Route.fromUrl url
       in
       { todos = TC.initial
-      , projects = ProjectCollection.initial
+      , projects = PC.initial
       , errors = []
       , edit = Edit.initial
       , syncQueue = Sync.initialQueue
