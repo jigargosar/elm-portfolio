@@ -1,7 +1,8 @@
-const { mergeRight, times }  = require( 'ramda')
-
+const { mergeRight, times } = require('ramda')
 const nanoid = require('nanoid')
 const faker = require('faker')
+const Conf = require('conf')
+
 const logger = require('koa-logger')
 const router = require('koa-router')()
 const koaBody = require('koa-body')
@@ -9,6 +10,18 @@ const koaBody = require('koa-body')
 const Koa = require('koa')
 const app = module.exports = new Koa()
 
+const config = new Conf({
+  cwd: process.cwd(),
+  clearInvalidConfig: false,
+  configName:'fake-db',
+  defaults: {
+    db: createFakeDB(),
+  },
+})
+
+
+
+// console.log(config.get('db'))
 
 // middleware
 
@@ -21,8 +34,8 @@ app.use(koaBody())
 
 router.get('/', hello)
 router.get('/hello', hello)
-router.get('/all', async ctx => {
-  ctx.body = createFakeDB()
+router.get(['/all', '/db'], async ctx => {
+  ctx.body = config.get('db')
 })
 // .get('/post/new', add)
 // .get('/post/:id', show)
@@ -94,12 +107,12 @@ function createFakeProject(overrides) {
 
 function createFakeDB() {
   faker.seed(12333)
-  const prjFromIdx = sortIdx=> createFakeProject({sortIdx})
+  const prjFromIdx = sortIdx => createFakeProject({ sortIdx })
   const projectList = times(prjFromIdx)(5)
-  const todoFromIdx = sortIdx=>createFakeTask({sortIdx})
+  const todoFromIdx = sortIdx => createFakeTask({ sortIdx })
   const todoList = times(todoFromIdx)(20)
   return {
     projectList,
-    todoList
+    todoList,
   }
 }

@@ -4,3 +4,4 @@ build
 elm-stuff
 .cache
 *.log
+fake-db.json
