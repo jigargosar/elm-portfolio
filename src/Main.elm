@@ -311,7 +311,9 @@ update message model =
 
                 Edit.Bulk idSet ->
                     model.todos
-                        |> TodoCollection.updateBulk now idSet (TodoCollection.MoveToProject projectId)
+                        |> TodoCollection.updateBulk now
+                            idSet
+                            (TodoCollection.MoveToProject projectId)
                         |> setAndCacheTodosWithMsgIn model now
                         |> andThen (updateEdit Edit.None)
 
