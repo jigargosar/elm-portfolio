@@ -3,15 +3,14 @@ module TodoDict exposing
     , Return
     , SyncMsg
     , TodoDict
+    , andThen
     , completedForProjectList
     , completedList
-
     , pendingList
     , pendingWithId
     , pendingWithProjectId
     , update
     , updateBulk
-    , andThen
     )
 
 import Basics.Extra
