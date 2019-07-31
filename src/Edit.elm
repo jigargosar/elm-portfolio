@@ -1,4 +1,4 @@
-module Edit exposing (Edit(..), decoder, encoder)
+module Edit exposing (Edit(..), decoder, encoder, initial)
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JD
@@ -11,6 +11,11 @@ type Edit
     = None
     | InlineTodo Todo
     | Bulk (Set TodoId)
+
+
+initial : Edit
+initial =
+    None
 
 
 encodeType type_ otherFields =

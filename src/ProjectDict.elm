@@ -1,4 +1,4 @@
-module ProjectDict exposing (ProjectDict, fromList)
+module ProjectDict exposing (ProjectDict, fromList, initial)
 
 import Dict exposing (Dict)
 import Dict.Extra
@@ -13,3 +13,8 @@ type alias ProjectDict =
 fromList : ProjectList -> ProjectDict
 fromList =
     Dict.Extra.fromListBy .id
+
+
+initial : ProjectDict
+initial =
+    Dict.empty

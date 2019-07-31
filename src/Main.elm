@@ -103,35 +103,38 @@ routeToPage route =
             DefaultPage
 
 
-init : Value -> Url -> Nav.Key -> Return
-init encodedFlags url key =
+initPartial : Url -> Nav.Key -> Model
+initPartial url key =
     let
         route =
             Route.fromUrl url
+    in
+    { todos = TodoDict.initial
+    , projects = ProjectDict.initial
+    , errors = []
+    , edit = Edit.initial
+    , syncQueue = Sync.initialQueue
+    , page = routeToPage route
+    , key = key
+    , route = route
+    , isSidebarOpen = False
+    , size = { width = 0, height = 0 }
+    }
 
-        page =
-            routeToPage route
 
-        emptyModel : Model
-        emptyModel =
-            Model Dict.empty
-                Dict.empty
-                []
-                (Edit.Bulk Set.empty)
-                Sync.emptyQueue
-                page
-                key
-                route
-                False
-                { width = 0, height = 0 }
+init : Value -> Url -> Nav.Key -> Return
+init encodedFlags url key =
+    let
+        model =
+            initPartial url key
 
         initFromError error =
-            emptyModel
+            model
                 |> prependError (JD.errorToString error)
 
         initFromFlags : Flags -> Model
         initFromFlags flags =
-            { emptyModel
+            { model
                 | todos = TodoDict.fromList flags.todoList
                 , projects = ProjectDict.fromList flags.projectList
                 , edit = flags.edit

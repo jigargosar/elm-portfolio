@@ -6,6 +6,7 @@ module TodoDict exposing
     , completedForProjectList
     , completedList
     , fromList
+    , initial
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -34,6 +35,11 @@ type alias TodoDict =
 fromList : TodoList -> TodoDict
 fromList =
     Dict.Extra.fromListBy .id
+
+
+initial : TodoDict
+initial =
+    Dict.empty
 
 
 
