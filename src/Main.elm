@@ -13,6 +13,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
+import Now exposing (Millis)
 import Project exposing (Project)
 import ProjectCollection as PC exposing (ProjectCollection)
 import ProjectId exposing (ProjectId)
@@ -154,10 +155,6 @@ activeProjectList projects =
     projects
         |> Dict.values
         |> List.sortBy .sortIdx
-
-
-type alias Millis =
-    Int
 
 
 type alias DomFocusResult =
