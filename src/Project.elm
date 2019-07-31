@@ -1,7 +1,9 @@
 module Project exposing
     ( Project
+    , ProjectList
     , decoder
     , encoder
+    , listDecoder
     , setModifiedAt
     )
 
@@ -20,6 +22,10 @@ type alias Project =
     }
 
 
+type alias ProjectList =
+    List Project
+
+
 decoder : Decoder Project
 decoder =
     JD.succeed Project
@@ -28,6 +34,11 @@ decoder =
         |> JD.required "sortIdx" JD.int
         |> JD.required "createdAt" JD.int
         |> JD.required "modifiedAt" JD.int
+
+
+listDecoder : Decoder ProjectList
+listDecoder =
+    JD.list decoder
 
 
 encoder : Project -> Value

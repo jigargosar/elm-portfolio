@@ -13,7 +13,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
-import Project exposing (Project)
+import Project exposing (Project, ProjectList)
 import ProjectDict exposing (ProjectDict)
 import ProjectId exposing (ProjectId)
 import Return
@@ -43,7 +43,7 @@ port cacheEdit : Value -> Cmd msg
 
 type alias Flags =
     { todoList : TodoList
-    , projectList : Value
+    , projectList : ProjectList
     , syncQueue : Value
     , edit : Value
     }
@@ -53,7 +53,7 @@ flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todoList" Todo.listDecoder
-        |> JDP.required "projectList" JD.value
+        |> JDP.required "projectList" Project.listDecoder
         |> JDP.required "syncQueue" JD.value
         |> JDP.required "edit" JD.value
 
@@ -89,13 +89,6 @@ type alias Return =
 dictFromListBy : (item -> comparable) -> List item -> Dict comparable item
 dictFromListBy keyFn =
     List.map (\item -> ( keyFn item, item )) >> Dict.fromList
-
-
-decodeTodoList encoded =
-    encoded
-        |> JD.decodeValue (JD.list Todo.decoder)
-        |> Result.map (dictFromListBy .id)
-        |> Result.mapError (\e -> ( "Error decoding todos", e ))
 
 
 decodeProjectList encoded =
@@ -149,10 +142,10 @@ init encodedFlags url key =
                 False
                 { width = 0, height = 0 }
 
-        initHelp todoList projects edit syncQueue =
+        initHelp flags edit syncQueue =
             { emptyModel
-                | todos = TodoDict.fromList todoList
-                , projects = projects
+                | todos = TodoDict.fromList flags.todoList
+                , projects = ProjectDict.fromList flags.projectList
                 , edit = edit
                 , syncQueue = syncQueue
             }
@@ -163,8 +156,7 @@ init encodedFlags url key =
 
         initFromFlags : Flags -> Model
         initFromFlags flags =
-            Result.map3 (initHelp flags.todoList)
-                (decodeProjectList flags.projectList)
+            Result.map2 (initHelp flags)
                 (decodeEdit flags.edit)
                 (JD.decodeValue Sync.queueDecoder flags.syncQueue
                     |> Result.mapError (\e -> ( "Error decoding syncQueue", e ))
