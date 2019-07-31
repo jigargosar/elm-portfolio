@@ -15,6 +15,7 @@ import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
 import Project exposing (Project)
+import ProjectDict exposing (ProjectDict)
 import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
@@ -49,10 +50,6 @@ flagsDecoder =
         |> JDP.required "todoList" JD.value
         |> JDP.required "projectList" JD.value
         |> JDP.required "edit" JD.value
-
-
-type alias ProjectDict =
-    Dict ProjectId Project
 
 
 type alias Error =
