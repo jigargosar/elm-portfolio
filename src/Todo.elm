@@ -12,16 +12,13 @@ module Todo exposing
     , filterSort
     , matchesFilter
     , modify
-    , modifyMultiple
     , modifyWithNow
     , setModifiedAt
-    , setSortIdx
     )
 
-import Basics.Extra
 import Compare exposing (Comparator)
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline as JD
+import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import ProjectId exposing (ProjectId)
 
@@ -48,13 +45,13 @@ type alias Todo =
 decoder : Decoder Todo
 decoder =
     JD.succeed Todo
-        |> JD.required "id" JD.string
-        |> JD.required "title" JD.string
-        |> JD.required "sortIdx" JD.int
-        |> JD.optional "projectId" ProjectId.decoder ProjectId.default
-        |> JD.required "isDone" JD.bool
-        |> JD.required "createdAt" JD.int
-        |> JD.required "modifiedAt" JD.int
+        |> JDP.required "id" JD.string
+        |> JDP.required "title" JD.string
+        |> JDP.required "sortIdx" JD.int
+        |> JDP.optional "projectId" ProjectId.decoder ProjectId.default
+        |> JDP.required "isDone" JD.bool
+        |> JDP.required "createdAt" JD.int
+        |> JDP.required "modifiedAt" JD.int
 
 
 encoder : Todo -> Value
@@ -110,23 +107,6 @@ modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
 modifyWithNow now msg todo =
     modify msg todo
         |> Maybe.map (setModifiedAt now)
-
-
-modifyMultiple : List Msg -> Todo -> Maybe Todo
-modifyMultiple msgList model =
-    let
-        newModel =
-            List.foldl (\msg -> update msg) model msgList
-    in
-    if newModel == model then
-        Nothing
-
-    else
-        Just newModel
-
-
-setSortIdx sortIdx model =
-    { model | sortIdx = sortIdx }
 
 
 setModifiedAt now todo =
@@ -197,49 +177,3 @@ sortWith comps =
 filterSort : Filter -> List CompareBy -> TodoList -> TodoList
 filterSort fil comps =
     filter fil >> sortWith comps
-
-
-isCompleted =
-    .isDone
-
-
-isPending =
-    isCompleted >> not
-
-
-idEq todoId model =
-    todoId == model.id
-
-
-projectIdEq projectId model =
-    projectId == model.projectId
-
-
-filterPending =
-    List.filter isPending
-
-
-filterCompleted =
-    List.filter isCompleted
-
-
-ascend : (a -> comparable) -> a -> a -> Order
-ascend fn a1 a2 =
-    compare (fn a1) (fn a2)
-
-
-descend : (a -> comparable) -> a -> a -> Order
-descend fn a1 a2 =
-    ascend fn a1 a2 |> flipOrd
-
-
-flipOrd ord =
-    case ord of
-        LT ->
-            GT
-
-        EQ ->
-            EQ
-
-        GT ->
-            LT
