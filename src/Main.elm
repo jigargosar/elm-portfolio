@@ -206,8 +206,8 @@ type Msg
     | OnDomFocusResult DomFocusResult
     | OnBrowserResize Int Int
     | OnViewPort Browser.Dom.Viewport
-    | OnTodoChecked TodoId
     | OnTodoTitleClicked TodoId
+    | OnTodoChecked TodoId
     | OnTodoCheckedWithNow TodoId Millis
     | OnTodoUnChecked TodoId
     | OnTodoUnCheckedWithNow TodoId Millis
