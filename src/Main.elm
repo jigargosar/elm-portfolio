@@ -169,12 +169,23 @@ init encodedFlags url key =
         |> unpackErr initFromError
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
-        , Http.get { url = "/api/all", expect = Http.expectString onHttpResult }
+        , Http.get { url = "/api/all", expect = Http.expectJson onHttpResult dbDecoder }
         ]
     )
 
 
-onHttpResult : Result Http.Error String -> Msg
+type alias DB =
+    { todoList : List Todo
+    , projectList : List Project
+    }
+
+
+dbDecoder : Decoder DB
+dbDecoder =
+    JD.fail "TEST"
+
+
+onHttpResult : Result Http.Error DB -> Msg
 onHttpResult result =
     let
         _ =
