@@ -165,7 +165,6 @@ type InlineEditTodoMsg
     = IET_SetTitle String
     | IET_SetProjectId ProjectId
     | IET_Save
-    | IET_SaveWithNow TC.Update Millis
     | IET_Cancel
 
 
@@ -176,9 +175,7 @@ type Msg
     | OnViewPort Browser.Dom.Viewport
     | OnTodoTitleClicked TodoId
     | OnTodoChecked TodoId
-    | OnTodoCheckedWithNow TC.Update Millis
     | OnTodoUnChecked TodoId
-    | OnTodoUnCheckedWithNow TC.Update Millis
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | OnMenuClicked
@@ -187,7 +184,7 @@ type Msg
     | OnBulkCancelClicked
     | OnSelectMultipleClicked
     | OnBulkMoveToProjectSelected ProjectId
-    | OnUpdateTodoCollectionWithNow TC.Update Millis
+    | UpdateTodos TC.Update Millis
 
 
 
@@ -239,20 +236,11 @@ update message model =
 
         OnTodoChecked todoId ->
             ( model
-            , withNow
-                (OnTodoCheckedWithNow (TC.Single todoId TC.MarkComplete))
+            , updateTodoCmd (TC.Single todoId TC.MarkComplete)
             )
 
-        OnTodoCheckedWithNow updateConfig now ->
-            TC.update updateConfig now model.todos
-                |> setAndCacheTodosWithMsgIn model now
-
         OnTodoUnChecked todoId ->
-            ( model, withNow (OnTodoUnCheckedWithNow (TC.Single todoId TC.MarkPending)) )
-
-        OnTodoUnCheckedWithNow updateConfig now ->
-            TC.update updateConfig now model.todos
-                |> setAndCacheTodosWithMsgIn model now
+            ( model, updateTodoCmd (TC.Single todoId TC.MarkPending) )
 
         OnTodoTitleClicked todoId ->
             case model.edit of
@@ -314,14 +302,14 @@ update message model =
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
-        OnUpdateTodoCollectionWithNow updateConfig now ->
+        UpdateTodos updateConfig now ->
             TC.update updateConfig now model.todos
                 |> setAndCacheTodosWithMsgIn model now
                 |> andThen (updateEdit Edit.None)
 
 
 updateTodoCmd updateConfig =
-    withNow (OnUpdateTodoCollectionWithNow updateConfig)
+    withNow (UpdateTodos updateConfig)
 
 
 setAndCacheTodosWithMsgIn :
@@ -369,23 +357,15 @@ updateInlineEditTodo msg todo model =
 
         IET_Save ->
             ( model
-            , withNow
-                (IET_SaveWithNow
-                    (TC.Single todo.id
-                        (TC.Batch
-                            [ TC.SetTitle todo.title
-                            , TC.MoveToProject todo.projectId
-                            ]
-                        )
+            , updateTodoCmd
+                (TC.Single todo.id
+                    (TC.Batch
+                        [ TC.SetTitle todo.title
+                        , TC.MoveToProject todo.projectId
+                        ]
                     )
-                    >> OnInlineEditTodoMsg
                 )
             )
-
-        IET_SaveWithNow updateConfig now ->
-            TC.update updateConfig now model.todos
-                |> setAndCacheTodosWithMsgIn model now
-                |> andThen (updateEdit Edit.None)
 
         IET_Cancel ->
             updateEdit Edit.None model
