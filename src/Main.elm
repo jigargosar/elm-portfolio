@@ -397,12 +397,6 @@ update message model =
                     ( model, Cmd.none )
 
 
-setAndCacheTodosIn model todos =
-    setTodos todos model
-        |> Maybe.map (pure >> effect cacheTodosEffect)
-        |> Maybe.withDefault ( model, Cmd.none )
-
-
 setAndCacheTodosWithMsgIn :
     Model
     -> Millis
@@ -413,7 +407,9 @@ setAndCacheTodosWithMsgIn model now ( todos, syncMessages ) =
         _ =
             Debug.log "now, syncMessages" ( now, syncMessages )
     in
-    setAndCacheTodosIn model todos
+    setTodos todos model
+        |> Maybe.map (pure >> effect cacheTodosEffect)
+        |> Maybe.withDefault ( model, Cmd.none )
 
 
 cacheTodosEffect : Model -> Cmd Msg
