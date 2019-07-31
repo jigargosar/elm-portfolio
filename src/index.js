@@ -20,6 +20,7 @@ const app = Elm.Main.init({
     // todoList: [{}],
     projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
     edit: JSON.parse(localStorage.getItem('edit')),
+    syncQueue: JSON.parse(localStorage.getItem('syncQueue') || '[]'),
   },
 })
 

@@ -9,7 +9,6 @@ import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
-import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
@@ -41,6 +40,7 @@ port cacheEdit : Value -> Cmd msg
 type alias Flags =
     { todoList : Value
     , projectList : Value
+    , syncQueue : Value
     , edit : Value
     }
 
@@ -50,6 +50,7 @@ flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todoList" JD.value
         |> JDP.required "projectList" JD.value
+        |> JDP.required "syncQueue" JD.value
         |> JDP.required "edit" JD.value
 
 
