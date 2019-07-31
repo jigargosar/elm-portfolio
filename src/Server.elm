@@ -8,7 +8,7 @@ import Project
 import ProjectCollection exposing (ProjectCollection)
 import Return
 import Todo
-import TodoDict exposing (TodoDict)
+import TodoCollection exposing (TodoCollection)
 
 
 type alias Flags =
@@ -29,7 +29,7 @@ type alias Error =
 
 
 type alias Model =
-    { todos : TodoDict
+    { todos : TodoCollection
     , projects : ProjectCollection
     , errors : List Error
     }

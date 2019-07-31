@@ -24,7 +24,7 @@ import Sync exposing (SyncMsg, SyncQueue)
 import Task
 import Time
 import Todo exposing (Todo, TodoId, TodoList)
-import TodoDict exposing (TodoDict)
+import TodoCollection exposing (TodoCollection)
 import Url exposing (Url)
 
 
@@ -43,7 +43,7 @@ port cacheEdit : Value -> Cmd msg
 
 
 type alias Flags =
-    { todos : TodoDict
+    { todos : TodoCollection
     , projects : ProjectCollection
     , syncQueue : SyncQueue
     , edit : Edit
@@ -53,7 +53,7 @@ type alias Flags =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
-        |> JDP.required "todos" TodoDict.decoder
+        |> JDP.required "todos" TodoCollection.decoder
         |> JDP.required "projects" ProjectCollection.decoder
         |> JDP.required "syncQueue" Sync.queueDecoder
         |> JDP.required "edit" Edit.decoder
@@ -70,7 +70,7 @@ type Page
 
 
 type alias Model =
-    { todos : TodoDict
+    { todos : TodoCollection
     , projects : ProjectCollection
     , errors : List Error
     , edit : Edit
@@ -124,7 +124,7 @@ init encodedFlags url key =
         route =
             Route.fromUrl url
       in
-      { todos = TodoDict.initial
+      { todos = TodoCollection.initial
       , projects = ProjectCollection.initial
       , errors = []
       , edit = Edit.initial
@@ -142,7 +142,7 @@ init encodedFlags url key =
     )
 
 
-setTodos : TodoDict -> Model -> Maybe Model
+setTodos : TodoCollection -> Model -> Maybe Model
 setTodos todos model =
     if todos == model.todos then
         Nothing
@@ -247,7 +247,7 @@ update message model =
         OnTodoTitleClicked todoId ->
             case model.edit of
                 Edit.None ->
-                    TodoDict.pendingWithId todoId model.todos
+                    TodoCollection.pendingWithId todoId model.todos
                         |> Maybe.map
                             (\t ->
                                 updateEdit (Edit.InlineTodo t) model
@@ -271,14 +271,14 @@ update message model =
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
-            TodoDict.update now todoId TodoDict.MarkComplete model.todos
+            TodoCollection.update now todoId TodoCollection.MarkComplete model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnTodoUnChecked todoId ->
             ( model, withNow (OnTodoUnCheckedWithNow todoId) )
 
         OnTodoUnCheckedWithNow todoId now ->
-            TodoDict.update now todoId TodoDict.MarkPending model.todos
+            TodoCollection.update now todoId TodoCollection.MarkPending model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnInlineEditTodoMsg msg ->
@@ -311,7 +311,7 @@ update message model =
 
                 Edit.Bulk idSet ->
                     model.todos
-                        |> TodoDict.updateBulk now idSet (TodoDict.MoveToProject projectId)
+                        |> TodoCollection.updateBulk now idSet (TodoCollection.MoveToProject projectId)
                         |> setAndCacheTodosWithMsgIn model now
                         |> andThen (updateEdit Edit.None)
 
@@ -322,7 +322,7 @@ update message model =
 setAndCacheTodosWithMsgIn :
     Model
     -> Millis
-    -> ( TodoDict, List SyncMsg )
+    -> ( TodoCollection, List SyncMsg )
     -> Return
 setAndCacheTodosWithMsgIn model now ( todos, syncMessages ) =
     let
@@ -367,9 +367,9 @@ updateInlineEditTodo msg todo model =
 
         IET_SaveWithNow now ->
             model.todos
-                |> TodoDict.update now todo.id (TodoDict.SetTitle todo.title)
-                |> TodoDict.andThen
-                    (TodoDict.update now todo.id (TodoDict.MoveToProject todo.projectId))
+                |> TodoCollection.update now todo.id (TodoCollection.SetTitle todo.title)
+                |> TodoCollection.andThen
+                    (TodoCollection.update now todo.id (TodoCollection.MoveToProject todo.projectId))
                 |> setAndCacheTodosWithMsgIn model now
                 |> andThen (updateEdit Edit.None)
 
@@ -606,12 +606,12 @@ viewDefaultPage model =
                     , div [ class "vs3" ]
                         (viewPendingTodoList model.edit
                             model.projects
-                            (TodoDict.pendingList model.todos)
+                            (TodoCollection.pendingList model.todos)
                         )
                     ]
                 , div [ class "vs3" ]
                     [ div [ class "" ] [ text "Done" ]
-                    , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoDict.completedList model.todos))
+                    , div [ class "vs3" ] (List.map viewCompletedTodoItem (TodoCollection.completedList model.todos))
                     ]
                 ]
         }
@@ -628,14 +628,14 @@ viewProjectPage model project =
                     , div [ class "vs3" ]
                         (viewPendingTodoList model.edit
                             model.projects
-                            (TodoDict.pendingWithProjectId project.id model.todos)
+                            (TodoCollection.pendingWithProjectId project.id model.todos)
                         )
                     ]
                 , div [ class "vs3" ]
                     [ div [] [ text "Done" ]
                     , div [ class "vs3" ]
                         (List.map viewCompletedTodoItem
-                            (TodoDict.completedForProjectList project.id model.todos)
+                            (TodoCollection.completedForProjectList project.id model.todos)
                         )
                     ]
                 ]
@@ -653,14 +653,14 @@ viewInboxPage model =
                     , div [ class "vs3" ]
                         (viewPendingTodoList model.edit
                             model.projects
-                            (TodoDict.pendingWithProjectId "" model.todos)
+                            (TodoCollection.pendingWithProjectId "" model.todos)
                         )
                     ]
                 , div [ class "vs3" ]
                     [ div [] [ text "Done" ]
                     , div [ class "vs3" ]
                         (List.map viewCompletedTodoItem
-                            (TodoDict.completedForProjectList "" model.todos)
+                            (TodoCollection.completedForProjectList "" model.todos)
                         )
                     ]
                 ]

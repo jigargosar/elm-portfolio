@@ -1,7 +1,7 @@
-module TodoDict exposing
+module TodoCollection exposing
     ( Msg(..)
     , Return
-    , TodoDict
+    , TodoCollection
     , andThen
     , completedForProjectList
     , completedList
@@ -30,21 +30,21 @@ import Todo exposing (Todo, TodoId, TodoList)
 -- MODEL
 
 
-type alias TodoDict =
+type alias TodoCollection =
     Dict TodoId Todo
 
 
-fromList : TodoList -> TodoDict
+fromList : TodoList -> TodoCollection
 fromList =
     Dict.Extra.fromListBy .id
 
 
-initial : TodoDict
+initial : TodoCollection
 initial =
     Dict.empty
 
 
-decoder : Decoder TodoDict
+decoder : Decoder TodoCollection
 decoder =
     JD.oneOf
         [ Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
@@ -60,12 +60,12 @@ filterSort f s model =
     model |> Dict.values |> Todo.filterSort f s
 
 
-pendingList : TodoDict -> List Todo
+pendingList : TodoCollection -> List Todo
 pendingList =
     filterSort Todo.Pending [ Todo.ByIdx ]
 
 
-completedList : TodoDict -> List Todo
+completedList : TodoCollection -> List Todo
 completedList =
     filterSort Todo.Completed [ Todo.ByRecentlyModified ]
 
@@ -80,7 +80,7 @@ completedForProjectList pid model =
         |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
 
 
-pendingWithId : TodoId -> TodoDict -> Maybe Todo
+pendingWithId : TodoId -> TodoCollection -> Maybe Todo
 pendingWithId todoId =
     Dict.get todoId
         >> Maybe.andThen (Todo.filterSingle Todo.Pending)
@@ -98,16 +98,16 @@ type Msg
 
 
 type alias Return =
-    ( TodoDict, List SyncMsg )
+    ( TodoCollection, List SyncMsg )
 
 
-updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
+updateBulk : Millis -> Set TodoId -> Msg -> TodoCollection -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
         |> Set.foldl (\todoId -> andThen (update now todoId message)) ( model, [] )
 
 
-update : Millis -> TodoId -> Msg -> TodoDict -> Return
+update : Millis -> TodoId -> Msg -> TodoCollection -> Return
 update now todoId message model =
     case message of
         MarkComplete ->
@@ -171,17 +171,17 @@ update now todoId message model =
                 |> Maybe.withDefault ( model, [] )
 
 
-insert : Todo -> TodoDict -> TodoDict
+insert : Todo -> TodoCollection -> TodoCollection
 insert todo =
     Dict.insert todo.id todo
 
 
-insertWithMsg : Todo -> Todo.Msg -> TodoDict -> Return
+insertWithMsg : Todo -> Todo.Msg -> TodoCollection -> Return
 insertWithMsg todo todoMsg model =
     ( insert todo model, [ Sync.TodoSync todo.id todoMsg ] )
 
 
-andThen : (TodoDict -> Return) -> Return -> Return
+andThen : (TodoCollection -> Return) -> Return -> Return
 andThen fn ( model, msgStack ) =
     let
         ( newModel, newMsgStack ) =
@@ -190,7 +190,7 @@ andThen fn ( model, msgStack ) =
     ( newModel, newMsgStack ++ msgStack )
 
 
-moveToBottom : Millis -> TodoId -> TodoDict -> Return
+moveToBottom : Millis -> TodoId -> TodoCollection -> Return
 moveToBottom now todoId model =
     model
         |> Dict.get todoId
