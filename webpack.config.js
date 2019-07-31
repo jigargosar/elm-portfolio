@@ -3,11 +3,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 
-
 const NODE_ENV = process.env.NODE_ENV
 const isProduction = NODE_ENV === 'production'
 
-console.log('NODE_ENV',NODE_ENV)
+console.log('NODE_ENV', NODE_ENV)
 
 // https://webpack.js.org/configuration/
 module.exports = {
@@ -60,13 +59,18 @@ module.exports = {
   },
   // devtool: isProduction ? 'source-map' : 'eval-source-map',
   devtool: isProduction ? 'source-map' : false,
-          // https://webpack.js.org/configuration/dev-server/
+  // https://webpack.js.org/configuration/dev-server/
   devServer: {
+    after: (app, server) => {
+      setInterval(() => {
+        server.sockWrite(server.sockets, 'content-changed')
+      }, 5000)
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
-        pathRewrite: {'^/api' : ''}
-      }
+        pathRewrite: { '^/api': '' },
+      },
     },
     historyApiFallback: true,
     overlay: {
