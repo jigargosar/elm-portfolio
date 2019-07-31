@@ -32,10 +32,15 @@ app.use(koaBody())
 // route definitions
 
 router.get('/', hello)
-  .get('/hello', hello)
-  .get(['/all', '/db'], async ctx => {
+router  .get('/hello', hello)
+router.get('/db', async ctx => {
     ctx.body = config.get('db')
   })
+router.post('/db', ctx => {
+      console.log(ctx.req.body)
+      ctx.body = { echoBody: ctx.req.body }
+    },
+  )
 // .get('/post/new', add)
 // .get('/post/:id', show)
 // .post('/post', create);
@@ -45,6 +50,7 @@ app.use(router.routes())
 
 async function hello(ctx) {
   // await ctx.render('list', { posts: posts })
+
   ctx.body = { msg: 'ECHO', payload: 'payload10' }
 }
 
