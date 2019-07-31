@@ -6,8 +6,8 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Edit exposing (Edit)
-import Html exposing (Html, button, div, i, optgroup, option, select, text)
-import Html.Attributes exposing (attribute, class, classList, href, placeholder, title, value)
+import Html exposing (Html, button, div, i, text)
+import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
@@ -201,8 +201,6 @@ type InlineEditTodoMsg
     | IET_Cancel
 
 
-
-
 type Msg
     = NoOp
     | OnDomFocusResult DomFocusResult
@@ -343,8 +341,6 @@ update message model =
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
-
-
 
 
 setAndCacheTodosIn model todos =
@@ -566,27 +562,6 @@ viewMaster { title, content } model =
 
                     Edit.InlineTodo _ ->
                         text ""
-                ]
-
-        viewBulkProjectSelect =
-            let
-                projectList =
-                    activeProjectList model.projects
-
-                viewProjectOption p =
-                    option [ value p.id ] [ text p.title ]
-
-                viewOptions =
-                    option [ value "" ] [ text "Inbox" ]
-                        :: List.map viewProjectOption projectList
-            in
-            div [ class "flex-shrink-1" ]
-                [ select [ class "w-100 flex-shrink-1", onInput OnBulkMoveToProjectSelected ]
-                    [ optgroup
-                        [ attribute "label" "Move To..."
-                        ]
-                        viewOptions
-                    ]
                 ]
     in
     { title = title
