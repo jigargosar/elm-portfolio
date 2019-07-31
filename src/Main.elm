@@ -122,8 +122,8 @@ fromUrlAndKey url key =
     }
 
 
-updateFromFlags : Flags -> Model -> Model
-updateFromFlags flags model =
+updateWithFlags : Flags -> Model -> Model
+updateWithFlags flags model =
     { model
         | todos = TodoDict.fromList flags.todoList
         , projects = ProjectDict.fromList flags.projectList
@@ -144,7 +144,7 @@ init encodedFlags url key =
             fromUrlAndKey url key
     in
     ( JD.decodeValue flagsDecoder encodedFlags
-        |> Result.Extra.unpack prependDecodeError updateFromFlags
+        |> Result.Extra.unpack prependDecodeError updateWithFlags
         |> callWith model
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
