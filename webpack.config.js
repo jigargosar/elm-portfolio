@@ -62,7 +62,12 @@ module.exports = {
   devtool: isProduction ? 'source-map' : false,
           // https://webpack.js.org/configuration/dev-server/
   devServer: {
-
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        pathRewrite: {'^/api' : ''}
+      }
+    },
     historyApiFallback: true,
     overlay: {
       warnings: true,
