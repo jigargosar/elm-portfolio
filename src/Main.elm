@@ -175,14 +175,16 @@ init encodedFlags url key =
 
 
 type alias DB =
-    { todoList : List Todo
-    , projectList : List Project
+    { todos : TodoDict
+    , projects : ProjectDict
     }
 
 
 dbDecoder : Decoder DB
 dbDecoder =
-    JD.fail "TEST"
+    JD.succeed DB
+        |> JDP.required "todoList" (JD.list Todo.decoder |> JD.map (dictFromListBy .id))
+        |> JDP.required "projectList" (JD.list Project.decoder |> JD.map (dictFromListBy .id))
 
 
 onHttpResult : Result Http.Error DB -> Msg
