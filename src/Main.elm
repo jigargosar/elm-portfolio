@@ -53,8 +53,8 @@ type alias Flags =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
-        |> JDP.required "todoList" Todo.listDecoder
-        |> JDP.required "projectList" ProjectCollection.decoder
+        |> JDP.required "todos" Todo.listDecoder
+        |> JDP.required "projects" ProjectCollection.decoder
         |> JDP.required "syncQueue" Sync.queueDecoder
         |> JDP.required "edit" Edit.decoder
 

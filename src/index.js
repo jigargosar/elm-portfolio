@@ -16,9 +16,9 @@ function createAndAppendRoot() {
 const app = Elm.Main.init({
   node: document.getElementById('root') || createAndAppendRoot(),
   flags: {
-    todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
+    todos: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
     // todoList: [{}],
-    projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
+    projects: JSON.parse(localStorage.getItem('projectList') || '[]'),
     edit: JSON.parse(localStorage.getItem('edit')),
     syncQueue: JSON.parse(localStorage.getItem('syncQueue') || '[]'),
   },
