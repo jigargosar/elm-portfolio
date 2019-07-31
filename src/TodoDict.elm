@@ -13,10 +13,9 @@ module TodoDict exposing
     , updateBulk
     )
 
-import Basics.Extra
 import Dict exposing (Dict)
-import Dict.Extra
 import List.Extra
+import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Set exposing (Set)
 import Todo exposing (Todo, TodoId)
@@ -24,10 +23,6 @@ import Todo exposing (Todo, TodoId)
 
 type alias TodoDict =
     Dict TodoId Todo
-
-
-type alias Millis =
-    Int
 
 
 filter : Todo.Filter -> TodoDict -> List Todo
