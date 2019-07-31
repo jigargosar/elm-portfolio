@@ -19,7 +19,7 @@ import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
 import Set exposing (Set)
-import Sync exposing (SyncMsg)
+import Sync exposing (SyncMsg, SyncQueue)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -69,6 +69,7 @@ type alias Model =
     , projects : ProjectDict
     , errors : List Error
     , edit : Edit
+    , syncQueue : SyncQueue
     , page : Page
     , key : Nav.Key
     , route : Route
@@ -137,17 +138,19 @@ init encodedFlags url key =
                 Dict.empty
                 []
                 (Edit.Bulk Set.empty)
+                Sync.emptyQueue
                 page
                 key
                 route
                 False
                 { width = 0, height = 0 }
 
-        initHelp todos projects edit =
+        initHelp todos projects edit syncQueue =
             { emptyModel
                 | todos = todos
                 , projects = projects
                 , edit = edit
+                , syncQueue = syncQueue
             }
 
         initFromError ( prefix, error ) =
@@ -155,10 +158,13 @@ init encodedFlags url key =
                 |> prependError (prefix ++ " : " ++ JD.errorToString error)
 
         initFromFlags flags =
-            Result.map3 initHelp
+            Result.map4 initHelp
                 (decodeTodoList flags.todoList)
                 (decodeProjectList flags.projectList)
                 (decodeEdit flags.edit)
+                (JD.decodeValue Sync.queueDecoder flags.syncQueue
+                    |> Result.mapError (\e -> ( "Error decoding syncQueue", e ))
+                )
                 |> unpackErr initFromError
     in
     ( Result.map initFromFlags

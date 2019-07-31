@@ -13,6 +13,7 @@ module Todo exposing
     , matchesFilter
     , modify
     , modifyWithNow
+    , msgDecoder
     , msgEncoder
     , setModifiedAt
     )
@@ -98,6 +99,13 @@ msgEncoder msg =
             JE.object
                 [ ( "sortIdx", JE.int sortIdx )
                 ]
+
+
+msgDecoder : Decoder Msg
+msgDecoder =
+    JD.oneOf
+        [ JD.field "isDone" JD.bool |> JD.map SetCompleted
+        ]
 
 
 update : Msg -> Todo -> Todo
