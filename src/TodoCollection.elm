@@ -95,6 +95,7 @@ type Msg
     | MarkPending
     | SetTitle String
     | MoveToProject ProjectId
+    | Batch (List Msg)
 
 
 type alias Return =
@@ -169,6 +170,11 @@ update now todoId message model =
                         >> Maybe.map (\t -> insertWithMsg t msg model)
                     )
                 |> Maybe.withDefault ( model, [] )
+
+        Batch msgList ->
+            msgList
+                |> List.foldl (\msg -> andThen (update now todoId msg))
+                    ( model, [] )
 
 
 insert : Todo -> TodoCollection -> TodoCollection
