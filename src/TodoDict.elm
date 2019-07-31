@@ -5,6 +5,7 @@ module TodoDict exposing
     , andThen
     , completedForProjectList
     , completedList
+    , decoder
     , fromList
     , initial
     , pendingList
@@ -16,6 +17,7 @@ module TodoDict exposing
 
 import Dict exposing (Dict)
 import Dict.Extra
+import Json.Decode as JD exposing (Decoder)
 import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
@@ -40,6 +42,14 @@ fromList =
 initial : TodoDict
 initial =
     Dict.empty
+
+
+decoder : Decoder TodoDict
+decoder =
+    JD.oneOf
+        [ Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
+        , JD.dict Todo.decoder
+        ]
 
 
 

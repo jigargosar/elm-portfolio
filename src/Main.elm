@@ -43,7 +43,7 @@ port cacheEdit : Value -> Cmd msg
 
 
 type alias Flags =
-    { todoList : TodoList
+    { todos : TodoDict
     , projects : ProjectCollection
     , syncQueue : SyncQueue
     , edit : Edit
@@ -53,7 +53,7 @@ type alias Flags =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
-        |> JDP.required "todos" Todo.listDecoder
+        |> JDP.required "todos" TodoDict.decoder
         |> JDP.required "projects" ProjectCollection.decoder
         |> JDP.required "syncQueue" Sync.queueDecoder
         |> JDP.required "edit" Edit.decoder
@@ -108,7 +108,7 @@ updateWithEncodedFlags encodedFlags model =
     case JD.decodeValue flagsDecoder encodedFlags of
         Ok flags ->
             { model
-                | todos = TodoDict.fromList flags.todoList
+                | todos = flags.todos
                 , projects = flags.projects
                 , edit = flags.edit
                 , syncQueue = flags.syncQueue
