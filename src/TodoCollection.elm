@@ -11,7 +11,6 @@ module TodoCollection exposing
     , pendingList
     , pendingWithId
     , pendingWithProjectId
-    , update
     , updateBulk
     )
 

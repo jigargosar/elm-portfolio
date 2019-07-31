@@ -271,14 +271,20 @@ update message model =
                     ( model, Cmd.none )
 
         OnTodoCheckedWithNow todoId now ->
-            TodoCollection.update now todoId TodoCollection.MarkComplete model.todos
+            TodoCollection.updateBulk now
+                (Set.singleton todoId)
+                TodoCollection.MarkComplete
+                model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnTodoUnChecked todoId ->
             ( model, withNow (OnTodoUnCheckedWithNow todoId) )
 
         OnTodoUnCheckedWithNow todoId now ->
-            TodoCollection.update now todoId TodoCollection.MarkPending model.todos
+            TodoCollection.updateBulk now
+                (Set.singleton todoId)
+                TodoCollection.MarkPending
+                model.todos
                 |> setAndCacheTodosWithMsgIn model now
 
         OnInlineEditTodoMsg msg ->
@@ -374,8 +380,8 @@ updateInlineEditTodo msg todo model =
 
         IET_SaveWithNow now ->
             model.todos
-                |> TodoCollection.update now
-                    todo.id
+                |> TodoCollection.updateBulk now
+                    (Set.singleton todo.id)
                     (TodoCollection.Batch
                         [ TodoCollection.SetTitle todo.title
                         , TodoCollection.MoveToProject todo.projectId
