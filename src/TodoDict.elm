@@ -25,13 +25,6 @@ type alias TodoDict =
     Dict TodoId Todo
 
 
-filter : Todo.Filter -> TodoDict -> List Todo
-filter f model =
-    model
-        |> Dict.values
-        |> Todo.filter f
-
-
 filterSort f s model =
     model |> Dict.values |> Todo.filterSort f s
 
@@ -39,29 +32,6 @@ filterSort f s model =
 pendingList : TodoDict -> List Todo
 pendingList =
     filterSort Todo.Pending [ Todo.ByIdx ]
-
-
-pendingByProjectId : TodoDict -> Dict ProjectId (List Todo)
-pendingByProjectId todoDict =
-    pendingList todoDict
-        |> listGroupBy .projectId
-
-
-listGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-listGroupBy toComparable =
-    let
-        dictUpdater : a -> Maybe (List a) -> Maybe (List a)
-        dictUpdater a =
-            Maybe.map (\listOfA -> listOfA ++ [ a ])
-                >> Maybe.withDefault [ a ]
-                >> Just
-    in
-    List.foldl
-        (\a dict ->
-            dict
-                |> Dict.update (toComparable a) (dictUpdater a)
-        )
-        Dict.empty
 
 
 completedList : TodoDict -> List Todo
@@ -98,6 +68,10 @@ type Msg
 
 type alias Return =
     ( TodoDict, List SyncMsg )
+
+
+type SyncMsg
+    = TodoSync TodoId Todo.Msg
 
 
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
@@ -170,6 +144,11 @@ update now todoId message model =
                 |> Maybe.withDefault ( model, [] )
 
 
+insert : Todo -> TodoDict -> TodoDict
+insert todo =
+    Dict.insert todo.id todo
+
+
 insertWithMsg : Todo -> Todo.Msg -> TodoDict -> Return
 insertWithMsg todo todoMsg model =
     ( insert todo model, [ TodoSync todo.id todoMsg ] )
@@ -207,12 +186,3 @@ moveToBottom now todoId model =
                     |> Maybe.map (\t -> insertWithMsg t msg model)
             )
         |> Maybe.withDefault ( model, [] )
-
-
-type SyncMsg
-    = TodoSync TodoId Todo.Msg
-
-
-insert : Todo -> TodoDict -> TodoDict
-insert todo =
-    Dict.insert todo.id todo
