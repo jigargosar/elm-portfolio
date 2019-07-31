@@ -16,6 +16,7 @@ import MediaQuery
 import Project exposing (Project, ProjectList)
 import ProjectDict exposing (ProjectDict)
 import ProjectId exposing (ProjectId)
+import Result.Extra
 import Return
 import Route exposing (Route)
 import Set exposing (Set)
@@ -138,8 +139,7 @@ init encodedFlags url key =
             }
     in
     ( JD.decodeValue flagsDecoder encodedFlags
-        |> Result.map initFromFlags
-        |> unpackErr initFromError
+        |> Result.Extra.unpack initFromError initFromFlags
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
         ]
