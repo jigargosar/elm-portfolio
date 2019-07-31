@@ -13,6 +13,7 @@ module Todo exposing
     , matchesFilter
     , modify
     , modifyWithNow
+    , msgEncoder
     , setModifiedAt
     )
 
@@ -21,10 +22,11 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import ProjectId exposing (ProjectId)
+import TodoId
 
 
 type alias TodoId =
-    String
+    TodoId.TodoId
 
 
 type alias Millis =
@@ -72,6 +74,30 @@ type Msg
     | SetProjectId ProjectId
     | SetTitle String
     | SetSortIdx Int
+
+
+msgEncoder : Msg -> Value
+msgEncoder msg =
+    case msg of
+        SetCompleted bool ->
+            JE.object
+                [ ( "isDone", JE.bool bool )
+                ]
+
+        SetProjectId pid ->
+            JE.object
+                [ ( "projectId", ProjectId.encoder pid )
+                ]
+
+        SetTitle title ->
+            JE.object
+                [ ( "title", JE.string title )
+                ]
+
+        SetSortIdx sortIdx ->
+            JE.object
+                [ ( "sortIdx", JE.int sortIdx )
+                ]
 
 
 update : Msg -> Todo -> Todo

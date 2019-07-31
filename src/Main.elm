@@ -359,7 +359,10 @@ setAndCacheTodosWithMsgIn model now ( todos, syncMessages ) =
             Debug.log "now, syncMessages" ( now, syncMessages )
     in
     setTodos todos model
-        |> Maybe.map (pure >> effect cacheTodosEffect)
+        |> Maybe.map
+            (pure >> effect cacheTodosEffect
+             --        >> command (Sync.batchEncoder now syncMessages |> cacheSyncQueue)
+            )
         |> Maybe.withDefault ( model, Cmd.none )
 
 
