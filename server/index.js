@@ -26,7 +26,7 @@ app.use(router.routes())
 
 async function hello(ctx) {
   // await ctx.render('list', { posts: posts })
-  ctx.body = {msg:"ECHO", payload:"payload"}
+  ctx.body = {msg:"ECHO", payload:"payload10"}
 }
 
 
