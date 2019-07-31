@@ -1,4 +1,4 @@
-import { mergeRight } from 'ramda'
+const { mergeRight, times }  = require( 'ramda')
 
 const nanoid = require('nanoid')
 const faker = require('faker')
@@ -22,7 +22,7 @@ app.use(koaBody())
 router.get('/', hello)
 router.get('/hello', hello)
 router.get('/all', async ctx => {
-  ctx.body = { todoList: [] }
+  ctx.body = createFakeDB()
 })
 // .get('/post/new', add)
 // .get('/post/:id', show)
@@ -90,4 +90,16 @@ function createFakeProject(overrides) {
     createdAt: now,
     modifiedAt: now,
   }, overrides)
+}
+
+function createFakeDB() {
+  faker.seed(12333)
+  const prjFromIdx = sortIdx=> createFakeProject({sortIdx})
+  const projectList = times(prjFromIdx)(5)
+  const todoFromIdx = sortIdx=>createFakeTask({sortIdx})
+  const todoList = times(todoFromIdx)(20)
+  return {
+    projectList,
+    todoList
+  }
 }

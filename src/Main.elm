@@ -169,7 +169,7 @@ init encodedFlags url key =
         |> unpackErr initFromError
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
-        , Http.get { url = "/api/hello", expect = Http.expectString onHttpResult }
+        , Http.get { url = "/api/all", expect = Http.expectString onHttpResult }
         ]
     )
 
