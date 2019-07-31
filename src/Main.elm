@@ -302,21 +302,19 @@ update message model =
 
                 Edit.Bulk idSet ->
                     ( model
-                    , updateTodoCmd
+                    , updateTodoThenUpdateEditCmd
                         (TC.IdSet idSet (TC.MoveToProject projectId))
+                        Edit.None
                     )
 
                 Edit.InlineTodo _ ->
                     ( model, Cmd.none )
 
         UpdateTodos updateConfig now ->
-            TC.update updateConfig now model.todos
-                |> updateTodosIn model now
-                |> andThen (updateEdit Edit.None)
+            updateTodos updateConfig now model
 
         UpdateTodosThenUpdateEdit updateConfig editConfig now ->
-            TC.update updateConfig now model.todos
-                |> updateTodosIn model now
+            updateTodos updateConfig now model
                 |> andThen (updateEdit editConfig)
 
 
@@ -328,15 +326,15 @@ updateTodoThenUpdateEditCmd updateConfig editConfig =
     withNow (UpdateTodosThenUpdateEdit updateConfig editConfig)
 
 
-updateTodosIn :
-    Model
+updateTodos :
+    TC.Update
     -> Millis
-    -> ( TodoCollection, List SyncMsg )
+    -> Model
     -> Return
-updateTodosIn model now ( todos, syncMessages ) =
+updateTodos updateConfig now model =
     let
-        _ =
-            Debug.log "now, syncMessages" ( now, syncMessages )
+        ( todos, syncMessages ) =
+            TC.update updateConfig now model.todos
     in
     setTodos todos model
         |> Maybe.map
@@ -373,7 +371,7 @@ updateInlineEditTodo msg todo model =
 
         IET_Save ->
             ( model
-            , updateTodoCmd
+            , updateTodoThenUpdateEditCmd
                 (TC.Single todo.id
                     (TC.Batch
                         [ TC.SetTitle todo.title
@@ -381,6 +379,7 @@ updateInlineEditTodo msg todo model =
                         ]
                     )
                 )
+                Edit.None
             )
 
         IET_Cancel ->
