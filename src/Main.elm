@@ -103,8 +103,8 @@ routeToPage route =
             DefaultPage
 
 
-initPartial : Url -> Nav.Key -> Model
-initPartial url key =
+fromUrlAndKey : Url -> Nav.Key -> Model
+fromUrlAndKey url key =
     let
         route =
             Route.fromUrl url
@@ -122,31 +122,38 @@ initPartial url key =
     }
 
 
+updateFromFlags : Flags -> Model -> Model
+updateFromFlags flags model =
+    { model
+        | todos = TodoDict.fromList flags.todoList
+        , projects = ProjectDict.fromList flags.projectList
+        , edit = flags.edit
+        , syncQueue = flags.syncQueue
+    }
+
+
+prependDecodeError : JD.Error -> Model -> Model
+prependDecodeError error =
+    prependError (JD.errorToString error)
+
+
 init : Value -> Url -> Nav.Key -> Return
 init encodedFlags url key =
     let
         model =
-            initPartial url key
-
-        initFromError error =
-            model
-                |> prependError (JD.errorToString error)
-
-        initFromFlags : Flags -> Model
-        initFromFlags flags =
-            { model
-                | todos = TodoDict.fromList flags.todoList
-                , projects = ProjectDict.fromList flags.projectList
-                , edit = flags.edit
-                , syncQueue = flags.syncQueue
-            }
+            fromUrlAndKey url key
     in
     ( JD.decodeValue flagsDecoder encodedFlags
-        |> Result.Extra.unpack initFromError initFromFlags
+        |> Result.Extra.unpack prependDecodeError updateFromFlags
+        |> callWith model
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
         ]
     )
+
+
+callWith a fn =
+    fn a
 
 
 setTodos : TodoDict -> Model -> Maybe Model
