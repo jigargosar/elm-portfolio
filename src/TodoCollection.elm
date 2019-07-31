@@ -2,6 +2,7 @@ module TodoCollection exposing
     ( Msg(..)
     , Return
     , TodoCollection
+    , Update(..)
     , andThen
     , completedForProjectList
     , completedList
@@ -11,7 +12,7 @@ module TodoCollection exposing
     , pendingList
     , pendingWithId
     , pendingWithProjectId
-    , updateBulk
+    , update
     )
 
 import Dict exposing (Dict)
@@ -89,6 +90,11 @@ pendingWithId todoId =
 -- UPDATE
 
 
+type Update
+    = Single TodoId Msg
+    | IdSet (Set TodoId) Msg
+
+
 type Msg
     = MarkComplete
     | MarkPending
@@ -101,14 +107,24 @@ type alias Return =
     ( TodoCollection, List SyncMsg )
 
 
+update : Update -> Millis -> TodoCollection -> Return
+update updateMsg now =
+    case updateMsg of
+        Single todoId msg ->
+            updateSingleHelp now todoId msg
+
+        IdSet idSet msg ->
+            updateBulk now idSet msg
+
+
 updateBulk : Millis -> Set TodoId -> Msg -> TodoCollection -> Return
 updateBulk now todoIdSet message model =
     todoIdSet
-        |> Set.foldl (\todoId -> andThen (update now todoId message)) ( model, [] )
+        |> Set.foldl (\todoId -> andThen (updateSingleHelp now todoId message)) ( model, [] )
 
 
-update : Millis -> TodoId -> Msg -> TodoCollection -> Return
-update now todoId message model =
+updateSingleHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateSingleHelp now todoId message model =
     case message of
         MarkComplete ->
             let
@@ -172,7 +188,7 @@ update now todoId message model =
 
         Batch msgList ->
             msgList
-                |> List.foldl (\msg -> andThen (update now todoId msg))
+                |> List.foldl (\msg -> andThen (updateSingleHelp now todoId msg))
                     ( model, [] )
 
 
