@@ -5,7 +5,7 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode exposing (Value)
 import Project
-import ProjectDict exposing (ProjectDict)
+import ProjectCollection exposing (ProjectCollection)
 import Return
 import Todo
 import TodoDict exposing (TodoDict)
@@ -30,7 +30,7 @@ type alias Error =
 
 type alias Model =
     { todos : TodoDict
-    , projects : ProjectDict
+    , projects : ProjectCollection
     , errors : List Error
     }
 

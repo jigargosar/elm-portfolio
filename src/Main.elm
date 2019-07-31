@@ -14,7 +14,7 @@ import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import MediaQuery
 import Project exposing (Project, ProjectList)
-import ProjectDict exposing (ProjectDict)
+import ProjectCollection exposing (ProjectCollection)
 import ProjectId exposing (ProjectId)
 import Result.Extra
 import Return
@@ -44,7 +44,7 @@ port cacheEdit : Value -> Cmd msg
 
 type alias Flags =
     { todoList : TodoList
-    , projectList : ProjectList
+    , projects : ProjectCollection
     , syncQueue : SyncQueue
     , edit : Edit
     }
@@ -54,7 +54,7 @@ flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todoList" Todo.listDecoder
-        |> JDP.required "projectList" Project.listDecoder
+        |> JDP.required "projectList" ProjectCollection.decoder
         |> JDP.required "syncQueue" Sync.queueDecoder
         |> JDP.required "edit" Edit.decoder
 
@@ -71,7 +71,7 @@ type Page
 
 type alias Model =
     { todos : TodoDict
-    , projects : ProjectDict
+    , projects : ProjectCollection
     , errors : List Error
     , edit : Edit
     , syncQueue : SyncQueue
@@ -109,7 +109,7 @@ updateWithEncodedFlags encodedFlags model =
         Ok flags ->
             { model
                 | todos = TodoDict.fromList flags.todoList
-                , projects = ProjectDict.fromList flags.projectList
+                , projects = flags.projects
                 , edit = flags.edit
                 , syncQueue = flags.syncQueue
             }
@@ -125,7 +125,7 @@ init encodedFlags url key =
             Route.fromUrl url
       in
       { todos = TodoDict.initial
-      , projects = ProjectDict.initial
+      , projects = ProjectCollection.initial
       , errors = []
       , edit = Edit.initial
       , syncQueue = Sync.initialQueue
@@ -668,7 +668,7 @@ viewInboxPage model =
         model
 
 
-viewPendingTodoList : Edit -> ProjectDict -> List Todo -> List (Html Msg)
+viewPendingTodoList : Edit -> ProjectCollection -> List Todo -> List (Html Msg)
 viewPendingTodoList edit projects todoList =
     case edit of
         Edit.None ->
@@ -723,7 +723,7 @@ editTodoTitleDomid =
     "edit-todo-title-domid"
 
 
-viewInlineInlineEditTodoItem : ProjectDict -> Todo -> Html Msg
+viewInlineInlineEditTodoItem : ProjectCollection -> Todo -> Html Msg
 viewInlineInlineEditTodoItem projects todo =
     div [ class "flex hs3 _bg-black", title (Debug.toString todo) ]
         [ div [ class "flex-grow-1" ]
@@ -744,7 +744,7 @@ viewInlineInlineEditTodoItem projects todo =
         |> Html.map OnInlineEditTodoMsg
 
 
-viewProjectSelect : ProjectDict -> Todo -> Html InlineEditTodoMsg
+viewProjectSelect : ProjectCollection -> Todo -> Html InlineEditTodoMsg
 viewProjectSelect projects todo =
     let
         projectList =
