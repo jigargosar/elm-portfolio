@@ -9,6 +9,7 @@ import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
+import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
@@ -166,8 +167,20 @@ init encodedFlags url key =
             |> Result.mapError (\e -> ( "Error decoding Flags", e ))
         )
         |> unpackErr initFromError
-    , Browser.Dom.getViewport |> Task.perform OnViewPort
+    , Cmd.batch
+        [ Browser.Dom.getViewport |> Task.perform OnViewPort
+        , Http.get { url = "/api/hello", expect = Http.expectString onHttpResult }
+        ]
     )
+
+
+onHttpResult : Result Http.Error String -> Msg
+onHttpResult result =
+    let
+        _ =
+            Debug.log "onHttpResult" result
+    in
+    NoOp
 
 
 setTodos : TodoDict -> Model -> Maybe Model
