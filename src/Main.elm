@@ -374,9 +374,13 @@ updateInlineEditTodo msg todo model =
 
         IET_SaveWithNow now ->
             model.todos
-                |> TodoCollection.update now todo.id (TodoCollection.SetTitle todo.title)
-                |> TodoCollection.andThen
-                    (TodoCollection.update now todo.id (TodoCollection.MoveToProject todo.projectId))
+                |> TodoCollection.update now
+                    todo.id
+                    (TodoCollection.Batch
+                        [ TodoCollection.SetTitle todo.title
+                        , TodoCollection.MoveToProject todo.projectId
+                        ]
+                    )
                 |> setAndCacheTodosWithMsgIn model now
                 |> andThen (updateEdit Edit.None)
 
