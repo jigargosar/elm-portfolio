@@ -103,57 +103,43 @@ routeToPage route =
             DefaultPage
 
 
-fromUrlAndKey : Url -> Nav.Key -> Model
-fromUrlAndKey url key =
-    let
-        route =
-            Route.fromUrl url
-    in
-    { todos = TodoDict.initial
-    , projects = ProjectDict.initial
-    , errors = []
-    , edit = Edit.initial
-    , syncQueue = Sync.initialQueue
-    , page = routeToPage route
-    , key = key
-    , route = route
-    , isSidebarOpen = False
-    , size = { width = 0, height = 0 }
-    }
+updateWithEncodedFlags : Value -> Model -> Model
+updateWithEncodedFlags encodedFlags model =
+    case JD.decodeValue flagsDecoder encodedFlags of
+        Ok flags ->
+            { model
+                | todos = TodoDict.fromList flags.todoList
+                , projects = ProjectDict.fromList flags.projectList
+                , edit = flags.edit
+                , syncQueue = flags.syncQueue
+            }
 
-
-updateWithFlags : Flags -> Model -> Model
-updateWithFlags flags model =
-    { model
-        | todos = TodoDict.fromList flags.todoList
-        , projects = ProjectDict.fromList flags.projectList
-        , edit = flags.edit
-        , syncQueue = flags.syncQueue
-    }
-
-
-prependDecodeError : JD.Error -> Model -> Model
-prependDecodeError error =
-    prependError (JD.errorToString error)
+        Err decodeErr ->
+            model |> prependError (JD.errorToString decodeErr)
 
 
 init : Value -> Url -> Nav.Key -> Return
 init encodedFlags url key =
-    let
-        model =
-            fromUrlAndKey url key
-    in
-    ( JD.decodeValue flagsDecoder encodedFlags
-        |> Result.Extra.unpack prependDecodeError updateWithFlags
-        |> callWith model
+    ( let
+        route =
+            Route.fromUrl url
+      in
+      { todos = TodoDict.initial
+      , projects = ProjectDict.initial
+      , errors = []
+      , edit = Edit.initial
+      , syncQueue = Sync.initialQueue
+      , page = routeToPage route
+      , key = key
+      , route = route
+      , isSidebarOpen = False
+      , size = { width = 0, height = 0 }
+      }
+        |> updateWithEncodedFlags encodedFlags
     , Cmd.batch
         [ Browser.Dom.getViewport |> Task.perform OnViewPort
         ]
     )
-
-
-callWith a fn =
-    fn a
 
 
 setTodos : TodoDict -> Model -> Maybe Model
