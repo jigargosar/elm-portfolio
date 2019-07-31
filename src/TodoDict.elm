@@ -1,7 +1,6 @@
 module TodoDict exposing
     ( Msg(..)
     , Return
-    , SyncMsg
     , TodoDict
     , andThen
     , completedForProjectList
@@ -18,6 +17,7 @@ import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Set exposing (Set)
+import Sync exposing (SyncMsg)
 import Todo exposing (Todo, TodoId)
 
 
@@ -68,10 +68,6 @@ type Msg
 
 type alias Return =
     ( TodoDict, List SyncMsg )
-
-
-type SyncMsg
-    = TodoSync TodoId Todo.Msg
 
 
 updateBulk : Millis -> Set TodoId -> Msg -> TodoDict -> Return
@@ -151,7 +147,7 @@ insert todo =
 
 insertWithMsg : Todo -> Todo.Msg -> TodoDict -> Return
 insertWithMsg todo todoMsg model =
-    ( insert todo model, [ TodoSync todo.id todoMsg ] )
+    ( insert todo model, [ Sync.TodoSync todo.id todoMsg ] )
 
 
 andThen : (TodoDict -> Return) -> Return -> Return

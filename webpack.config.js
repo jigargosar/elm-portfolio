@@ -61,20 +61,20 @@ module.exports = {
   devtool: isProduction ? 'source-map' : false,
   // https://webpack.js.org/configuration/dev-server/
   devServer: {
-    // contentBase: false,
-    contentBase: [path.resolve('server')],
-    watchContentBase: true,
-    after: (app, server) => {
-      // setInterval(() => {
-      //   server.sockWrite(server.sockets, 'content-changed')
-      // }, 5000)
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        pathRewrite: { '^/api': '' },
-      },
-    },
+    contentBase: false,
+    // contentBase: [path.resolve('server')],
+    // watchContentBase: true,
+    // after: (app, server) => {
+    //   setInterval(() => {
+    //     server.sockWrite(server.sockets, 'content-changed')
+    //   }, 5000)
+    // },
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://localhost:3000',
+    //     pathRewrite: { '^/api': '' },
+    //   },
+    // },
     historyApiFallback: true,
     overlay: {
       warnings: true,
