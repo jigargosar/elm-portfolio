@@ -161,6 +161,7 @@ init encodedFlags url key =
             emptyModel
                 |> prependError (prefix ++ " : " ++ JD.errorToString error)
 
+        initFromFlags : Flags -> Model
         initFromFlags flags =
             Result.map3 (initHelp flags.todoList)
                 (decodeProjectList flags.projectList)
