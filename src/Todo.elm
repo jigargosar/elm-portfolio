@@ -10,6 +10,7 @@ module Todo exposing
     , filter
     , filterSingle
     , filterSort
+    , listDecoder
     , matchesFilter
     , modify
     , modifyWithNow
@@ -176,6 +177,11 @@ matchesFilter filter_ todo =
 
 type alias TodoList =
     List Todo
+
+
+listDecoder : Decoder TodoList
+listDecoder =
+    JD.list decoder
 
 
 filter : Filter -> TodoList -> TodoList

@@ -22,7 +22,7 @@ import Set exposing (Set)
 import Sync exposing (SyncMsg, SyncQueue)
 import Task
 import Time
-import Todo exposing (Todo, TodoId)
+import Todo exposing (Todo, TodoId, TodoList)
 import TodoDict exposing (TodoDict)
 import Url exposing (Url)
 
@@ -37,8 +37,12 @@ port cacheTodoList : Value -> Cmd msg
 port cacheEdit : Value -> Cmd msg
 
 
+
+-- FLAGS
+
+
 type alias Flags =
-    { todoList : Value
+    { todoList : TodoList
     , projectList : Value
     , syncQueue : Value
     , edit : Value
@@ -48,7 +52,7 @@ type alias Flags =
 flagsDecoder : Decoder Flags
 flagsDecoder =
     JD.succeed Flags
-        |> JDP.required "todoList" JD.value
+        |> JDP.required "todoList" Todo.listDecoder
         |> JDP.required "projectList" JD.value
         |> JDP.required "syncQueue" JD.value
         |> JDP.required "edit" JD.value
@@ -145,9 +149,9 @@ init encodedFlags url key =
                 False
                 { width = 0, height = 0 }
 
-        initHelp todos projects edit syncQueue =
+        initHelp todoList projects edit syncQueue =
             { emptyModel
-                | todos = todos
+                | todos = TodoDict.fromList todoList
                 , projects = projects
                 , edit = edit
                 , syncQueue = syncQueue
@@ -158,8 +162,7 @@ init encodedFlags url key =
                 |> prependError (prefix ++ " : " ++ JD.errorToString error)
 
         initFromFlags flags =
-            Result.map4 initHelp
-                (decodeTodoList flags.todoList)
+            Result.map3 (initHelp flags.todoList)
                 (decodeProjectList flags.projectList)
                 (decodeEdit flags.edit)
                 (JD.decodeValue Sync.queueDecoder flags.syncQueue

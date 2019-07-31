@@ -5,6 +5,7 @@ module TodoDict exposing
     , andThen
     , completedForProjectList
     , completedList
+    , fromList
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -13,16 +14,30 @@ module TodoDict exposing
     )
 
 import Dict exposing (Dict)
+import Dict.Extra
 import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Set exposing (Set)
 import Sync exposing (SyncMsg)
-import Todo exposing (Todo, TodoId)
+import Todo exposing (Todo, TodoId, TodoList)
+
+
+
+-- MODEL
 
 
 type alias TodoDict =
     Dict TodoId Todo
+
+
+fromList : TodoList -> TodoDict
+fromList =
+    Dict.Extra.fromListBy .id
+
+
+
+-- QUERY
 
 
 filterSort f s model =
