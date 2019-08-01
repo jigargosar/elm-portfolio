@@ -20,8 +20,6 @@ import Json.Decode as JD exposing (Decoder)
 import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
-import Set exposing (Set)
-import Sync exposing (SyncMsg)
 import Todo exposing (Todo, TodoId, TodoList)
 
 
@@ -97,7 +95,7 @@ type Msg
 
 
 type alias Return =
-    ( TodoCollection, List SyncMsg )
+    ( TodoCollection, List Todo.Patch )
 
 
 update : Update -> Millis -> TodoCollection -> Return
@@ -121,9 +119,7 @@ updateHelp now todoId message model =
             model
                 |> Dict.get todoId
                 |> Maybe.andThen
-                    (Todo.modifyWithNow now msg
-                        >> Maybe.map (\t -> insertWithMsg t msg model)
-                    )
+                    (\todo -> modifyTodo msg now todo model)
                 |> Maybe.withDefault ( model, [] )
 
         MarkPending ->
@@ -134,12 +130,8 @@ updateHelp now todoId message model =
             model
                 |> Dict.get todoId
                 |> Maybe.andThen
-                    (Todo.modifyWithNow now msg
-                        >> Maybe.map
-                            (\t ->
-                                insertWithMsg t msg model
-                                    |> andThen (moveToBottom now t.id)
-                            )
+                    ((\todo -> modifyTodo msg now todo model)
+                        >> Maybe.map (andThen (moveToBottom now todoId))
                     )
                 |> Maybe.withDefault ( model, [] )
 
@@ -151,12 +143,8 @@ updateHelp now todoId message model =
             model
                 |> Dict.get todoId
                 |> Maybe.andThen
-                    (Todo.modifyWithNow now msg
-                        >> Maybe.map
-                            (\t ->
-                                insertWithMsg t msg model
-                                    |> andThen (moveToBottom now t.id)
-                            )
+                    ((\todo -> modifyTodo msg now todo model)
+                        >> Maybe.map (andThen (moveToBottom now todoId))
                     )
                 |> Maybe.withDefault ( model, [] )
 
@@ -168,9 +156,7 @@ updateHelp now todoId message model =
             model
                 |> Dict.get todoId
                 |> Maybe.andThen
-                    (Todo.modifyWithNow now msg
-                        >> Maybe.map (\t -> insertWithMsg t msg model)
-                    )
+                    (\todo -> modifyTodo msg now todo model)
                 |> Maybe.withDefault ( model, [] )
 
         Batch msgList ->
@@ -184,9 +170,9 @@ insert todo =
     Dict.insert todo.id todo
 
 
-insertWithMsg : Todo -> Todo.Msg -> TodoCollection -> Return
-insertWithMsg todo todoMsg model =
-    ( insert todo model, [ Sync.TodoSync todo.id todoMsg ] )
+insertWithMsg : ( Todo, Todo.Patch ) -> TodoCollection -> Return
+insertWithMsg ( todo, patch ) model =
+    ( insert todo model, [ patch ] )
 
 
 andThen : (TodoCollection -> Return) -> Return -> Return
@@ -196,6 +182,12 @@ andThen fn ( model, msgStack ) =
             fn model
     in
     ( newModel, newMsgStack ++ msgStack )
+
+
+modifyTodo : Todo.Msg -> Millis -> Todo -> TodoCollection -> Maybe Return
+modifyTodo todoMsg now todo model =
+    Todo.modify todoMsg now todo
+        |> Maybe.map (\r -> insertWithMsg r model)
 
 
 moveToBottom : Millis -> TodoId -> TodoCollection -> Return
@@ -217,7 +209,6 @@ moveToBottom now todoId model =
                     msg =
                         Todo.SetSortIdx bottomIdx
                 in
-                Todo.modifyWithNow now msg todo
-                    |> Maybe.map (\t -> insertWithMsg t msg model)
+                modifyTodo msg now todo model
             )
         |> Maybe.withDefault ( model, [] )

@@ -20,7 +20,7 @@ import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
 import Set exposing (Set)
-import Sync exposing (SyncMsg, SyncQueue)
+import Sync exposing (Patch, SyncQueue)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -333,20 +333,18 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        ( todos, syncMessages ) =
+        ( todos, todoPatches ) =
             TC.update updateConfig now model.todos
     in
     if todos == model.todos then
         ( model, Cmd.none )
 
     else
-        { model | todos = todos, syncQueue = Sync.append now syncMessages model.syncQueue }
-            |> Just
-            |> Maybe.map
-                (pure >> effect cacheTodosEffect
-                 --        >> command (Sync.batchEncoder now syncMessages |> cacheSyncQueue)
-                )
-            |> Maybe.withDefault ( model, Cmd.none )
+        { model
+            | todos = todos
+            , syncQueue = Sync.appendTodoPatches todoPatches model.syncQueue
+        }
+            |> (pure >> effect cacheTodosEffect)
 
 
 cacheTodosEffect : Model -> Cmd Msg

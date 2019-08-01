@@ -2,6 +2,7 @@ module Todo exposing
     ( CompareBy(..)
     , Filter(..)
     , Msg(..)
+    , Patch
     , Todo
     , TodoId
     , TodoList
@@ -12,9 +13,12 @@ module Todo exposing
     , filterSort
     , listDecoder
     , matchesFilter
+    , modify
     , modifyWithNow
     , msgDecoder
     , msgEncoder
+    , patchDecoder
+    , patchEncoder
     )
 
 import Compare exposing (Comparator)
@@ -76,6 +80,36 @@ type Msg
     | SetSortIdx Int
 
 
+type Patch
+    = Patch TodoId Msg Millis
+
+
+patchEncoder : Patch -> Value
+patchEncoder (Patch id msg modifiedAt) =
+    JE.object
+        [ ( "type", JE.string "Todo" )
+        , ( "id", TodoId.encoder id )
+        , ( "modifiedAt", JE.int modifiedAt )
+        , ( "patch", msgEncoder msg )
+        ]
+
+
+patchDecoder : Decoder Patch
+patchDecoder =
+    JD.field "type" JD.string
+        |> JD.andThen
+            (\type_ ->
+                if type_ == "TodoPatch" then
+                    JD.succeed Patch
+                        |> JDP.required "id" JD.string
+                        |> JDP.required "patch" msgDecoder
+                        |> JDP.required "modifiedAt" JD.int
+
+                else
+                    JD.fail ("Not TodoPatch: " ++ type_)
+            )
+
+
 msgEncoder : Msg -> Value
 msgEncoder msg =
     case msg of
@@ -134,6 +168,12 @@ modifyWithNow now msg model =
 
     else
         newModel |> setModifiedAt now |> Just
+
+
+modify : Msg -> Millis -> Todo -> Maybe ( Todo, Patch )
+modify msg now model =
+    modifyWithNow now msg model
+        |> Maybe.map (\t -> ( t, Patch t.id msg now ))
 
 
 setModifiedAt now todo =

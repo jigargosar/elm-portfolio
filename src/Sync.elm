@@ -1,31 +1,23 @@
 module Sync exposing
-    ( SyncMsg(..)
+    ( Patch(..)
     , SyncQueue
     , append
+    , appendTodoPatches
     , initialQueue
     , queueDecoder
     )
 
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline as JDP
-import Json.Encode as JE exposing (Value)
-import Now exposing (Millis)
+import Json.Encode exposing (Value)
 import Todo exposing (TodoId)
-import TodoId
 
 
-type SyncMsg
-    = TodoSync TodoId Todo.Msg
-
-
-type alias SyncBatch =
-    { modifiedAt : Millis
-    , list : List SyncMsg
-    }
+type Patch
+    = TodoPatch Todo.Patch
 
 
 type alias SyncQueue =
-    List SyncBatch
+    List Patch
 
 
 initialQueue : SyncQueue
@@ -33,53 +25,28 @@ initialQueue =
     []
 
 
-encoder : SyncMsg -> Value
-encoder sync =
+patchEncoder : Patch -> Value
+patchEncoder sync =
     case sync of
-        TodoSync todoId todoMsg ->
-            JE.object
-                [ ( "type", JE.string "Todo" )
-                , ( "id", TodoId.encoder todoId )
-                , ( "patch", Todo.msgEncoder todoMsg )
-                ]
+        TodoPatch patch ->
+            Todo.patchEncoder patch
 
 
-decoder : Decoder SyncMsg
-decoder =
-    JD.field "type" JD.string
-        |> JD.andThen
-            (\type_ ->
-                case type_ of
-                    "Todo" ->
-                        JD.succeed TodoSync
-                            |> JDP.required "id" TodoId.decoder
-                            |> JDP.required "patch" Todo.msgDecoder
-
-                    _ ->
-                        JD.fail ("Invalid SyncMsg type: " ++ type_)
-            )
-
-
-batchEncoder : Millis -> List SyncMsg -> Value
-batchEncoder now list =
-    JE.object
-        [ ( "modifiedAt", JE.int now )
-        , ( "list", JE.list encoder list )
-        ]
-
-
-batchDecoder : Decoder SyncBatch
-batchDecoder =
-    JD.succeed SyncBatch
-        |> JDP.required "modifiedAt" JD.int
-        |> JDP.required "list" (JD.list decoder)
+patchDecoder : Decoder Patch
+patchDecoder =
+    JD.oneOf [ Todo.patchDecoder |> JD.map TodoPatch ]
 
 
 queueDecoder : Decoder SyncQueue
 queueDecoder =
-    JD.list batchDecoder
+    JD.list patchDecoder
 
 
-append : Millis -> List SyncMsg -> SyncQueue -> SyncQueue
-append now syncMsgList queue =
-    SyncBatch now syncMsgList :: queue
+append : List Patch -> SyncQueue -> SyncQueue
+append patches queue =
+    queue ++ patches
+
+
+appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue
+appendTodoPatches patches queue =
+    queue ++ List.map TodoPatch patches
