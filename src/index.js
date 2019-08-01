@@ -34,6 +34,10 @@ const subs = {
     console.debug('app.ports.cacheEdit', edit)
     localStorage.setItem('edit', JSON.stringify(edit))
   },
+  cacheSyncQueue: syncQueue =>{
+    console.debug('app.ports.syncQueue', syncQueue)
+    localStorage.setItem('syncQueue', JSON.stringify(syncQueue))
+  }
 }
 
 forEachObjIndexed((listener, portName) => {
