@@ -145,15 +145,6 @@ init encodedFlags url key =
     )
 
 
-setTodos : TodoCollection -> Model -> Maybe Model
-setTodos todos model =
-    if todos == model.todos then
-        Nothing
-
-    else
-        { model | todos = todos } |> Just
-
-
 activeProjectList projects =
     projects
         |> Dict.values
