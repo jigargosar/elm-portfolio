@@ -237,11 +237,11 @@ update message model =
 
         OnTodoChecked todoId ->
             ( model
-            , updateTodoCmd (TC.Single todoId TC.MarkComplete)
+            , updateTodoCmd ( [ todoId ], [ TC.MarkComplete ] )
             )
 
         OnTodoUnChecked todoId ->
-            ( model, updateTodoCmd (TC.Single todoId TC.MarkPending) )
+            ( model, updateTodoCmd ( [ todoId ], [ TC.MarkPending ] ) )
 
         OnTodoTitleClicked todoId ->
             case model.edit of
@@ -303,7 +303,7 @@ update message model =
                 Edit.Bulk idSet ->
                     ( model
                     , updateTodoThenUpdateEditCmd
-                        (TC.IdSet idSet (TC.MoveToProject projectId))
+                        ( idSet |> Set.toList, [ TC.MoveToProject projectId ] )
                         Edit.None
                     )
 
@@ -372,12 +372,10 @@ updateInlineEditTodo msg todo model =
         IET_Save ->
             ( model
             , updateTodoThenUpdateEditCmd
-                (TC.Single todo.id
-                    (TC.Batch
-                        [ TC.SetTitle todo.title
-                        , TC.MoveToProject todo.projectId
-                        ]
-                    )
+                ( [ todo.id ]
+                , [ TC.SetTitle todo.title
+                  , TC.MoveToProject todo.projectId
+                  ]
                 )
                 Edit.None
             )

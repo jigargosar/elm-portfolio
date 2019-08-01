@@ -1,4 +1,9 @@
-module Sync exposing (SyncMsg(..), SyncQueue, batchEncoder, emptyQueue, initialQueue, queueDecoder)
+module Sync exposing
+    ( SyncMsg(..)
+    , SyncQueue
+    , initialQueue
+    , queueDecoder
+    )
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
@@ -24,11 +29,6 @@ type alias SyncQueue =
 
 initialQueue : SyncQueue
 initialQueue =
-    []
-
-
-emptyQueue : SyncQueue
-emptyQueue =
     []
 
 

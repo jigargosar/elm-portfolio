@@ -2,12 +2,11 @@ module TodoCollection exposing
     ( Msg(..)
     , Return
     , TodoCollection
-    , Update(..)
+    , Update
     , andThen
     , completedForProjectList
     , completedList
     , decoder
-    , fromList
     , initial
     , pendingList
     , pendingWithId
@@ -32,11 +31,6 @@ import Todo exposing (Todo, TodoId, TodoList)
 
 type alias TodoCollection =
     Dict TodoId Todo
-
-
-fromList : TodoList -> TodoCollection
-fromList =
-    Dict.Extra.fromListBy .id
 
 
 initial : TodoCollection
@@ -90,9 +84,8 @@ pendingWithId todoId =
 -- UPDATE
 
 
-type Update
-    = Single TodoId Msg
-    | IdSet (Set TodoId) Msg
+type alias Update =
+    ( List TodoId, List Msg )
 
 
 type Msg
@@ -108,19 +101,13 @@ type alias Return =
 
 
 update : Update -> Millis -> TodoCollection -> Return
-update updateMsg now =
-    case updateMsg of
-        Single todoId msg ->
-            updateSingleHelp now todoId msg
-
-        IdSet idSet msg ->
-            updateBulk now idSet msg
-
-
-updateBulk : Millis -> Set TodoId -> Msg -> TodoCollection -> Return
-updateBulk now todoIdSet message model =
-    todoIdSet
-        |> Set.foldl (\todoId -> andThen (updateSingleHelp now todoId message)) ( model, [] )
+update ( idList, msgList ) now model =
+    let
+        message =
+            Batch msgList
+    in
+    idList
+        |> List.foldl (\todoId -> andThen (updateSingleHelp now todoId message)) ( model, [] )
 
 
 updateSingleHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
