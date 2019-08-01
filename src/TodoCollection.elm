@@ -107,11 +107,11 @@ update ( idList, msgList ) now model =
             Batch msgList
     in
     idList
-        |> List.foldl (\todoId -> andThen (updateSingleHelp now todoId message)) ( model, [] )
+        |> List.foldl (\todoId -> andThen (updateHelp now todoId message)) ( model, [] )
 
 
-updateSingleHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
-updateSingleHelp now todoId message model =
+updateHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateHelp now todoId message model =
     case message of
         MarkComplete ->
             let
@@ -175,7 +175,7 @@ updateSingleHelp now todoId message model =
 
         Batch msgList ->
             msgList
-                |> List.foldl (\msg -> andThen (updateSingleHelp now todoId msg))
+                |> List.foldl (\msg -> andThen (updateHelp now todoId msg))
                     ( model, [] )
 
 
