@@ -123,8 +123,8 @@ update msg model =
             { model | sortIdx = sortIdx }
 
 
-modify : Msg -> Todo -> Maybe Todo
-modify msg model =
+modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
+modifyWithNow now msg model =
     let
         newModel =
             update msg model
@@ -133,13 +133,7 @@ modify msg model =
         Nothing
 
     else
-        Just newModel
-
-
-modifyWithNow : Millis -> Msg -> Todo -> Maybe Todo
-modifyWithNow now msg todo =
-    modify msg todo
-        |> Maybe.map (setModifiedAt now)
+        newModel |> setModifiedAt now |> Just
 
 
 setModifiedAt now todo =
