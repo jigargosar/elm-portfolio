@@ -8,7 +8,7 @@ module Sync exposing
     )
 
 import Json.Decode as JD exposing (Decoder)
-import Json.Encode exposing (Value)
+import Json.Encode as JE exposing (Value)
 import Todo exposing (TodoId)
 
 
@@ -29,7 +29,10 @@ patchEncoder : Patch -> Value
 patchEncoder sync =
     case sync of
         TodoPatch patch ->
-            Todo.patchEncoder patch
+            JE.object
+                [ ( "kind", JE.string "TodoPatch" )
+                , ( "value", Todo.patchEncoder patch )
+                ]
 
 
 patchDecoder : Decoder Patch
@@ -49,4 +52,4 @@ append patches queue =
 
 appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue
 appendTodoPatches patches queue =
-    queue ++ List.map TodoPatch patches
+    List.append queue (List.map TodoPatch patches)

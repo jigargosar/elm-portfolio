@@ -87,27 +87,18 @@ type Patch
 patchEncoder : Patch -> Value
 patchEncoder (Patch id msg modifiedAt) =
     JE.object
-        [ ( "type", JE.string "Todo" )
-        , ( "id", TodoId.encoder id )
+        [ ( "todoId", TodoId.encoder id )
+        , ( "msg", msgEncoder msg )
         , ( "modifiedAt", JE.int modifiedAt )
-        , ( "patch", msgEncoder msg )
         ]
 
 
 patchDecoder : Decoder Patch
 patchDecoder =
-    JD.field "type" JD.string
-        |> JD.andThen
-            (\type_ ->
-                if type_ == "TodoPatch" then
-                    JD.succeed Patch
-                        |> JDP.required "id" JD.string
-                        |> JDP.required "patch" msgDecoder
-                        |> JDP.required "modifiedAt" JD.int
-
-                else
-                    JD.fail ("Not TodoPatch: " ++ type_)
-            )
+    JD.succeed Patch
+        |> JDP.required "todoId" JD.string
+        |> JDP.required "msg" msgDecoder
+        |> JDP.required "modifiedAt" JD.int
 
 
 msgEncoder : Msg -> Value
@@ -138,6 +129,9 @@ msgDecoder : Decoder Msg
 msgDecoder =
     JD.oneOf
         [ JD.field "isDone" JD.bool |> JD.map SetCompleted
+        , JD.field "projectId" ProjectId.decoder |> JD.map SetProjectId
+        , JD.field "title" JD.string |> JD.map SetTitle
+        , JD.field "sortIdx" JD.int |> JD.map SetSortIdx
         ]
 
 
