@@ -101,26 +101,22 @@ patchDecoder =
 
 msgEncoder : Msg -> Value
 msgEncoder msg =
-    case msg of
-        SetCompleted bool ->
-            JE.object
-                [ ( "isDone", JE.bool bool )
-                ]
+    let
+        kv =
+            case msg of
+                SetCompleted bool ->
+                    ( "isDone", JE.bool bool )
 
-        SetProjectId pid ->
-            JE.object
-                [ ( "projectId", ProjectId.encoder pid )
-                ]
+                SetProjectId pid ->
+                    ( "projectId", ProjectId.encoder pid )
 
-        SetTitle title ->
-            JE.object
-                [ ( "title", JE.string title )
-                ]
+                SetTitle title ->
+                    ( "title", JE.string title )
 
-        SetSortIdx sortIdx ->
-            JE.object
-                [ ( "sortIdx", JE.int sortIdx )
-                ]
+                SetSortIdx sortIdx ->
+                    ( "sortIdx", JE.int sortIdx )
+    in
+    JE.object [ kv ]
 
 
 msgDecoder : Decoder Msg
