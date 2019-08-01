@@ -12,11 +12,9 @@ module Todo exposing
     , filterSort
     , listDecoder
     , matchesFilter
-    , modify
     , modifyWithNow
     , msgDecoder
     , msgEncoder
-    , setModifiedAt
     )
 
 import Compare exposing (Comparator)

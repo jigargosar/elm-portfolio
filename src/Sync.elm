@@ -1,6 +1,7 @@
 module Sync exposing
     ( SyncMsg(..)
     , SyncQueue
+    , append
     , initialQueue
     , queueDecoder
     )
@@ -77,3 +78,8 @@ batchDecoder =
 queueDecoder : Decoder SyncQueue
 queueDecoder =
     JD.list batchDecoder
+
+
+append : Millis -> List SyncMsg -> SyncQueue -> SyncQueue
+append now syncMsgList queue =
+    SyncBatch now syncMsgList :: queue

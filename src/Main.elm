@@ -336,12 +336,17 @@ updateTodos updateConfig now model =
         ( todos, syncMessages ) =
             TC.update updateConfig now model.todos
     in
-    setTodos todos model
-        |> Maybe.map
-            (pure >> effect cacheTodosEffect
-             --        >> command (Sync.batchEncoder now syncMessages |> cacheSyncQueue)
-            )
-        |> Maybe.withDefault ( model, Cmd.none )
+    if todos == model.todos then
+        ( model, Cmd.none )
+
+    else
+        { model | todos = todos, syncQueue = Sync.append now syncMessages model.syncQueue }
+            |> Just
+            |> Maybe.map
+                (pure >> effect cacheTodosEffect
+                 --        >> command (Sync.batchEncoder now syncMessages |> cacheSyncQueue)
+                )
+            |> Maybe.withDefault ( model, Cmd.none )
 
 
 cacheTodosEffect : Model -> Cmd Msg
