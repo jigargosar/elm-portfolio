@@ -35,6 +35,9 @@ import Url exposing (Url)
 port cacheTodoList : Value -> Cmd msg
 
 
+port cacheSyncQueue : Value -> Cmd msg
+
+
 port cacheEdit : Value -> Cmd msg
 
 
@@ -344,12 +347,17 @@ updateTodos updateConfig now model =
             | todos = todos
             , syncQueue = Sync.appendTodoPatches todoPatches model.syncQueue
         }
-            |> (pure >> effect cacheTodosEffect)
+            |> (pure >> effect cacheTodosEffect >> effect cacheSyncQueueEffect)
 
 
 cacheTodosEffect : Model -> Cmd Msg
 cacheTodosEffect model =
     cacheTodoList (Dict.values model.todos |> JE.list Todo.encoder)
+
+
+cacheSyncQueueEffect : Model -> Cmd Msg
+cacheSyncQueueEffect model =
+    cacheSyncQueue (Sync.queueEncoder model.syncQueue)
 
 
 prependError : String -> Model -> Model

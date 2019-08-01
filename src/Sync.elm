@@ -1,10 +1,10 @@
 module Sync exposing
     ( Patch(..)
     , SyncQueue
-    , append
     , appendTodoPatches
     , initialQueue
     , queueDecoder
+    , queueEncoder
     )
 
 import Json.Decode as JD exposing (Decoder)
@@ -45,9 +45,9 @@ queueDecoder =
     JD.list patchDecoder
 
 
-append : List Patch -> SyncQueue -> SyncQueue
-append patches queue =
-    queue ++ patches
+queueEncoder : SyncQueue -> Value
+queueEncoder =
+    JE.list patchEncoder
 
 
 appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue

@@ -14,7 +14,6 @@ module Todo exposing
     , listDecoder
     , matchesFilter
     , modify
-    , modifyWithNow
     , patchDecoder
     , patchEncoder
     )
