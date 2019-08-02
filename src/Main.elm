@@ -317,6 +317,7 @@ update message model =
             updateSyncQueue msg model
 
 
+updateSyncQueue : Sync.Msg -> Model -> Return
 updateSyncQueue msg model =
     let
         ( newSyncQueue, cmd ) =
