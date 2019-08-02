@@ -2,15 +2,16 @@ module Sync exposing
     ( Msg(..)
     , Patch(..)
     , SyncQueue
-    , decoder
     , encoder
-    , initialQueue
+    , init
+    , initialValue
     , update
     )
 
 import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
+import Return
 import Todo exposing (TodoId)
 
 
@@ -27,9 +28,27 @@ type alias SyncQueue =
     Model
 
 
-initialQueue : SyncQueue
-initialQueue =
+initialValue : SyncQueue
+initialValue =
     Empty
+
+
+type alias Return =
+    Return.Return Msg Model
+
+
+init : Value -> Result JD.Error Return
+init encodedValue =
+    JD.decodeValue (JD.list patchDecoder) encodedValue
+        |> Result.map
+            (\pl ->
+                case pl of
+                    [] ->
+                        ( Empty, Cmd.none )
+
+                    _ ->
+                        ( Sent pl [], Cmd.none )
+            )
 
 
 patchEncoder : Patch -> Value
@@ -81,7 +100,7 @@ type Msg
     | OnSyncResponse (Result Http.Error String)
 
 
-update : Msg -> SyncQueue -> ( SyncQueue, Cmd Msg )
+update : Msg -> SyncQueue -> Return
 update msg model =
     case msg of
         AppendTodoPatches todoPatchList ->

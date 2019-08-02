@@ -49,7 +49,7 @@ port cacheEdit : Value -> Cmd msg
 type alias Flags =
     { todos : TodoCollection
     , projects : ProjectCollection
-    , syncQueue : SyncQueue
+    , syncQueue : Value
     , edit : Edit
     }
 
@@ -59,7 +59,7 @@ flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todos" TC.decoder
         |> JDP.required "projects" PC.decoder
-        |> JDP.required "syncQueue" Sync.decoder
+        |> JDP.required "syncQueue" JD.value
         |> JDP.required "edit" Edit.decoder
 
 
@@ -107,7 +107,7 @@ routeToPage route =
             DefaultPage
 
 
-updateWithEncodedFlags : Value -> Model -> Model
+updateWithEncodedFlags : Value -> Model -> Return
 updateWithEncodedFlags encodedFlags model =
     case JD.decodeValue flagsDecoder encodedFlags of
         Ok flags ->
@@ -115,35 +115,39 @@ updateWithEncodedFlags encodedFlags model =
                 | todos = flags.todos
                 , projects = flags.projects
                 , edit = flags.edit
-                , syncQueue = flags.syncQueue
             }
+                |> pure
 
         Err decodeErr ->
-            model |> prependError (JD.errorToString decodeErr)
+            model
+                |> prependError (JD.errorToString decodeErr)
+                |> pure
 
 
 init : Value -> Url -> Nav.Key -> Return
 init encodedFlags url key =
-    ( let
+    (let
         route =
             Route.fromUrl url
-      in
-      { todos = TC.initial
-      , projects = PC.initial
-      , edit = Edit.initial
-      , isSidebarOpen = False
-      , syncQueue = Sync.initialQueue
-      , errors = []
-      , page = routeToPage route
-      , key = key
-      , route = route
-      , size = { width = 0, height = 0 }
-      }
+     in
+     { todos = TC.initial
+     , projects = PC.initial
+     , edit = Edit.initial
+     , isSidebarOpen = False
+     , syncQueue = Sync.initialValue
+     , errors = []
+     , page = routeToPage route
+     , key = key
+     , route = route
+     , size = { width = 0, height = 0 }
+     }
         |> updateWithEncodedFlags encodedFlags
-    , Cmd.batch
-        [ Browser.Dom.getViewport |> Task.perform OnViewPort
-        ]
     )
+        |> command
+            (Cmd.batch
+                [ Browser.Dom.getViewport |> Task.perform OnViewPort
+                ]
+            )
 
 
 activeProjectList projects =
