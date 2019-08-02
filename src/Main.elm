@@ -129,13 +129,13 @@ init encodedFlags url key =
       in
       { todos = TC.initial
       , projects = PC.initial
-      , errors = []
       , edit = Edit.initial
+      , isSidebarOpen = False
       , syncQueue = Sync.initialQueue
+      , errors = []
       , page = routeToPage route
       , key = key
       , route = route
-      , isSidebarOpen = False
       , size = { width = 0, height = 0 }
       }
         |> updateWithEncodedFlags encodedFlags

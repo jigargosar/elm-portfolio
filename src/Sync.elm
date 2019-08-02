@@ -30,14 +30,23 @@ patchEncoder sync =
     case sync of
         TodoPatch patch ->
             JE.object
-                [ ( "kind", JE.string "TodoPatch" )
+                [ ( "type", JE.string "TodoPatch" )
                 , ( "value", Todo.patchEncoder patch )
                 ]
 
 
 patchDecoder : Decoder Patch
 patchDecoder =
-    JD.oneOf [ Todo.patchDecoder |> JD.map TodoPatch ]
+    JD.field "type" JD.string
+        |> JD.andThen
+            (\type_ ->
+                case type_ of
+                    "TodoPatch" ->
+                        Todo.patchDecoder |> JD.map TodoPatch
+
+                    _ ->
+                        JD.fail ("Invalid Patch type: " ++ type_)
+            )
 
 
 queueDecoder : Decoder SyncQueue
