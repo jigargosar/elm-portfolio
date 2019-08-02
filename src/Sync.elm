@@ -2,7 +2,6 @@ module Sync exposing
     ( Msg(..)
     , Patch(..)
     , SyncQueue
-    , encoder
     , init
     , initialValue
     , update
@@ -11,6 +10,7 @@ module Sync exposing
 import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
+import Ports
 import Return
 import Todo exposing (TodoId)
 
@@ -95,6 +95,11 @@ encoder model =
     JE.list patchEncoder allPatches
 
 
+cacheSyncQueueEffect : Model -> Cmd Msg
+cacheSyncQueueEffect model =
+    Ports.cacheSyncQueue (encoder model)
+
+
 type Msg
     = AppendTodoPatches (List Todo.Patch)
     | OnSyncResponse (Result Http.Error String)
@@ -102,6 +107,12 @@ type Msg
 
 update : Msg -> SyncQueue -> Return
 update msg model =
+    updateHelp msg model
+        |> effect cacheSyncQueueEffect
+
+
+updateHelp : Msg -> SyncQueue -> Return
+updateHelp msg model =
     case msg of
         AppendTodoPatches todoPatchList ->
             let
@@ -127,3 +138,37 @@ update msg model =
                     Debug.log "syncResponse" result
             in
             ( model, Cmd.none )
+
+
+
+-- UPDATE HELPERS
+
+
+pure =
+    Return.singleton
+
+
+effect =
+    Return.effect_
+
+
+andThen =
+    Return.andThen
+
+
+command =
+    Return.command
+
+
+
+-- CORE HELPERS
+
+
+unpackErr : (e -> v) -> Result e v -> v
+unpackErr fn result =
+    case result of
+        Err e ->
+            fn e
+
+        Ok v ->
+            v
