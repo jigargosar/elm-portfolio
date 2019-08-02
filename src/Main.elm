@@ -58,7 +58,7 @@ flagsDecoder =
     JD.succeed Flags
         |> JDP.required "todos" TC.decoder
         |> JDP.required "projects" PC.decoder
-        |> JDP.required "syncQueue" Sync.queueDecoder
+        |> JDP.required "syncQueue" Sync.decoder
         |> JDP.required "edit" Edit.decoder
 
 
@@ -334,9 +334,13 @@ updateTodos updateConfig now model =
         ( model, Cmd.none )
 
     else
+        let
+            ( newSyncQueue, cmd ) =
+                Sync.update (Sync.AppendTodoPatches todoPatches) model.syncQueue
+        in
         { model
             | todos = todos
-            , syncQueue = Sync.appendTodoPatches todoPatches model.syncQueue
+            , syncQueue = newSyncQueue
         }
             |> (pure >> effect cacheTodosEffect >> effect cacheSyncQueueEffect)
 
@@ -348,7 +352,7 @@ cacheTodosEffect model =
 
 cacheSyncQueueEffect : Model -> Cmd Msg
 cacheSyncQueueEffect model =
-    cacheSyncQueue (Sync.queueEncoder model.syncQueue)
+    cacheSyncQueue (Sync.encoder model.syncQueue)
 
 
 prependError : String -> Model -> Model
