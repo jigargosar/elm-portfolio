@@ -116,7 +116,19 @@ updateWithEncodedFlags encodedFlags model =
                 , projects = flags.projects
                 , edit = flags.edit
             }
+                |> initSyncQueue flags.syncQueue
+
+        Err decodeErr ->
+            model
+                |> prependError (JD.errorToString decodeErr)
                 |> pure
+
+
+initSyncQueue : Value -> Model -> Return
+initSyncQueue encoded model =
+    case Sync.init encoded of
+        Ok ( syncQueue, cmd ) ->
+            ( { model | syncQueue = syncQueue }, Cmd.map OnSyncMsg cmd )
 
         Err decodeErr ->
             model
