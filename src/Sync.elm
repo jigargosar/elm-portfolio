@@ -16,13 +16,13 @@ type Patch
     = TodoPatch Todo.Patch
 
 
-type alias SyncQueue =
-    List Patch
+type SyncQueue
+    = SyncQueue (List Patch)
 
 
 initialQueue : SyncQueue
 initialQueue =
-    []
+    SyncQueue []
 
 
 patchEncoder : Patch -> Value
@@ -52,13 +52,15 @@ patchDecoder =
 queueDecoder : Decoder SyncQueue
 queueDecoder =
     JD.list patchDecoder
+        |> JD.map SyncQueue
 
 
 queueEncoder : SyncQueue -> Value
-queueEncoder =
-    JE.list patchEncoder
+queueEncoder (SyncQueue q) =
+    JE.list patchEncoder q
 
 
 appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue
-appendTodoPatches patches queue =
-    List.append queue (List.map TodoPatch patches)
+appendTodoPatches patches (SyncQueue q) =
+    List.append q (List.map TodoPatch patches)
+        |> SyncQueue
