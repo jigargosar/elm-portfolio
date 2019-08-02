@@ -32,20 +32,24 @@ app.use(koaBody())
 // route definitions
 
 router.get('/', hello)
-router  .get('/hello', hello)
+router.get('/hello', hello)
 router.get('/db', async ctx => {
-    ctx.body = config.get('db')
-  })
+  ctx.body = config.get('db')
+})
 router.post('/db', ctx => {
-      const incomingBody = ctx.request.body
-      console.log("incomingBody",JSON.parse(incomingBody))
-      ctx.body = incomingBody
-    },
-  )
+    const reqBodyString = ctx.request.body
+    const db = JSON.parse(reqBodyString)
+    console.log('parsed body', db)
+    
+    config.set("db.projectList", db.projectList)
+    config.set("db.todoList", db.todoList)
+    ctx.body = db
+  },
+)
 
 router.post('/sync', ctx => {
     const incomingBody = ctx.request.body
-    console.log("incomingBody",incomingBody)
+    console.log('incomingBody', incomingBody)
     ctx.body = incomingBody
   },
 )
