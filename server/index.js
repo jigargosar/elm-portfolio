@@ -42,6 +42,13 @@ router.post('/db', ctx => {
       ctx.body = incomingBody
     },
   )
+
+router.post('/sync', ctx => {
+    const incomingBody = ctx.request.body
+    console.log("incomingBody",incomingBody, ctx)
+    ctx.body = incomingBody
+  },
+)
 // .get('/post/new', add)
 // .get('/post/:id', show)
 // .post('/post', create);
