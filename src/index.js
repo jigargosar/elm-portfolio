@@ -5,6 +5,7 @@ import values from 'ramda/es/values'
 import './index.css'
 // @ts-ignore
 import { Elm } from './Main.elm'
+import ky from 'ky'
 
 function createAndAppendRoot() {
   const root = document.createElement('div')
@@ -12,6 +13,15 @@ function createAndAppendRoot() {
   document.body.appendChild(root)
   return root
 }
+
+ky.post('/api/db', {
+  body: JSON.stringify({
+    todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
+    projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
+  }),
+})
+  .then(res => res.json())
+  .then(console.log)
 
 const app = Elm.Main.init({
   node: document.getElementById('root') || createAndAppendRoot(),
@@ -34,10 +44,10 @@ const subs = {
     console.debug('app.ports.cacheEdit', edit)
     localStorage.setItem('edit', JSON.stringify(edit))
   },
-  cacheSyncQueue: syncQueue =>{
+  cacheSyncQueue: syncQueue => {
     console.debug('app.ports.syncQueue', syncQueue)
     localStorage.setItem('syncQueue', JSON.stringify(syncQueue))
-  }
+  },
 }
 
 forEachObjIndexed((listener, portName) => {

@@ -38,14 +38,14 @@ router.get('/db', async ctx => {
   })
 router.post('/db', ctx => {
       const incomingBody = ctx.request.body
-      console.log("incomingBody",incomingBody, ctx)
+      console.log("incomingBody",JSON.parse(incomingBody))
       ctx.body = incomingBody
     },
   )
 
 router.post('/sync', ctx => {
     const incomingBody = ctx.request.body
-    console.log("incomingBody",incomingBody, ctx)
+    console.log("incomingBody",incomingBody)
     ctx.body = incomingBody
   },
 )
