@@ -1,5 +1,6 @@
 port module Main exposing (effect, main)
 
+import Array
 import Browser
 import Browser.Dom
 import Browser.Events
@@ -336,13 +337,19 @@ updateTodos updateConfig now model =
     else
         let
             ( newSyncQueue, cmd ) =
-                Sync.update (Sync.AppendTodoPatches todoPatches) model.syncQueue
+                Sync.update
+                    (Sync.AppendTodoPatches (todoPatches |> Array.fromList))
+                    model.syncQueue
         in
         { model
             | todos = todos
             , syncQueue = newSyncQueue
         }
-            |> (pure >> effect cacheTodosEffect >> effect cacheSyncQueueEffect)
+            |> (pure
+                    >> effect cacheTodosEffect
+                    >> effect cacheSyncQueueEffect
+                    >> command cmd
+               )
 
 
 cacheTodosEffect : Model -> Cmd Msg

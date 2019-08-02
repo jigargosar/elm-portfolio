@@ -8,6 +8,7 @@ module Sync exposing
     , update
     )
 
+import Array exposing (Array)
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 import Todo exposing (TodoId)
@@ -18,7 +19,7 @@ type Patch
 
 
 type alias Model =
-    List Patch
+    Array Patch
 
 
 type SyncQueue
@@ -27,7 +28,7 @@ type SyncQueue
 
 initialQueue : SyncQueue
 initialQueue =
-    SyncQueue []
+    SyncQueue Array.empty
 
 
 patchEncoder : Patch -> Value
@@ -56,26 +57,26 @@ patchDecoder =
 
 decoder : Decoder SyncQueue
 decoder =
-    JD.list patchDecoder
+    JD.array patchDecoder
         |> JD.map SyncQueue
 
 
 encoder : SyncQueue -> Value
 encoder (SyncQueue q) =
-    JE.list patchEncoder q
+    JE.array patchEncoder q
 
 
-appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue
+appendTodoPatches : Array Todo.Patch -> SyncQueue -> SyncQueue
 appendTodoPatches patches (SyncQueue q) =
-    List.append q (List.map TodoPatch patches)
+    Array.append q (Array.map TodoPatch patches)
         |> SyncQueue
 
 
 type Msg
-    = AppendTodoPatches (List Todo.Patch)
+    = AppendTodoPatches (Array Todo.Patch)
 
 
-update : Msg -> SyncQueue -> ( SyncQueue, Cmd Msg )
+update : Msg -> SyncQueue -> ( SyncQueue, Cmd msg )
 update msg model =
     case msg of
         AppendTodoPatches pl ->
