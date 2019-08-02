@@ -40,15 +40,17 @@ type alias Return =
 init : Value -> Result JD.Error Return
 init encodedValue =
     JD.decodeValue (JD.list patchDecoder) encodedValue
-        |> Result.map
-            (\pl ->
-                case pl of
-                    [] ->
-                        ( Empty, Cmd.none )
+        |> Result.map initWithPatchList
 
-                    _ ->
-                        ( Sent pl [], Cmd.none )
-            )
+
+initWithPatchList patchList =
+    ( Sent patchList []
+    , Http.post
+        { url = "/api/sync"
+        , body = Http.jsonBody (JE.list patchEncoder patchList)
+        , expect = Http.expectString OnSyncResponse
+        }
+    )
 
 
 patchEncoder : Patch -> Value
@@ -122,13 +124,7 @@ updateHelp msg model =
             in
             case model of
                 Empty ->
-                    ( Sent patchList []
-                    , Http.post
-                        { url = "/api/sync"
-                        , body = Http.jsonBody (JE.list patchEncoder patchList)
-                        , expect = Http.expectString OnSyncResponse
-                        }
-                    )
+                    initWithPatchList patchList
 
                 Sent sent notSent ->
                     ( Sent sent (notSent ++ patchList), Cmd.none )
