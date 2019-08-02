@@ -14,14 +14,19 @@ function createAndAppendRoot() {
   return root
 }
 
-ky.post('/api/db', {
-  body: JSON.stringify({
-    todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
-    projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
-  }),
-})
-  .then(res => res.json())
-  .then(console.log)
+export function postDB() {
+  ky.post('/api/db', {
+    body: JSON.stringify({
+      todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
+      projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
+    }),
+  })
+    .then(res => res.json())
+    .then(console.log)
+    .catch(console.error)
+}
+
+// postDB()
 
 const app = Elm.Main.init({
   node: document.getElementById('root') || createAndAppendRoot(),
