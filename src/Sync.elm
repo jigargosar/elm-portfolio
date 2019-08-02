@@ -17,17 +17,18 @@ type Patch
     = TodoPatch Todo.Patch
 
 
-type alias Model =
-    List Patch
+type Model
+    = NotSent (List Patch)
+    | Sent (List Patch) (List Patch)
 
 
-type SyncQueue
-    = SyncQueue Model
+type alias SyncQueue =
+    Model
 
 
 initialQueue : SyncQueue
 initialQueue =
-    SyncQueue []
+    NotSent []
 
 
 patchEncoder : Patch -> Value
@@ -57,18 +58,21 @@ patchDecoder =
 decoder : Decoder SyncQueue
 decoder =
     JD.list patchDecoder
-        |> JD.map SyncQueue
+        |> JD.map NotSent
 
 
 encoder : SyncQueue -> Value
-encoder (SyncQueue q) =
-    JE.list patchEncoder q
+encoder model =
+    let
+        allPatches =
+            case model of
+                NotSent pl ->
+                    pl
 
-
-appendTodoPatches : List Todo.Patch -> SyncQueue -> SyncQueue
-appendTodoPatches patches (SyncQueue q) =
-    List.append q (List.map TodoPatch patches)
-        |> SyncQueue
+                Sent pl1 pl2 ->
+                    pl1 ++ pl2
+    in
+    JE.list patchEncoder allPatches
 
 
 type Msg
@@ -77,6 +81,13 @@ type Msg
 
 update : Msg -> SyncQueue -> ( SyncQueue, Cmd Msg )
 update msg model =
-    case msg of
-        AppendTodoPatches pl ->
-            ( appendTodoPatches pl model, Cmd.none )
+    case model of
+        NotSent notSent ->
+            case msg of
+                AppendTodoPatches pl ->
+                    ( NotSent (notSent ++ List.map TodoPatch pl), Cmd.none )
+
+        Sent sent notSent ->
+            case msg of
+                AppendTodoPatches pl ->
+                    ( Sent sent (notSent ++ List.map TodoPatch pl), Cmd.none )
