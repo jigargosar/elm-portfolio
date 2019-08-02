@@ -73,11 +73,11 @@ appendTodoPatches patches (SyncQueue q) =
 
 
 type Msg
-    = AppendTodoPatches (Array Todo.Patch)
+    = AppendTodoPatches (List Todo.Patch)
 
 
-update : Msg -> SyncQueue -> ( SyncQueue, Cmd msg )
+update : Msg -> SyncQueue -> ( SyncQueue, Cmd Msg )
 update msg model =
     case msg of
         AppendTodoPatches pl ->
-            ( appendTodoPatches pl model, Cmd.none )
+            ( appendTodoPatches (Array.fromList pl) model, Cmd.none )

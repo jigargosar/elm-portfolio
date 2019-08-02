@@ -181,6 +181,7 @@ type Msg
     | OnBulkMoveToProjectSelected ProjectId
     | UpdateTodos TC.Update Millis
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
+    | OnSyncMsg Sync.Msg
 
 
 
@@ -312,6 +313,18 @@ update message model =
             updateTodos updateConfig now model
                 |> andThen (updateEdit editConfig)
 
+        OnSyncMsg msg ->
+            updateSyncQueue msg model
+
+
+updateSyncQueue msg model =
+    let
+        ( newSyncQueue, cmd ) =
+            Sync.update msg model.syncQueue
+    in
+    ( { model | syncQueue = newSyncQueue }, Cmd.map OnSyncMsg cmd )
+        |> effect cacheSyncQueueEffect
+
 
 updateTodoCmd updateConfig =
     withNow (UpdateTodos updateConfig)
@@ -335,21 +348,9 @@ updateTodos updateConfig now model =
         ( model, Cmd.none )
 
     else
-        let
-            ( newSyncQueue, cmd ) =
-                Sync.update
-                    (Sync.AppendTodoPatches (todoPatches |> Array.fromList))
-                    model.syncQueue
-        in
-        { model
-            | todos = todos
-            , syncQueue = newSyncQueue
-        }
-            |> (pure
-                    >> effect cacheTodosEffect
-                    >> effect cacheSyncQueueEffect
-                    >> command cmd
-               )
+        { model | todos = todos }
+            |> (pure >> effect cacheTodosEffect)
+            |> andThen (updateSyncQueue (Sync.AppendTodoPatches todoPatches))
 
 
 cacheTodosEffect : Model -> Cmd Msg
