@@ -68,7 +68,8 @@ patchDecoder =
             (\type_ ->
                 case type_ of
                     "TodoPatch" ->
-                        Todo.patchDecoder |> JD.map TodoPatch
+                        JD.field "value"
+                            (Todo.patchDecoder |> JD.map TodoPatch)
 
                     _ ->
                         JD.fail ("Invalid Patch type: " ++ type_)
