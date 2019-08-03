@@ -124,21 +124,19 @@ update ( idList, msgList ) now model =
 updateWithMsgList : Millis -> List Msg -> TodoId -> Return -> Return
 updateWithMsgList now msgList todoId return =
     msgList
-        |> List.foldl (updateWithMsg now todoId) return
+        |> List.foldl
+            (\msg acc ->
+                updateWithMsg now todoId msg acc
+                    |> Maybe.withDefault acc
+            )
+            return
 
 
-updateWithMsg : Millis -> TodoId -> Msg -> Return -> Return
-updateWithMsg now todoId message return =
-    Dict.get todoId (Tuple.first return)
-        |> Maybe.andThen (\todo -> updateWithMsgHelp now todoId message todo return)
-        |> Maybe.withDefault return
-
-
-updateWithMsgHelp : Millis -> TodoId -> Msg -> Todo -> Return -> Maybe Return
-updateWithMsgHelp now todoId message todo =
+updateWithMsg : Millis -> TodoId -> Msg -> Return -> Maybe Return
+updateWithMsg now todoId message =
     let
         moveToBottom =
-            modifyTodo now todoId computeMoveToBottomTodoMsg
+            modifyTodo now todoId getMoveToBottomUpdateTodoMsg
     in
     case message of
         MarkComplete ->
@@ -146,8 +144,7 @@ updateWithMsgHelp now todoId message todo =
 
         MarkPending ->
             modifyTodo now todoId (\_ -> Todo.SetCompleted False)
-                >> Maybe.andThen
-                    moveToBottom
+                >> Maybe.andThen moveToBottom
 
         MoveToProject pid ->
             modifyTodo now todoId (\_ -> Todo.SetProjectId pid)
@@ -155,6 +152,20 @@ updateWithMsgHelp now todoId message todo =
 
         SetTitle title ->
             modifyTodo now todoId (\_ -> Todo.SetTitle title)
+
+
+getMoveToBottomUpdateTodoMsg ( todo, model ) =
+    let
+        bottomIdx =
+            todo.projectId
+                |> (\pid -> pendingWithProjectId pid model)
+                |> List.filter (.id >> (/=) todo.id)
+                |> (List.Extra.last
+                        >> Maybe.map (.sortIdx >> (+) 1)
+                        >> Maybe.withDefault 0
+                   )
+    in
+    Todo.SetSortIdx bottomIdx
 
 
 modifyTodo :
@@ -179,20 +190,6 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
                             )
                         )
             )
-
-
-computeMoveToBottomTodoMsg ( todo, model ) =
-    let
-        bottomIdx =
-            todo.projectId
-                |> (\pid -> pendingWithProjectId pid model)
-                |> List.filter (.id >> (/=) todo.id)
-                |> (List.Extra.last
-                        >> Maybe.map (.sortIdx >> (+) 1)
-                        >> Maybe.withDefault 0
-                   )
-    in
-    Todo.SetSortIdx bottomIdx
 
 
 insert : Todo -> TodoCollection -> TodoCollection
