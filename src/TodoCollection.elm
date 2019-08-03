@@ -121,6 +121,12 @@ update ( idList, msgList ) now model =
         |> List.foldl (updateWithMsgList now msgList >> andThen) (pure model)
 
 
+updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
+updateWithMsgList now msgList todoId model =
+    msgList
+        |> List.foldl (updateWithMsg now todoId >> andThenMaybe) (pure model)
+
+
 pure : TodoCollection -> Return
 pure model =
     ( model, [] )
@@ -145,18 +151,8 @@ andThenMaybe fn ( model, patchList ) =
             ( model, patchList )
 
 
-updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
-updateWithMsgList now msgList todoId model =
-    msgList
-        |> List.foldl (updateWithMsg now todoId >> andThen) (pure model)
-
-
-updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Maybe Return
 updateWithMsg now todoId message model =
-    let
-        maybeDefaultReturn =
-            Maybe.withDefault (pure model)
-    in
     case message of
         MarkComplete ->
             let
@@ -164,7 +160,6 @@ updateWithMsg now todoId message model =
                     Todo.SetCompleted True
             in
             modifyTodoWithId now todoId msg model
-                |> maybeDefaultReturn
 
         MarkPending ->
             let
@@ -173,7 +168,6 @@ updateWithMsg now todoId message model =
             in
             modifyTodoWithId now todoId msg model
                 |> Maybe.map (andThenMaybe (moveToBottom now todoId))
-                |> maybeDefaultReturn
 
         MoveToProject pid ->
             let
@@ -182,7 +176,6 @@ updateWithMsg now todoId message model =
             in
             modifyTodoWithId now todoId msg model
                 |> Maybe.map (andThenMaybe (moveToBottom now todoId))
-                |> maybeDefaultReturn
 
         SetTitle title ->
             let
@@ -190,7 +183,6 @@ updateWithMsg now todoId message model =
                     Todo.SetTitle title
             in
             modifyTodoWithId now todoId msg model
-                |> maybeDefaultReturn
 
 
 modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
