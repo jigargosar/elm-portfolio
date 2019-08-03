@@ -13,6 +13,7 @@ module Todo exposing
     , listDecoder
     , matchesFilter
     , modify
+    , msgKVEncoder
     )
 
 import Compare exposing (Comparator)
@@ -72,6 +73,26 @@ type Msg
     | SetProjectId ProjectId
     | SetTitle String
     | SetSortIdx Int
+
+
+msgKVEncoder : Msg -> ( String, Value )
+msgKVEncoder msg =
+    let
+        _ =
+            JE.object
+    in
+    case msg of
+        SetCompleted bool ->
+            ( "isDone", JE.bool bool )
+
+        SetProjectId pid ->
+            ( "projectId", ProjectId.encoder pid )
+
+        SetTitle t ->
+            ( "title", JE.string t )
+
+        SetSortIdx idx ->
+            ( "sortIdx", JE.int idx )
 
 
 update : Msg -> Todo -> Todo

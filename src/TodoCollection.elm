@@ -106,6 +106,11 @@ type alias Patch =
     }
 
 
+createPatch : TodoId -> Todo.Msg -> Patch
+createPatch todoId todoMsg =
+    Patch todoId todoMsg
+
+
 type alias Return =
     ( TodoCollection, List Patch )
 
@@ -186,7 +191,7 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
                     |> Maybe.map
                         (\newTodo ->
                             ( insert newTodo model
-                            , patches ++ [ Patch todo.id todoMsg ]
+                            , patches ++ [ createPatch todo.id todoMsg ]
                             )
                         )
             )
