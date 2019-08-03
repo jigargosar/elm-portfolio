@@ -153,24 +153,28 @@ andThenMaybe fn ( model, patchList ) =
 
 updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Maybe Return
 updateWithMsg now todoId message model =
-    case message of
-        MarkComplete ->
-            modifyTodoWithId now todoId (Todo.SetCompleted True) model
+    let
+        fn todo =
+            case message of
+                MarkComplete ->
+                    modifyTodo now (Todo.SetCompleted True) todo model
 
-        MarkPending ->
-            modifyTodoWithId now todoId (Todo.SetCompleted False) model
-                |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                MarkPending ->
+                    modifyTodoWithId now todoId (Todo.SetCompleted False) model
+                        |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
-        MoveToProject pid ->
-            let
-                msg =
-                    Todo.SetProjectId pid
-            in
-            modifyTodoWithId now todoId msg model
-                |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                MoveToProject pid ->
+                    let
+                        msg =
+                            Todo.SetProjectId pid
+                    in
+                    modifyTodoWithId now todoId msg model
+                        |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
-        SetTitle title ->
-            modifyTodoWithId now todoId (Todo.SetTitle title) model
+                SetTitle title ->
+                    modifyTodoWithId now todoId (Todo.SetTitle title) model
+    in
+    Dict.get todoId model |> Maybe.andThen fn
 
 
 modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
@@ -178,11 +182,11 @@ modifyTodoWithId now todoId todoMsg model =
     model
         |> Dict.get todoId
         |> Maybe.andThen
-            (\todo -> modifyTodo todoMsg now todo model)
+            (\todo -> modifyTodo now todoMsg todo model)
 
 
-modifyTodo : Todo.Msg -> Millis -> Todo -> TodoCollection -> Maybe Return
-modifyTodo todoMsg now todo model =
+modifyTodo : Millis -> Todo.Msg -> Todo -> TodoCollection -> Maybe Return
+modifyTodo now todoMsg todo model =
     Todo.modify todoMsg now todo
         |> Maybe.map (insertWithMsg todoMsg model)
 
@@ -216,5 +220,5 @@ moveToBottom now todoId model =
                     msg =
                         Todo.SetSortIdx bottomIdx
                 in
-                modifyTodo msg now todo model
+                modifyTodo now msg todo model
             )
