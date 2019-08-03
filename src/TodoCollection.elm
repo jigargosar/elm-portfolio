@@ -136,7 +136,7 @@ updateWithMsg : Millis -> TodoId -> Msg -> Return -> Maybe Return
 updateWithMsg now todoId message =
     let
         moveToBottom =
-            modifyTodo now todoId getMoveToBottomUpdateTodoMsg
+            modifyTodo now todoId computeMoveToBottomTodoMsg
     in
     case message of
         MarkComplete ->
@@ -154,7 +154,7 @@ updateWithMsg now todoId message =
             modifyTodo now todoId (\_ -> Todo.SetTitle title)
 
 
-getMoveToBottomUpdateTodoMsg ( todo, model ) =
+computeMoveToBottomTodoMsg ( todo, model ) =
     let
         bottomIdx =
             todo.projectId
