@@ -5,54 +5,15 @@ import values from 'ramda/es/values'
 import './index.css'
 // @ts-ignore
 import { Elm } from './Main.elm'
-import ky from 'ky'
-
-function createAndAppendRoot() {
-  const root = document.createElement('div')
-  root.id = 'root'
-  document.body.appendChild(root)
-  return root
-}
-
-export function postDB() {
-  ky.post('/api/db', {
-    body: JSON.stringify({
-      todoList: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
-      projectList: JSON.parse(localStorage.getItem('projectList') || '[]'),
-    }),
-  })
-    .then(res => res.json())
-    .then(console.log)
-    .catch(console.error)
-}
-
-// postDB()
 
 const app = Elm.Main.init({
-  node: document.getElementById('root') || createAndAppendRoot(),
   flags: {
-    todos: values(JSON.parse(localStorage.getItem('taskMap') || '{}')),
-    // todoList: [{}],
-    projects: JSON.parse(localStorage.getItem('projectList') || '[]'),
-    edit: JSON.parse(localStorage.getItem('edit')),
-    syncQueue: JSON.parse(localStorage.getItem('syncQueue') || '[]'),
+    modelCache: localStorage.getItem('modelCache')
   },
 })
 
 const subs = {
-  cacheTodoList: list => {
-    const taskMap = fromPairs(list.map(t => [t.id, t]))
-    console.debug('persistingTaskMap', taskMap)
-    localStorage.setItem('taskMap', JSON.stringify(taskMap))
-  },
-  cacheEdit: edit => {
-    console.debug('app.ports.cacheEdit', edit)
-    localStorage.setItem('edit', JSON.stringify(edit))
-  },
-  cacheSyncQueue: syncQueue => {
-    console.debug('app.ports.syncQueue', syncQueue)
-    localStorage.setItem('syncQueue', JSON.stringify(syncQueue))
-  },
+
 }
 
 forEachObjIndexed((listener, portName) => {

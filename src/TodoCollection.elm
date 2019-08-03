@@ -3,10 +3,10 @@ module TodoCollection exposing
     , Return
     , TodoCollection
     , Update
-    , andThen
     , completedForProjectList
     , completedList
     , decoder
+    , encoder
     , initial
     , pendingList
     , pendingWithId
@@ -17,6 +17,7 @@ module TodoCollection exposing
 import Dict exposing (Dict)
 import Dict.Extra
 import Json.Decode as JD exposing (Decoder)
+import Json.Encode as JE exposing (Value)
 import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
@@ -39,9 +40,14 @@ initial =
 decoder : Decoder TodoCollection
 decoder =
     JD.oneOf
-        [ Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
-        , JD.dict Todo.decoder
+        [ JD.dict Todo.decoder
+        , Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
         ]
+
+
+encoder : TodoCollection -> Value
+encoder model =
+    JE.dict identity Todo.encoder model
 
 
 
@@ -95,7 +101,7 @@ type Msg
 
 
 type alias Return =
-    ( TodoCollection, List Todo.Patch )
+    TodoCollection
 
 
 update : Update -> Millis -> TodoCollection -> Return
@@ -105,7 +111,7 @@ update ( idList, msgList ) now model =
             Batch msgList
     in
     idList
-        |> List.foldl (\todoId -> andThen (updateHelp now todoId message)) ( model, [] )
+        |> List.foldl (\todoId -> updateHelp now todoId message) model
 
 
 updateHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
@@ -120,7 +126,7 @@ updateHelp now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     (\todo -> modifyTodo msg now todo model)
-                |> Maybe.withDefault ( model, [] )
+                |> Maybe.withDefault model
 
         MarkPending ->
             let
@@ -131,9 +137,9 @@ updateHelp now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     ((\todo -> modifyTodo msg now todo model)
-                        >> Maybe.map (andThen (moveToBottom now todoId))
+                        >> Maybe.map (moveToBottom now todoId)
                     )
-                |> Maybe.withDefault ( model, [] )
+                |> Maybe.withDefault model
 
         MoveToProject pid ->
             let
@@ -144,9 +150,9 @@ updateHelp now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     ((\todo -> modifyTodo msg now todo model)
-                        >> Maybe.map (andThen (moveToBottom now todoId))
+                        >> Maybe.map (moveToBottom now todoId)
                     )
-                |> Maybe.withDefault ( model, [] )
+                |> Maybe.withDefault model
 
         SetTitle title ->
             let
@@ -157,12 +163,12 @@ updateHelp now todoId message model =
                 |> Dict.get todoId
                 |> Maybe.andThen
                     (\todo -> modifyTodo msg now todo model)
-                |> Maybe.withDefault ( model, [] )
+                |> Maybe.withDefault model
 
         Batch msgList ->
             msgList
-                |> List.foldl (\msg -> andThen (updateHelp now todoId msg))
-                    ( model, [] )
+                |> List.foldl (\msg -> updateHelp now todoId msg)
+                    model
 
 
 insert : Todo -> TodoCollection -> TodoCollection
@@ -170,18 +176,9 @@ insert todo =
     Dict.insert todo.id todo
 
 
-insertWithMsg : ( Todo, Todo.Patch ) -> TodoCollection -> Return
-insertWithMsg ( todo, patch ) model =
-    ( insert todo model, [ patch ] )
-
-
-andThen : (TodoCollection -> Return) -> Return -> Return
-andThen fn ( model, msgStack ) =
-    let
-        ( newModel, newMsgStack ) =
-            fn model
-    in
-    ( newModel, newMsgStack ++ msgStack )
+insertWithMsg : Todo -> TodoCollection -> Return
+insertWithMsg todo model =
+    insert todo model
 
 
 modifyTodo : Todo.Msg -> Millis -> Todo -> TodoCollection -> Maybe Return
@@ -211,4 +208,4 @@ moveToBottom now todoId model =
                 in
                 modifyTodo msg now todo model
             )
-        |> Maybe.withDefault ( model, [] )
+        |> Maybe.withDefault model

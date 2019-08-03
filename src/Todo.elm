@@ -2,7 +2,6 @@ module Todo exposing
     ( CompareBy(..)
     , Filter(..)
     , Msg(..)
-    , Patch
     , Todo
     , TodoId
     , TodoList
@@ -14,8 +13,6 @@ module Todo exposing
     , listDecoder
     , matchesFilter
     , modify
-    , patchDecoder
-    , patchEncoder
     )
 
 import Compare exposing (Comparator)
@@ -77,57 +74,6 @@ type Msg
     | SetSortIdx Int
 
 
-type Patch
-    = Patch TodoId Msg Millis
-
-
-patchEncoder : Patch -> Value
-patchEncoder (Patch id msg modifiedAt) =
-    JE.object
-        [ ( "todoId", TodoId.encoder id )
-        , ( "msg", msgEncoder msg )
-        , ( "modifiedAt", JE.int modifiedAt )
-        ]
-
-
-patchDecoder : Decoder Patch
-patchDecoder =
-    JD.succeed Patch
-        |> JDP.required "todoId" JD.string
-        |> JDP.required "msg" msgDecoder
-        |> JDP.required "modifiedAt" JD.int
-
-
-msgEncoder : Msg -> Value
-msgEncoder msg =
-    let
-        kv =
-            case msg of
-                SetCompleted bool ->
-                    ( "isDone", JE.bool bool )
-
-                SetProjectId pid ->
-                    ( "projectId", ProjectId.encoder pid )
-
-                SetTitle title ->
-                    ( "title", JE.string title )
-
-                SetSortIdx sortIdx ->
-                    ( "sortIdx", JE.int sortIdx )
-    in
-    JE.object [ kv ]
-
-
-msgDecoder : Decoder Msg
-msgDecoder =
-    JD.oneOf
-        [ JD.field "isDone" JD.bool |> JD.map SetCompleted
-        , JD.field "projectId" ProjectId.decoder |> JD.map SetProjectId
-        , JD.field "title" JD.string |> JD.map SetTitle
-        , JD.field "sortIdx" JD.int |> JD.map SetSortIdx
-        ]
-
-
 update : Msg -> Todo -> Todo
 update msg model =
     case msg of
@@ -157,10 +103,9 @@ modifyWithNow now msg model =
         newModel |> setModifiedAt now |> Just
 
 
-modify : Msg -> Millis -> Todo -> Maybe ( Todo, Patch )
+modify : Msg -> Millis -> Todo -> Maybe Todo
 modify msg now model =
     modifyWithNow now msg model
-        |> Maybe.map (\t -> ( t, Patch t.id msg now ))
 
 
 setModifiedAt now todo =

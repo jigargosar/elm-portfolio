@@ -1,6 +1,5 @@
 port module Main exposing (effect, main)
 
-import Array
 import Browser
 import Browser.Dom
 import Browser.Events
@@ -21,7 +20,7 @@ import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
 import Set exposing (Set)
-import Sync exposing (Patch, SyncQueue)
+import Size
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -41,23 +40,26 @@ port cacheEdit : Value -> Cmd msg
 
 
 -- FLAGS
+--type alias Flags =
+--    { todos : TodoCollection
+--    , projects : ProjectCollection
+--    , edit : Edit
+--    }
+--
+--
+--flagsDecoder : Decoder Flags
+--flagsDecoder =
+--    JD.succeed Flags
+--        |> JDP.required "todos" TC.decoder
+--        |> JDP.required "projects" PC.decoder
+--        |> JDP.required "edit" Edit.decoder
+--
+--
 
 
 type alias Flags =
-    { todos : TodoCollection
-    , projects : ProjectCollection
-    , syncQueue : Value
-    , edit : Edit
+    { modelCache : Value
     }
-
-
-flagsDecoder : Decoder Flags
-flagsDecoder =
-    JD.succeed Flags
-        |> JDP.required "todos" TC.decoder
-        |> JDP.required "projects" PC.decoder
-        |> JDP.required "syncQueue" JD.value
-        |> JDP.required "edit" Edit.decoder
 
 
 type alias Error =
@@ -75,13 +77,47 @@ type alias Model =
     , projects : ProjectCollection
     , errors : List Error
     , edit : Edit
-    , syncQueue : SyncQueue
     , page : Page
     , key : Nav.Key
     , route : Route
     , isSidebarOpen : Bool
     , size : { width : Int, height : Int }
     }
+
+
+type alias ModelCache =
+    { todos : TodoCollection
+    , projects : ProjectCollection
+    , edit : Edit
+    , isSidebarOpen : Bool
+    , size : { width : Int, height : Int }
+    }
+
+
+toModelCache : Model -> ModelCache
+toModelCache { todos, projects, edit, isSidebarOpen, size } =
+    ModelCache todos projects edit isSidebarOpen size
+
+
+modelCacheDecoder : Decoder ModelCache
+modelCacheDecoder =
+    JD.succeed ModelCache
+        |> JDP.optional "todos" TC.decoder TC.initial
+        |> JDP.optional "projects" PC.decoder PC.initial
+        |> JDP.optional "edit" Edit.decoder Edit.initial
+        |> JDP.optional "isSidebarOpen" JD.bool False
+        |> JDP.optional "size" Size.decoder Size.initial
+
+
+modelCacheEncoder : ModelCache -> Value
+modelCacheEncoder { todos, projects, edit, isSidebarOpen, size } =
+    JE.object
+        [ ( "todos", TC.encoder todos )
+        , ( "projects", PC.encoder projects )
+        , ( "edit", Edit.encoder edit )
+        , ( "isSidebarOpen", JE.bool isSidebarOpen )
+        , ( "size", Size.encoder size )
+        ]
 
 
 type alias Return =
@@ -104,16 +140,16 @@ routeToPage route =
             DefaultPage
 
 
-updateWithEncodedFlags : Value -> Model -> Return
-updateWithEncodedFlags encodedFlags model =
-    case JD.decodeValue flagsDecoder encodedFlags of
+hydrate : Value -> Model -> Return
+hydrate encodedModelCache model =
+    case JD.decodeValue modelCacheDecoder encodedModelCache of
         Ok flags ->
             { model
                 | todos = flags.todos
                 , projects = flags.projects
                 , edit = flags.edit
             }
-                |> initSyncQueue flags.syncQueue
+                |> pure
 
         Err decodeErr ->
             model
@@ -121,20 +157,8 @@ updateWithEncodedFlags encodedFlags model =
                 |> pure
 
 
-initSyncQueue : Value -> Model -> Return
-initSyncQueue encoded model =
-    case Sync.init encoded of
-        Ok ( syncQueue, cmd ) ->
-            ( { model | syncQueue = syncQueue }, Cmd.map OnSyncMsg cmd )
-
-        Err decodeErr ->
-            model
-                |> prependError (JD.errorToString decodeErr)
-                |> pure
-
-
-init : Value -> Url -> Nav.Key -> Return
-init encodedFlags url key =
+init : Flags -> Url -> Nav.Key -> Return
+init flags url key =
     (let
         route =
             Route.fromUrl url
@@ -143,14 +167,13 @@ init encodedFlags url key =
      , projects = PC.initial
      , edit = Edit.initial
      , isSidebarOpen = False
-     , syncQueue = Sync.initialValue
      , errors = []
      , page = routeToPage route
      , key = key
      , route = route
      , size = { width = 0, height = 0 }
      }
-        |> updateWithEncodedFlags encodedFlags
+        |> hydrate flags.modelCache
     )
         |> command
             (Cmd.batch
@@ -194,7 +217,6 @@ type Msg
     | OnBulkMoveToProjectSelected ProjectId
     | UpdateTodos TC.Update Millis
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
-    | OnSyncMsg Sync.Msg
 
 
 
@@ -203,7 +225,7 @@ type Msg
 
 update : Msg -> Model -> Return
 update message model =
-    case message of
+    (case message of
         NoOp ->
             ( model, Cmd.none )
 
@@ -325,18 +347,28 @@ update message model =
         UpdateTodosThenUpdateEdit updateConfig editConfig now ->
             updateTodos updateConfig now model
                 |> andThen (updateEdit editConfig)
+    )
+        |> andThen (cacheModel model)
 
-        OnSyncMsg msg ->
-            updateSyncQueue msg model
 
-
-updateSyncQueue : Sync.Msg -> Model -> Return
-updateSyncQueue msg model =
+cacheModel oldModel model =
     let
-        ( newSyncQueue, cmd ) =
-            Sync.update msg model.syncQueue
+        _ =
+            if oldModel /= model then
+                let
+                    ( old, new ) =
+                        ( toModelCache oldModel, toModelCache model )
+                in
+                if old /= new then
+                    Debug.log "modelCacheChanged" model
+
+                else
+                    model
+
+            else
+                model
     in
-    ( { model | syncQueue = newSyncQueue }, Cmd.map OnSyncMsg cmd )
+    pure model
 
 
 updateTodoCmd updateConfig =
@@ -354,7 +386,7 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        ( todos, todoPatches ) =
+        todos =
             TC.update updateConfig now model.todos
     in
     if todos == model.todos then
@@ -363,7 +395,6 @@ updateTodos updateConfig now model =
     else
         { model | todos = todos }
             |> (pure >> effect cacheTodosEffect)
-            |> andThen (updateSyncQueue (Sync.AppendTodoPatches todoPatches))
 
 
 cacheTodosEffect : Model -> Cmd Msg
@@ -803,7 +834,7 @@ viewCompletedTodoItem todo =
         ]
 
 
-main : Program Value Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
