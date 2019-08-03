@@ -122,7 +122,7 @@ createPatch todoId todoMsg now =
 
 
 type alias Return =
-    ( TodoCollection, List Patch )
+    ( TodoCollection, PatchList )
 
 
 updateFromServerResponse : List Todo -> TodoCollection -> TodoCollection
