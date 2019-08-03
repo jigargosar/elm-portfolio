@@ -136,12 +136,8 @@ updateHelp now todoId message model =
                 msg =
                     Todo.SetCompleted False
             in
-            model
-                |> Dict.get todoId
-                |> Maybe.andThen
-                    ((\todo -> modifyTodo msg now todo model)
-                        >> Maybe.map (moveToBottom now todoId)
-                    )
+            modifyTodoWithId now todoId msg model
+                |> Maybe.map (moveToBottom now todoId)
                 |> Maybe.withDefault model
 
         MoveToProject pid ->
@@ -149,12 +145,8 @@ updateHelp now todoId message model =
                 msg =
                     Todo.SetProjectId pid
             in
-            model
-                |> Dict.get todoId
-                |> Maybe.andThen
-                    ((\todo -> modifyTodo msg now todo model)
-                        >> Maybe.map (moveToBottom now todoId)
-                    )
+            modifyTodoWithId now todoId msg model
+                |> Maybe.map (moveToBottom now todoId)
                 |> Maybe.withDefault model
 
         SetTitle title ->
@@ -162,10 +154,7 @@ updateHelp now todoId message model =
                 msg =
                     Todo.SetTitle title
             in
-            model
-                |> Dict.get todoId
-                |> Maybe.andThen
-                    (\todo -> modifyTodo msg now todo model)
+            modifyTodoWithId now todoId msg model
                 |> Maybe.withDefault model
 
         Batch msgList ->
