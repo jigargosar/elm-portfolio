@@ -128,10 +128,7 @@ updateHelp now todoId message model =
                 msg =
                     Todo.SetCompleted True
             in
-            model
-                |> Dict.get todoId
-                |> Maybe.andThen
-                    (\todo -> modifyTodo msg now todo model)
+            modifyTodoWithId now todoId msg model
                 |> Maybe.withDefault model
 
         MarkPending ->
@@ -185,6 +182,14 @@ insert todo =
 insertWithMsg : Todo -> TodoCollection -> Return
 insertWithMsg todo model =
     insert todo model
+
+
+modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
+modifyTodoWithId now todoId todoMsg model =
+    model
+        |> Dict.get todoId
+        |> Maybe.andThen
+            (\todo -> modifyTodo todoMsg now todo model)
 
 
 modifyTodo : Todo.Msg -> Millis -> Todo -> TodoCollection -> Maybe Return
