@@ -443,9 +443,7 @@ cacheModel oldModel model =
                         ( toModelCache oldModel, toModelCache model )
                 in
                 if old /= new then
-                    new
-                        |> Debug.log "modelCacheChanged"
-                        |> Just
+                    new |> Just
 
                 else
                     Nothing
