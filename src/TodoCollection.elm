@@ -127,6 +127,31 @@ updateWithMsgList now msgList todoId model =
         |> List.foldl (updateWithMsg now todoId >> andThen) (pure model)
 
 
+updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateWithMsg now todoId message model =
+    Dict.get todoId model
+        |> Maybe.andThen (updateWithMsgHelp now message model)
+        |> Maybe.withDefault (pure model)
+
+
+updateWithMsgHelp : Millis -> Msg -> TodoCollection -> Todo -> Maybe Return
+updateWithMsgHelp now message model todo =
+    case message of
+        MarkComplete ->
+            modifyTodo now (Todo.SetCompleted True) todo model
+
+        MarkPending ->
+            modifyTodo now (Todo.SetCompleted False) todo model
+                |> Maybe.map (andThen (moveToBottom now todo.id))
+
+        MoveToProject pid ->
+            modifyTodo now (Todo.SetProjectId pid) todo model
+                |> Maybe.map (andThen (moveToBottom now todo.id))
+
+        SetTitle title ->
+            modifyTodo now (Todo.SetTitle title) todo model
+
+
 pure : TodoCollection -> Return
 pure model =
     ( model, [] )
@@ -139,33 +164,6 @@ andThen fn ( model, patchList ) =
             fn model
     in
     ( newModel, patchList ++ newPatchList )
-
-
-updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
-updateWithMsg now todoId message model =
-    let
-        withTodo fn =
-            Dict.get todoId model
-                |> Maybe.andThen fn
-                |> Maybe.withDefault (pure model)
-    in
-    withTodo
-        (\todo ->
-            case message of
-                MarkComplete ->
-                    modifyTodo now (Todo.SetCompleted True) todo model
-
-                MarkPending ->
-                    modifyTodo now (Todo.SetCompleted False) todo model
-                        |> Maybe.map (andThen (moveToBottom now todoId))
-
-                MoveToProject pid ->
-                    modifyTodo now (Todo.SetProjectId pid) todo model
-                        |> Maybe.map (andThen (moveToBottom now todoId))
-
-                SetTitle title ->
-                    modifyTodo now (Todo.SetTitle title) todo model
-        )
 
 
 modifyTodo : Millis -> Todo.Msg -> Todo -> TodoCollection -> Maybe Return
