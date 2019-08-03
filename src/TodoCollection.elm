@@ -104,7 +104,7 @@ type alias Return =
     TodoCollection
 
 
-updateFromServerResponse : List Todo -> TodoCollection -> Return
+updateFromServerResponse : List Todo -> TodoCollection -> TodoCollection
 updateFromServerResponse todoList model =
     todoList |> List.foldl insert model
 
