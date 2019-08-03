@@ -136,17 +136,22 @@ updateWithMsg now todoId message return =
 
 updateWithMsgHelp : Millis -> TodoId -> Msg -> Todo -> Return -> Maybe Return
 updateWithMsgHelp now todoId message todo =
+    let
+        moveToBottom =
+            modifyTodo now todoId computeMoveToBottomTodoMsg
+    in
     case message of
         MarkComplete ->
             modifyTodo now todoId (\_ -> Todo.SetCompleted True)
 
         MarkPending ->
             modifyTodo now todoId (\_ -> Todo.SetCompleted False)
-                >> Maybe.andThen (moveToBottom now todoId)
+                >> Maybe.andThen
+                    moveToBottom
 
         MoveToProject pid ->
             modifyTodo now todoId (\_ -> Todo.SetProjectId pid)
-                >> Maybe.andThen (moveToBottom now todo.id)
+                >> Maybe.andThen moveToBottom
 
         SetTitle title ->
             modifyTodo now todoId (\_ -> Todo.SetTitle title)
@@ -176,23 +181,18 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
             )
 
 
-moveToBottom : Millis -> TodoId -> Return -> Maybe Return
-moveToBottom now todoId =
-    modifyTodo now
-        todoId
-        (\( todo, model ) ->
-            let
-                bottomIdx =
-                    todo.projectId
-                        |> (\pid -> pendingWithProjectId pid model)
-                        |> List.filter (.id >> (/=) todo.id)
-                        |> (List.Extra.last
-                                >> Maybe.map (.sortIdx >> (+) 1)
-                                >> Maybe.withDefault 0
-                           )
-            in
-            Todo.SetSortIdx bottomIdx
-        )
+computeMoveToBottomTodoMsg ( todo, model ) =
+    let
+        bottomIdx =
+            todo.projectId
+                |> (\pid -> pendingWithProjectId pid model)
+                |> List.filter (.id >> (/=) todo.id)
+                |> (List.Extra.last
+                        >> Maybe.map (.sortIdx >> (+) 1)
+                        >> Maybe.withDefault 0
+                   )
+    in
+    Todo.SetSortIdx bottomIdx
 
 
 insert : Todo -> TodoCollection -> TodoCollection
