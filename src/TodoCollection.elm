@@ -100,8 +100,14 @@ type Msg
     | MoveToProject ProjectId
 
 
+type alias Patch =
+    { id : TodoId
+    , msg : Todo.Msg
+    }
+
+
 type alias Return =
-    TodoCollection
+    ( TodoCollection, List Patch )
 
 
 updateFromServerResponse : List Todo -> TodoCollection -> TodoCollection
@@ -112,17 +118,45 @@ updateFromServerResponse todoList model =
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
     idList
-        |> List.foldl (updateWithMsgList now msgList) model
+        |> List.foldl (updateWithMsgList now msgList >> andThen) (pure model)
+
+
+pure : TodoCollection -> Return
+pure model =
+    ( model, [] )
+
+
+andThen : (TodoCollection -> Return) -> Return -> Return
+andThen fn ( model, patchList ) =
+    let
+        ( newModel, newPatchList ) =
+            fn model
+    in
+    ( newModel, patchList ++ newPatchList )
+
+
+andThenMaybe : (TodoCollection -> Maybe Return) -> Return -> Return
+andThenMaybe fn ( model, patchList ) =
+    case fn model of
+        Just ( newModel, newPatchList ) ->
+            ( newModel, patchList ++ newPatchList )
+
+        Nothing ->
+            ( model, patchList )
 
 
 updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
 updateWithMsgList now msgList todoId model =
     msgList
-        |> List.foldl (updateWithMsg now todoId) model
+        |> List.foldl (updateWithMsg now todoId >> andThen) (pure model)
 
 
 updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
 updateWithMsg now todoId message model =
+    let
+        maybeDefaultReturn =
+            Maybe.withDefault (pure model)
+    in
     case message of
         MarkComplete ->
             let
@@ -130,7 +164,7 @@ updateWithMsg now todoId message model =
                     Todo.SetCompleted True
             in
             modifyTodoWithId now todoId msg model
-                |> Maybe.withDefault model
+                |> maybeDefaultReturn
 
         MarkPending ->
             let
@@ -138,8 +172,8 @@ updateWithMsg now todoId message model =
                     Todo.SetCompleted False
             in
             modifyTodoWithId now todoId msg model
-                |> Maybe.map (moveToBottom now todoId)
-                |> Maybe.withDefault model
+                |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                |> maybeDefaultReturn
 
         MoveToProject pid ->
             let
@@ -147,8 +181,8 @@ updateWithMsg now todoId message model =
                     Todo.SetProjectId pid
             in
             modifyTodoWithId now todoId msg model
-                |> Maybe.map (moveToBottom now todoId)
-                |> Maybe.withDefault model
+                |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                |> maybeDefaultReturn
 
         SetTitle title ->
             let
@@ -156,17 +190,7 @@ updateWithMsg now todoId message model =
                     Todo.SetTitle title
             in
             modifyTodoWithId now todoId msg model
-                |> Maybe.withDefault model
-
-
-insert : Todo -> TodoCollection -> TodoCollection
-insert todo =
-    Dict.insert todo.id todo
-
-
-insertWithMsg : Todo -> TodoCollection -> Return
-insertWithMsg todo model =
-    insert todo model
+                |> maybeDefaultReturn
 
 
 modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
@@ -180,10 +204,20 @@ modifyTodoWithId now todoId todoMsg model =
 modifyTodo : Todo.Msg -> Millis -> Todo -> TodoCollection -> Maybe Return
 modifyTodo todoMsg now todo model =
     Todo.modify todoMsg now todo
-        |> Maybe.map (\r -> insertWithMsg r model)
+        |> Maybe.map (insertWithMsg todoMsg model)
 
 
-moveToBottom : Millis -> TodoId -> TodoCollection -> Return
+insertWithMsg : Todo.Msg -> TodoCollection -> Todo -> Return
+insertWithMsg todoMsg model todo =
+    ( insert todo model, [ Patch todo.id todoMsg ] )
+
+
+insert : Todo -> TodoCollection -> TodoCollection
+insert todo =
+    Dict.insert todo.id todo
+
+
+moveToBottom : Millis -> TodoId -> TodoCollection -> Maybe Return
 moveToBottom now todoId model =
     model
         |> Dict.get todoId
@@ -204,4 +238,3 @@ moveToBottom now todoId model =
                 in
                 modifyTodo msg now todo model
             )
-        |> Maybe.withDefault model

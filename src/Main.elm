@@ -408,7 +408,7 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        todos =
+        ( todos, _ ) =
             TC.update updateConfig now model.todos
     in
     setAndCacheTodos todos model
