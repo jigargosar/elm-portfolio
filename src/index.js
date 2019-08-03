@@ -8,15 +8,15 @@ import { Elm } from './Main.elm'
 
 const app = Elm.Main.init({
   flags: {
-    modelCache: JSON.parse(localStorage.getItem('modelCache')||"null")
+    modelCache: JSON.parse(localStorage.getItem('modelCache') || 'null'),
   },
 })
 
 const subs = {
-  cacheKeyValue :([k, v])=>{
-    console.log("cacheKeyValue", [k,v])
-    localStorage.setItem(k,JSON.stringify(v))
-  }
+  cacheKeyValue: ([k, v]) => {
+    console.log('cacheKeyValue', k, v)
+    localStorage.setItem(k, JSON.stringify(v))
+  },
 }
 
 forEachObjIndexed((listener, portName) => {
