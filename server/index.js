@@ -1,3 +1,5 @@
+const { fromPairs, values } = require( 'ramda')
+
 const { mergeRight, times } = require('ramda')
 const nanoid = require('nanoid')
 const faker = require('faker')
@@ -48,14 +50,30 @@ router.post('/db', ctx => {
 )
 
 router.post('/sync', ctx => {
-  // const reqBodyString = ctx.request.body
-  // console.log('reqBodyString',reqBodyString)
-  // const patchList = JSON.parse(reqBodyString)
+    // const reqBodyString = ctx.request.body
+    // console.log('reqBodyString',reqBodyString)
+    // const patchList = JSON.parse(reqBodyString)
 
 
-  const patchList = ctx.request.body
+    const patchList = ctx.request.body
 
-  console.log('parsed body patchList', patchList)
+    console.log('parsed body patchList', patchList)
+
+    const todoList = config.get('db.todoList')
+    const todoDict = fromPairs(todoList.map(t => [t.id, t]))
+
+  console.log(values(todoDict))
+    patchList.forEach(p => {
+
+      const todo = todoDict[p.todoId]
+      todo[p.key] = p.value
+      todo.modifiedAt = p.modifiedAt
+
+    })
+
+  console.log(values(todoDict))
+
+    config.set('db.todoList', values(todoDict))
 
     ctx.body = config.get('db')
   },
