@@ -155,18 +155,10 @@ updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Maybe Return
 updateWithMsg now todoId message model =
     case message of
         MarkComplete ->
-            let
-                msg =
-                    Todo.SetCompleted True
-            in
-            modifyTodoWithId now todoId msg model
+            modifyTodoWithId now todoId (Todo.SetCompleted True) model
 
         MarkPending ->
-            let
-                msg =
-                    Todo.SetCompleted False
-            in
-            modifyTodoWithId now todoId msg model
+            modifyTodoWithId now todoId (Todo.SetCompleted False) model
                 |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
         MoveToProject pid ->
@@ -178,11 +170,7 @@ updateWithMsg now todoId message model =
                 |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
         SetTitle title ->
-            let
-                msg =
-                    Todo.SetTitle title
-            in
-            modifyTodoWithId now todoId msg model
+            modifyTodoWithId now todoId (Todo.SetTitle title) model
 
 
 modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
