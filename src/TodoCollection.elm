@@ -154,7 +154,11 @@ andThenMaybe fn ( model, patchList ) =
 updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Maybe Return
 updateWithMsg now todoId message model =
     let
-        fn todo =
+        withTodo fn =
+            Dict.get todoId model |> Maybe.andThen fn
+    in
+    withTodo
+        (\todo ->
             case message of
                 MarkComplete ->
                     modifyTodo now (Todo.SetCompleted True) todo model
@@ -169,8 +173,7 @@ updateWithMsg now todoId message model =
 
                 SetTitle title ->
                     modifyTodo now (Todo.SetTitle title) todo model
-    in
-    Dict.get todoId model |> Maybe.andThen fn
+        )
 
 
 modifyTodo : Millis -> Todo.Msg -> Todo -> TodoCollection -> Maybe Return
