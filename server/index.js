@@ -51,8 +51,7 @@ router.post('/db', ctx => {
 
 function getTodoDict() {
   const todoList = config.get('db.todoList')
-  const todoDict = fromPairs(todoList.map(t => [t.id, t]))
-  return todoDict
+  return fromPairs(todoList.map(t => [t.id, t]))
 }
 
 function setTodoDict(todoDict) {
@@ -62,7 +61,7 @@ function setTodoDict(todoDict) {
 router.post('/sync', ctx => {
     const patchList = ctx.request.body
 
-    console.log('sync: parsed body patchList', patchList)
+    // console.log('sync: parsed body patchList', patchList)
 
     const todoDict = getTodoDict()
 
