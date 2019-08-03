@@ -38,6 +38,9 @@ port cacheTodoList : Value -> Cmd msg
 port cacheEdit : Value -> Cmd msg
 
 
+port cacheKeyValue : ( String, Value ) -> Cmd msg
+
+
 
 -- FLAGS
 --type alias Flags =
@@ -90,13 +93,12 @@ type alias ModelCache =
     , projects : ProjectCollection
     , edit : Edit
     , isSidebarOpen : Bool
-    , size : { width : Int, height : Int }
     }
 
 
 toModelCache : Model -> ModelCache
-toModelCache { todos, projects, edit, isSidebarOpen, size } =
-    ModelCache todos projects edit isSidebarOpen size
+toModelCache { todos, projects, edit, isSidebarOpen } =
+    ModelCache todos projects edit isSidebarOpen
 
 
 modelCacheDecoder : Decoder ModelCache
@@ -106,17 +108,15 @@ modelCacheDecoder =
         |> JDP.optional "projects" PC.decoder PC.initial
         |> JDP.optional "edit" Edit.decoder Edit.initial
         |> JDP.optional "isSidebarOpen" JD.bool False
-        |> JDP.optional "size" Size.decoder Size.initial
 
 
 modelCacheEncoder : ModelCache -> Value
-modelCacheEncoder { todos, projects, edit, isSidebarOpen, size } =
+modelCacheEncoder { todos, projects, edit, isSidebarOpen } =
     JE.object
         [ ( "todos", TC.encoder todos )
         , ( "projects", PC.encoder projects )
         , ( "edit", Edit.encoder edit )
         , ( "isSidebarOpen", JE.bool isSidebarOpen )
-        , ( "size", Size.encoder size )
         ]
 
 
@@ -353,22 +353,34 @@ update message model =
 
 cacheModel oldModel model =
     let
-        _ =
+        maybeNewModelCache =
             if oldModel /= model then
                 let
                     ( old, new ) =
                         ( toModelCache oldModel, toModelCache model )
                 in
                 if old /= new then
-                    Debug.log "modelCacheChanged" model
+                    new
+                        |> Debug.log "modelCacheChanged"
+                        |> Just
 
                 else
-                    model
+                    Nothing
 
             else
-                model
+                Nothing
+
+        cmd =
+            maybeNewModelCache
+                |> Maybe.map (modelCacheEncoder >> cacheKeyValue_ "modelCache")
+                |> Maybe.withDefault Cmd.none
     in
-    pure model
+    ( model, cmd )
+
+
+cacheKeyValue_ : String -> Value -> Cmd msg
+cacheKeyValue_ k v =
+    cacheKeyValue ( k, v )
 
 
 updateTodoCmd updateConfig =
