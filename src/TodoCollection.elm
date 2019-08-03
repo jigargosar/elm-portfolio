@@ -145,11 +145,15 @@ updateWithMsgHelp now message model todo =
                 |> Maybe.map (andThen (moveToBottom now todo.id))
 
         MoveToProject pid ->
-            modifyTodo now (Todo.SetProjectId pid) todo model
-                |> Maybe.map (andThen (moveToBottom now todo.id))
+            moveToProject now pid todo model
 
         SetTitle title ->
             modifyTodo now (Todo.SetTitle title) todo model
+
+
+moveToProject now pid todo model =
+    modifyTodo now (Todo.SetProjectId pid) todo model
+        |> Maybe.map (andThen (moveToBottom now todo.id))
 
 
 pure : TodoCollection -> Return
