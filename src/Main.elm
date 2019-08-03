@@ -186,7 +186,8 @@ init flags url key =
             (Cmd.batch
                 [ Browser.Dom.getViewport
                     |> Task.perform OnViewPort
-                , fetchDBCmd
+
+                --                , fetchDBCmd
                 ]
             )
         |> effect syncEffect
@@ -406,6 +407,7 @@ update message model =
             case result of
                 Ok db ->
                     updateFromDB db model
+                        |> andThen clearTPL
 
                 Err e ->
                     let
@@ -447,6 +449,11 @@ updateTodos updateConfig now model =
 appendTodoPatchList : TC.PatchList -> Model -> Return
 appendTodoPatchList tpl model =
     pure { model | tpl = model.tpl ++ tpl }
+
+
+clearTPL : Model -> Return
+clearTPL model =
+    pure { model | tpl = [] }
 
 
 setAndCacheTodos : TodoCollection -> Model -> Return
