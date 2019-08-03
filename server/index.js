@@ -40,17 +40,24 @@ router.post('/db', ctx => {
     const reqBodyString = ctx.request.body
     const db = JSON.parse(reqBodyString)
     console.log('parsed body', db)
-    
-    config.set("db.projectList", db.projectList)
-    config.set("db.todoList", db.todoList)
+
+    config.set('db.projectList', db.projectList)
+    config.set('db.todoList', db.todoList)
     ctx.body = db
   },
 )
 
 router.post('/sync', ctx => {
-    const incomingBody = ctx.request.body
-    console.log('incomingBody', incomingBody)
-    ctx.body = incomingBody
+  // const reqBodyString = ctx.request.body
+  // console.log('reqBodyString',reqBodyString)
+  // const patchList = JSON.parse(reqBodyString)
+
+
+  const patchList = ctx.request.body
+
+  console.log('parsed body patchList', patchList)
+
+    ctx.body = config.get('db')
   },
 )
 // .get('/post/new', add)

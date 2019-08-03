@@ -189,6 +189,7 @@ init flags url key =
                 , fetchDBCmd
                 ]
             )
+        |> effect syncEffect
 
 
 type alias DB =
