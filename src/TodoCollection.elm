@@ -165,11 +165,11 @@ updateWithMsg now todoId message model =
 
                 MarkPending ->
                     modifyTodo now (Todo.SetCompleted False) todo model
-                        |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                        |> Maybe.map (andThen (moveToBottom now todoId))
 
                 MoveToProject pid ->
                     modifyTodo now (Todo.SetProjectId pid) todo model
-                        |> Maybe.map (andThenMaybe (moveToBottom now todoId))
+                        |> Maybe.map (andThen (moveToBottom now todoId))
 
                 SetTitle title ->
                     modifyTodo now (Todo.SetTitle title) todo model
@@ -192,7 +192,7 @@ insert todo =
     Dict.insert todo.id todo
 
 
-moveToBottom : Millis -> TodoId -> TodoCollection -> Maybe Return
+moveToBottom : Millis -> TodoId -> TodoCollection -> Return
 moveToBottom now todoId model =
     model
         |> Dict.get todoId
@@ -213,3 +213,4 @@ moveToBottom now todoId model =
                 in
                 modifyTodo now msg todo model
             )
+        |> Maybe.withDefault (pure model)
