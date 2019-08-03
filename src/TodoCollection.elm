@@ -100,20 +100,25 @@ type Msg
     | MoveToProject ProjectId
 
 
+type alias PatchList =
+    List Patch
+
+
 type alias Patch =
     { todoId : TodoId
     , key : String
     , value : Value
+    , modifedAt : Int
     }
 
 
-createPatch : TodoId -> Todo.Msg -> Patch
-createPatch todoId todoMsg =
+createPatch : TodoId -> Todo.Msg -> Millis -> Patch
+createPatch todoId todoMsg now =
     let
         ( key, value ) =
             Todo.msgKVEncoder todoMsg
     in
-    Patch todoId key value
+    Patch todoId key value now
 
 
 type alias Return =
@@ -196,7 +201,7 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
                     |> Maybe.map
                         (\newTodo ->
                             ( insert newTodo model
-                            , patches ++ [ createPatch todo.id todoMsg ]
+                            , patches ++ [ createPatch todo.id todoMsg now ]
                             )
                         )
             )
