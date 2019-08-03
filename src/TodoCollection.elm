@@ -1,5 +1,6 @@
 module TodoCollection exposing
     ( Msg(..)
+    , PatchList
     , Return
     , TodoCollection
     , Update
@@ -8,6 +9,8 @@ module TodoCollection exposing
     , decoder
     , encoder
     , initial
+    , patchListDecoder
+    , patchListEncoder
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -18,11 +21,13 @@ module TodoCollection exposing
 import Dict exposing (Dict)
 import Dict.Extra
 import Json.Decode as JD exposing (Decoder)
+import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Todo exposing (Todo, TodoId, TodoList)
+import TodoId
 
 
 
@@ -108,8 +113,27 @@ type alias Patch =
     { todoId : TodoId
     , key : String
     , value : Value
-    , modifedAt : Int
+    , modifiedAt : Int
     }
+
+
+patchDecoder : Decoder Patch
+patchDecoder =
+    JD.succeed Patch
+        |> JDP.required "todoId" TodoId.decoder
+        |> JDP.required "key" JD.string
+        |> JDP.required "value" JD.value
+        |> JDP.required "modifiedAt" JD.int
+
+
+patchEncoder : Patch -> Value
+patchEncoder { todoId, key, value, modifiedAt } =
+    JE.object
+        [ ( "todoId", TodoId.encoder todoId )
+        , ( "key", JE.string key )
+        , ( "value", value )
+        , ( "modifiedAt", JE.int modifiedAt )
+        ]
 
 
 createPatch : TodoId -> Todo.Msg -> Millis -> Patch
@@ -119,6 +143,16 @@ createPatch todoId todoMsg now =
             Todo.msgKVEncoder todoMsg
     in
     Patch todoId key value now
+
+
+patchListDecoder : Decoder PatchList
+patchListDecoder =
+    JD.list patchDecoder
+
+
+patchListEncoder : PatchList -> Value
+patchListEncoder =
+    JE.list patchEncoder
 
 
 type alias Return =

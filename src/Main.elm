@@ -21,7 +21,7 @@ import ProjectId exposing (ProjectId)
 import Return
 import Route exposing (Route)
 import Set exposing (Set)
-import Size
+import Size exposing (Size)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -79,27 +79,29 @@ type Page
 type alias Model =
     { todos : TodoCollection
     , projects : ProjectCollection
+    , tpl : TC.PatchList
     , errors : List Error
     , edit : Edit
     , page : Page
     , key : Nav.Key
     , route : Route
     , isSidebarOpen : Bool
-    , size : { width : Int, height : Int }
+    , size : Size
     }
 
 
 type alias ModelCache =
     { todos : TodoCollection
     , projects : ProjectCollection
+    , tpl : TC.PatchList
     , edit : Edit
     , isSidebarOpen : Bool
     }
 
 
 toModelCache : Model -> ModelCache
-toModelCache { todos, projects, edit, isSidebarOpen } =
-    ModelCache todos projects edit isSidebarOpen
+toModelCache { todos, projects, tpl, edit, isSidebarOpen } =
+    ModelCache todos projects tpl edit isSidebarOpen
 
 
 modelCacheDecoder : Decoder ModelCache
@@ -107,15 +109,17 @@ modelCacheDecoder =
     JD.succeed ModelCache
         |> JDP.optional "todos" TC.decoder TC.initial
         |> JDP.optional "projects" PC.decoder PC.initial
+        |> JDP.optional "tpl" TC.patchListDecoder []
         |> JDP.optional "edit" Edit.decoder Edit.initial
         |> JDP.optional "isSidebarOpen" JD.bool False
 
 
 modelCacheEncoder : ModelCache -> Value
-modelCacheEncoder { todos, projects, edit, isSidebarOpen } =
+modelCacheEncoder { todos, projects, tpl, edit, isSidebarOpen } =
     JE.object
         [ ( "todos", TC.encoder todos )
         , ( "projects", PC.encoder projects )
+        , ( "tpl", TC.patchListEncoder tpl )
         , ( "edit", Edit.encoder edit )
         , ( "isSidebarOpen", JE.bool isSidebarOpen )
         ]
@@ -148,6 +152,7 @@ hydrate encodedModelCache model =
             { model
                 | todos = flags.todos
                 , projects = flags.projects
+                , tpl = flags.tpl
                 , edit = flags.edit
             }
                 |> pure
@@ -166,6 +171,7 @@ init flags url key =
      in
      { todos = TC.initial
      , projects = PC.initial
+     , tpl = []
      , edit = Edit.initial
      , isSidebarOpen = False
      , errors = []
@@ -408,10 +414,16 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        ( todos, _ ) =
+        ( todos, todoPatchList ) =
             TC.update updateConfig now model.todos
     in
     setAndCacheTodos todos model
+        |> andThen (appendTodoPatchList todoPatchList)
+
+
+appendTodoPatchList : TC.PatchList -> Model -> Return
+appendTodoPatchList tpl model =
+    pure { model | tpl = model.tpl ++ tpl }
 
 
 setAndCacheTodos : TodoCollection -> Model -> Return
