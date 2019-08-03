@@ -1,4 +1,4 @@
-const { fromPairs, values } = require( 'ramda')
+const { fromPairs, values } = require('ramda')
 
 const { mergeRight, times } = require('ramda')
 const nanoid = require('nanoid')
@@ -49,6 +49,16 @@ router.post('/db', ctx => {
   },
 )
 
+function getTodoDict() {
+  const todoList = config.get('db.todoList')
+  const todoDict = fromPairs(todoList.map(t => [t.id, t]))
+  return todoDict
+}
+
+function setTodoDict(todoDict) {
+  config.set('db.todoList', values(todoDict))
+}
+
 router.post('/sync', ctx => {
     // const reqBodyString = ctx.request.body
     // console.log('reqBodyString',reqBodyString)
@@ -59,10 +69,9 @@ router.post('/sync', ctx => {
 
     console.log('parsed body patchList', patchList)
 
-    const todoList = config.get('db.todoList')
-    const todoDict = fromPairs(todoList.map(t => [t.id, t]))
+    const todoDict = getTodoDict()
 
-  console.log(values(todoDict))
+    console.log(values(todoDict))
     patchList.forEach(p => {
 
       const todo = todoDict[p.todoId]
@@ -71,9 +80,9 @@ router.post('/sync', ctx => {
 
     })
 
-  console.log(values(todoDict))
+    console.log(values(todoDict))
 
-    config.set('db.todoList', values(todoDict))
+    setTodoDict(todoDict)
 
     ctx.body = config.get('db')
   },
