@@ -9,6 +9,7 @@ import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
+import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
@@ -177,9 +178,32 @@ init flags url key =
     )
         |> command
             (Cmd.batch
-                [ Browser.Dom.getViewport |> Task.perform OnViewPort
+                [ Browser.Dom.getViewport
+                    |> Task.perform OnViewPort
+                , fetchDBCmd
                 ]
             )
+
+
+type alias DB =
+    { projectList : List Project
+    , todoList : List Todo
+    }
+
+
+dbDecoder : Decoder DB
+dbDecoder =
+    JD.succeed DB
+        |> JDP.required "projectList" Project.listDecoder
+        |> JDP.required "todoList" Todo.listDecoder
+
+
+fetchDBCmd : Cmd Msg
+fetchDBCmd =
+    Http.get
+        { url = "/api/db"
+        , expect = Http.expectJson OnDBResponse dbDecoder
+        }
 
 
 activeProjectList projects =
@@ -217,6 +241,7 @@ type Msg
     | OnBulkMoveToProjectSelected ProjectId
     | UpdateTodos TC.Update Millis
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
+    | OnDBResponse (Result Http.Error DB)
 
 
 
@@ -347,6 +372,13 @@ update message model =
         UpdateTodosThenUpdateEdit updateConfig editConfig now ->
             updateTodos updateConfig now model
                 |> andThen (updateEdit editConfig)
+
+        OnDBResponse result ->
+            let
+                _ =
+                    Debug.log "dbres" result
+            in
+            pure model
     )
         |> andThen (cacheModel model)
 
