@@ -60,11 +60,6 @@ function setTodoDict(todoDict) {
 }
 
 router.post('/sync', ctx => {
-    // const reqBodyString = ctx.request.body
-    // console.log('reqBodyString',reqBodyString)
-    // const patchList = JSON.parse(reqBodyString)
-
-
     const patchList = ctx.request.body
 
     console.log('parsed body patchList', patchList)
