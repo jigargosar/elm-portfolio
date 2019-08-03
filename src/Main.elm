@@ -212,6 +212,15 @@ fetchDBCmd =
         }
 
 
+syncEffect : Model -> Cmd Msg
+syncEffect model =
+    Http.post
+        { url = "/api/sync"
+        , body = Http.jsonBody (TC.patchListEncoder model.tpl)
+        , expect = Http.expectJson OnSyncResponse dbDecoder
+        }
+
+
 activeProjectList projects =
     projects
         |> Dict.values
@@ -248,6 +257,7 @@ type Msg
     | UpdateTodos TC.Update Millis
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
     | OnDBResponse (Result Http.Error DB)
+    | OnSyncResponse (Result Http.Error DB)
 
 
 
@@ -380,6 +390,18 @@ update message model =
                 |> andThen (updateEdit editConfig)
 
         OnDBResponse result ->
+            case result of
+                Ok db ->
+                    updateFromDB db model
+
+                Err e ->
+                    let
+                        _ =
+                            Debug.log "http db get error" e
+                    in
+                    pure model
+
+        OnSyncResponse result ->
             case result of
                 Ok db ->
                     updateFromDB db model
