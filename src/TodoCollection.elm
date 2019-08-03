@@ -130,52 +130,41 @@ updateWithMsgList now msgList todoId return =
 updateWithMsg : Millis -> TodoId -> Msg -> Return -> Return
 updateWithMsg now todoId message return =
     Dict.get todoId (Tuple.first return)
-        |> Maybe.andThen (\todo -> updateWithMsgHelp now message todo return)
+        |> Maybe.andThen (\todo -> updateWithMsgHelp now todoId message todo return)
         |> Maybe.withDefault return
 
 
-updateWithMsgHelp : Millis -> Msg -> Todo -> Return -> Maybe Return
-updateWithMsgHelp now message todo =
+updateWithMsgHelp : Millis -> TodoId -> Msg -> Todo -> Return -> Maybe Return
+updateWithMsgHelp now todoId message todo =
     case message of
         MarkComplete ->
-            modifyTodo now (Todo.SetCompleted True) todo
+            modifyTodo now todoId (\_ -> Todo.SetCompleted True)
 
         MarkPending ->
-            modifyTodo now (Todo.SetCompleted False) todo
-                >> Maybe.andThen (moveToBottom now todo.id)
+            modifyTodo now todoId (\_ -> Todo.SetCompleted False)
+                >> Maybe.andThen (moveToBottom now todoId)
 
         MoveToProject pid ->
-            modifyTodo now (Todo.SetProjectId pid) todo
+            modifyTodo now todoId (\_ -> Todo.SetProjectId pid)
                 >> Maybe.andThen (moveToBottom now todo.id)
 
         SetTitle title ->
-            modifyTodo now (Todo.SetTitle title) todo
+            modifyTodo now todoId (\_ -> Todo.SetTitle title)
 
 
-modifyTodo : Millis -> Todo.Msg -> Todo -> Return -> Maybe Return
-modifyTodo now todoMsg todo ( model, patches ) =
-    Todo.modify todoMsg now todo
-        |> Maybe.map
-            (\newTodo ->
-                ( insert newTodo model
-                , patches ++ [ Patch todo.id todoMsg ]
-                )
-            )
-
-
-modifyTodoHelp :
+modifyTodo :
     Millis
     -> TodoId
-    -> (Todo -> TodoCollection -> Todo.Msg)
+    -> (( Todo, TodoCollection ) -> Todo.Msg)
     -> Return
     -> Maybe Return
-modifyTodoHelp now todoId computeTodoMsg ( model, patches ) =
+modifyTodo now todoId computeTodoMsg ( model, patches ) =
     Dict.get todoId model
         |> Maybe.andThen
             (\todo ->
                 let
                     todoMsg =
-                        computeTodoMsg todo model
+                        computeTodoMsg ( todo, model )
                 in
                 Todo.modify todoMsg now todo
                     |> Maybe.map
@@ -189,9 +178,9 @@ modifyTodoHelp now todoId computeTodoMsg ( model, patches ) =
 
 moveToBottom : Millis -> TodoId -> Return -> Maybe Return
 moveToBottom now todoId =
-    modifyTodoHelp now
+    modifyTodo now
         todoId
-        (\todo model ->
+        (\( todo, model ) ->
             let
                 bottomIdx =
                     todo.projectId
