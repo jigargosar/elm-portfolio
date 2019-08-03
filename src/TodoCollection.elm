@@ -98,7 +98,6 @@ type Msg
     | MarkPending
     | SetTitle String
     | MoveToProject ProjectId
-    | Batch (List Msg)
 
 
 type alias Return =
@@ -113,17 +112,17 @@ updateFromServerResponse todoList model =
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
     idList
-        |> List.foldl (updateBatch now msgList) model
+        |> List.foldl (updateWithMsgList now msgList) model
 
 
-updateBatch : Millis -> List Msg -> TodoId -> TodoCollection -> Return
-updateBatch now msgList todoId model =
+updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
+updateWithMsgList now msgList todoId model =
     msgList
-        |> List.foldl (updateSingle now todoId) model
+        |> List.foldl (updateWithMsg now todoId) model
 
 
-updateSingle : Millis -> TodoId -> Msg -> TodoCollection -> Return
-updateSingle now todoId message model =
+updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateWithMsg now todoId message model =
     case message of
         MarkComplete ->
             let
@@ -158,11 +157,6 @@ updateSingle now todoId message model =
             in
             modifyTodoWithId now todoId msg model
                 |> Maybe.withDefault model
-
-        Batch msgList ->
-            msgList
-                |> List.foldl (\msg -> updateSingle now todoId msg)
-                    model
 
 
 insert : Todo -> TodoCollection -> TodoCollection
