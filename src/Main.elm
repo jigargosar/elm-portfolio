@@ -393,9 +393,12 @@ updateFromDB db model =
     let
         todos =
             TC.updateFromServerResponse db.todoList model.todos
+
+        projects =
+            PC.updateFromServerResponse db.projectList model.projects
     in
-    --        |> andThen setAndCacheProjects
     setAndCacheTodos todos model
+        |> andThen (setAndCacheProjects projects)
 
 
 updateTodos :
@@ -419,6 +422,16 @@ setAndCacheTodos todos model =
     else
         { model | todos = todos }
             |> (pure >> effect cacheTodosEffect)
+
+
+setAndCacheProjects : ProjectCollection -> Model -> Return
+setAndCacheProjects projects model =
+    if projects == model.projects then
+        ( model, Cmd.none )
+
+    else
+        { model | projects = projects }
+            |> (pure {- >> effect cacheProjectsEffect -})
 
 
 cacheModel oldModel model =

@@ -1,4 +1,4 @@
-module ProjectCollection exposing (ProjectCollection, decoder, encoder, initial)
+module ProjectCollection exposing (ProjectCollection, decoder, encoder, initial, updateFromServerResponse)
 
 import Dict exposing (Dict)
 import Dict.Extra
@@ -28,3 +28,13 @@ decoder =
 encoder : ProjectCollection -> Value
 encoder model =
     JE.dict identity Project.encoder model
+
+
+updateFromServerResponse : List Project -> ProjectCollection -> ProjectCollection
+updateFromServerResponse list model =
+    list |> List.foldl insert model
+
+
+insert : Project -> ProjectCollection -> ProjectCollection
+insert project =
+    Dict.insert project.id project
