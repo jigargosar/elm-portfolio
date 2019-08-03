@@ -112,16 +112,18 @@ updateFromServerResponse todoList model =
 
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
-    let
-        message =
-            Batch msgList
-    in
     idList
-        |> List.foldl (\todoId -> updateHelp now todoId message) model
+        |> List.foldl (updateBatch now msgList) model
 
 
-updateHelp : Millis -> TodoId -> Msg -> TodoCollection -> Return
-updateHelp now todoId message model =
+updateBatch : Millis -> List Msg -> TodoId -> TodoCollection -> Return
+updateBatch now msgList todoId model =
+    msgList
+        |> List.foldl (updateSingle now todoId) model
+
+
+updateSingle : Millis -> TodoId -> Msg -> TodoCollection -> Return
+updateSingle now todoId message model =
     case message of
         MarkComplete ->
             let
@@ -159,7 +161,7 @@ updateHelp now todoId message model =
 
         Batch msgList ->
             msgList
-                |> List.foldl (\msg -> updateHelp now todoId msg)
+                |> List.foldl (\msg -> updateSingle now todoId msg)
                     model
 
 
