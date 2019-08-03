@@ -124,7 +124,7 @@ update ( idList, msgList ) now model =
 updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
 updateWithMsgList now msgList todoId model =
     msgList
-        |> List.foldl (updateWithMsg now todoId >> andThenMaybe) (pure model)
+        |> List.foldl (updateWithMsg now todoId >> andThen) (pure model)
 
 
 pure : TodoCollection -> Return
@@ -141,21 +141,13 @@ andThen fn ( model, patchList ) =
     ( newModel, patchList ++ newPatchList )
 
 
-andThenMaybe : (TodoCollection -> Maybe Return) -> Return -> Return
-andThenMaybe fn ( model, patchList ) =
-    case fn model of
-        Just ( newModel, newPatchList ) ->
-            ( newModel, patchList ++ newPatchList )
-
-        Nothing ->
-            ( model, patchList )
-
-
-updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Maybe Return
+updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
 updateWithMsg now todoId message model =
     let
         withTodo fn =
-            Dict.get todoId model |> Maybe.andThen fn
+            Dict.get todoId model
+                |> Maybe.andThen fn
+                |> Maybe.withDefault (pure model)
     in
     withTodo
         (\todo ->
