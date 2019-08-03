@@ -374,13 +374,51 @@ update message model =
                 |> andThen (updateEdit editConfig)
 
         OnDBResponse result ->
-            let
-                _ =
-                    Debug.log "dbres" result
-            in
-            pure model
+            case result of
+                Ok db ->
+                    updateFromDB db model
+
+                Err e ->
+                    let
+                        _ =
+                            Debug.log "http db get error" e
+                    in
+                    pure model
     )
         |> andThen (cacheModel model)
+
+
+updateFromDB : DB -> Model -> Return
+updateFromDB db model =
+    let
+        todos =
+            TC.updateFromServerResponse db.todoList model.todos
+    in
+    --        |> andThen setAndCacheProjects
+    setAndCacheTodos todos model
+
+
+updateTodos :
+    TC.Update
+    -> Millis
+    -> Model
+    -> Return
+updateTodos updateConfig now model =
+    let
+        todos =
+            TC.update updateConfig now model.todos
+    in
+    setAndCacheTodos todos model
+
+
+setAndCacheTodos : TodoCollection -> Model -> Return
+setAndCacheTodos todos model =
+    if todos == model.todos then
+        ( model, Cmd.none )
+
+    else
+        { model | todos = todos }
+            |> (pure >> effect cacheTodosEffect)
 
 
 cacheModel oldModel model =
@@ -421,24 +459,6 @@ updateTodoCmd updateConfig =
 
 updateTodoThenUpdateEditCmd updateConfig editConfig =
     withNow (UpdateTodosThenUpdateEdit updateConfig editConfig)
-
-
-updateTodos :
-    TC.Update
-    -> Millis
-    -> Model
-    -> Return
-updateTodos updateConfig now model =
-    let
-        todos =
-            TC.update updateConfig now model.todos
-    in
-    if todos == model.todos then
-        ( model, Cmd.none )
-
-    else
-        { model | todos = todos }
-            |> (pure >> effect cacheTodosEffect)
 
 
 cacheTodosEffect : Model -> Cmd Msg

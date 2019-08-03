@@ -12,6 +12,7 @@ module TodoCollection exposing
     , pendingWithId
     , pendingWithProjectId
     , update
+    , updateFromServerResponse
     )
 
 import Dict exposing (Dict)
@@ -102,6 +103,11 @@ type Msg
 
 type alias Return =
     TodoCollection
+
+
+updateFromServerResponse : List Todo -> TodoCollection -> Return
+updateFromServerResponse todoList model =
+    todoList |> List.foldl insert model
 
 
 update : Update -> Millis -> TodoCollection -> Return
