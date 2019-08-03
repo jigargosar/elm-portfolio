@@ -118,76 +118,57 @@ updateFromServerResponse todoList model =
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
     idList
-        |> List.foldl (updateWithMsgList now msgList >> andThen) (pure model)
+        |> List.foldl (updateWithMsgList now msgList) ( model, [] )
 
 
-updateWithMsgList : Millis -> List Msg -> TodoId -> TodoCollection -> Return
-updateWithMsgList now msgList todoId model =
+updateWithMsgList : Millis -> List Msg -> TodoId -> Return -> Return
+updateWithMsgList now msgList todoId return =
     msgList
-        |> List.foldl (updateWithMsg now todoId >> andThen) (pure model)
+        |> List.foldl (updateWithMsg now todoId) return
 
 
-updateWithMsg : Millis -> TodoId -> Msg -> TodoCollection -> Return
-updateWithMsg now todoId message model =
-    Dict.get todoId model
-        |> Maybe.andThen (updateWithMsgHelp now message model)
-        |> Maybe.withDefault (pure model)
+updateWithMsg : Millis -> TodoId -> Msg -> Return -> Return
+updateWithMsg now todoId message return =
+    Dict.get todoId (Tuple.first return)
+        |> Maybe.andThen (\todo -> updateWithMsgHelp now message todo return)
+        |> Maybe.withDefault return
 
 
-updateWithMsgHelp : Millis -> Msg -> TodoCollection -> Todo -> Maybe Return
-updateWithMsgHelp now message model todo =
+updateWithMsgHelp : Millis -> Msg -> Todo -> Return -> Maybe Return
+updateWithMsgHelp now message todo =
     case message of
         MarkComplete ->
-            modifyTodo now (Todo.SetCompleted True) todo model
+            modifyTodo now (Todo.SetCompleted True) todo
 
         MarkPending ->
-            modifyTodo now (Todo.SetCompleted False) todo model
-                |> Maybe.map (andThen (moveToBottom now todo.id))
+            modifyTodo now (Todo.SetCompleted False) todo
+                >> Maybe.andThen (moveToBottom now todo.id)
 
         MoveToProject pid ->
-            moveToProject now pid todo model
+            modifyTodo now (Todo.SetProjectId pid) todo
+                >> Maybe.andThen (moveToBottom now todo.id)
 
         SetTitle title ->
-            modifyTodo now (Todo.SetTitle title) todo model
+            modifyTodo now (Todo.SetTitle title) todo
 
 
-moveToProject now pid todo model =
-    modifyTodo now (Todo.SetProjectId pid) todo model
-        |> Maybe.map (andThen (moveToBottom now todo.id))
-
-
-pure : TodoCollection -> Return
-pure model =
-    ( model, [] )
-
-
-andThen : (TodoCollection -> Return) -> Return -> Return
-andThen fn ( model, patchList ) =
-    let
-        ( newModel, newPatchList ) =
-            fn model
-    in
-    ( newModel, patchList ++ newPatchList )
-
-
-modifyTodo : Millis -> Todo.Msg -> Todo -> TodoCollection -> Maybe Return
-modifyTodo now todoMsg todo model =
+modifyTodo : Millis -> Todo.Msg -> Todo -> Return -> Maybe Return
+modifyTodo now todoMsg todo ( model, patches ) =
     Todo.modify todoMsg now todo
-        |> Maybe.map (insertWithMsg todoMsg model)
+        |> Maybe.map
+            (\newTodo ->
+                ( insert newTodo model
+                , patches ++ [ Patch todo.id todoMsg ]
+                )
+            )
 
 
-insertWithMsg : Todo.Msg -> TodoCollection -> Todo -> Return
-insertWithMsg todoMsg model todo =
-    ( insert todo model, [ Patch todo.id todoMsg ] )
-
-
-insert : Todo -> TodoCollection -> TodoCollection
-insert todo =
-    Dict.insert todo.id todo
-
-
-moveToBottom : Millis -> TodoId -> TodoCollection -> Return
-moveToBottom now todoId model =
+moveToBottom : Millis -> TodoId -> Return -> Maybe Return
+moveToBottom now todoId return =
+    let
+        model =
+            Tuple.first return
+    in
     model
         |> Dict.get todoId
         |> Maybe.andThen
@@ -205,6 +186,10 @@ moveToBottom now todoId model =
                     msg =
                         Todo.SetSortIdx bottomIdx
                 in
-                modifyTodo now msg todo model
+                modifyTodo now msg todo return
             )
-        |> Maybe.withDefault (pure model)
+
+
+insert : Todo -> TodoCollection -> TodoCollection
+insert todo =
+    Dict.insert todo.id todo
