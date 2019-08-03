@@ -101,14 +101,19 @@ type Msg
 
 
 type alias Patch =
-    { id : TodoId
-    , msg : Todo.Msg
+    { todoId : TodoId
+    , key : String
+    , value : Value
     }
 
 
 createPatch : TodoId -> Todo.Msg -> Patch
 createPatch todoId todoMsg =
-    Patch todoId todoMsg
+    let
+        ( key, value ) =
+            Todo.msgKVEncoder todoMsg
+    in
+    Patch todoId key value
 
 
 type alias Return =
