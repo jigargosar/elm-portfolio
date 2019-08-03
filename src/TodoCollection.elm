@@ -164,11 +164,7 @@ updateWithMsg now todoId message model =
                         |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
                 MoveToProject pid ->
-                    let
-                        msg =
-                            Todo.SetProjectId pid
-                    in
-                    modifyTodo now msg todo model
+                    modifyTodo now (Todo.SetProjectId pid) todo model
                         |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
                 SetTitle title ->
