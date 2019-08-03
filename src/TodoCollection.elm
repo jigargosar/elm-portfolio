@@ -160,7 +160,7 @@ updateWithMsg now todoId message model =
                     modifyTodo now (Todo.SetCompleted True) todo model
 
                 MarkPending ->
-                    modifyTodoWithId now todoId (Todo.SetCompleted False) model
+                    modifyTodo now (Todo.SetCompleted False) todo model
                         |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
                 MoveToProject pid ->
@@ -168,21 +168,13 @@ updateWithMsg now todoId message model =
                         msg =
                             Todo.SetProjectId pid
                     in
-                    modifyTodoWithId now todoId msg model
+                    modifyTodo now msg todo model
                         |> Maybe.map (andThenMaybe (moveToBottom now todoId))
 
                 SetTitle title ->
-                    modifyTodoWithId now todoId (Todo.SetTitle title) model
+                    modifyTodo now (Todo.SetTitle title) todo model
     in
     Dict.get todoId model |> Maybe.andThen fn
-
-
-modifyTodoWithId : Millis -> TodoId -> Todo.Msg -> TodoCollection -> Maybe Return
-modifyTodoWithId now todoId todoMsg model =
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen
-            (\todo -> modifyTodo now todoMsg todo model)
 
 
 modifyTodo : Millis -> Todo.Msg -> Todo -> TodoCollection -> Maybe Return
