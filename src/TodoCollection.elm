@@ -188,30 +188,22 @@ modifyTodoHelp now todoId computeTodoMsg ( model, patches ) =
 
 
 moveToBottom : Millis -> TodoId -> Return -> Maybe Return
-moveToBottom now todoId return =
-    let
-        model =
-            Tuple.first return
-    in
-    model
-        |> Dict.get todoId
-        |> Maybe.andThen
-            (\todo ->
-                let
-                    bottomIdx =
-                        todo.projectId
-                            |> (\pid -> pendingWithProjectId pid model)
-                            |> List.filter (.id >> (/=) todo.id)
-                            |> (List.Extra.last
-                                    >> Maybe.map (.sortIdx >> (+) 1)
-                                    >> Maybe.withDefault 0
-                               )
-
-                    msg =
-                        Todo.SetSortIdx bottomIdx
-                in
-                modifyTodo now msg todo return
-            )
+moveToBottom now todoId =
+    modifyTodoHelp now
+        todoId
+        (\todo model ->
+            let
+                bottomIdx =
+                    todo.projectId
+                        |> (\pid -> pendingWithProjectId pid model)
+                        |> List.filter (.id >> (/=) todo.id)
+                        |> (List.Extra.last
+                                >> Maybe.map (.sortIdx >> (+) 1)
+                                >> Maybe.withDefault 0
+                           )
+            in
+            Todo.SetSortIdx bottomIdx
+        )
 
 
 insert : Todo -> TodoCollection -> TodoCollection
