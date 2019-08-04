@@ -59,14 +59,13 @@ function setTodoDict(todoDict) {
 }
 
 router.post('/sync', ctx => {
-    const patchList = ctx.request.body
+    const sync = ctx.request.body
 
     // console.log('sync: parsed body patchList', patchList)
 
     const todoDict = getTodoDict()
 
-
-    patchList.forEach(p => {
+    sync.todos.forEach(p => {
       if (p.todoId) {
         const todo = todoDict[p.todoId]
         todo[p.key] = p.value
