@@ -1,11 +1,11 @@
 module TodoPatch exposing
     ( TodoPatch
     , TodoPatchList
-    , createPatch
-    , patchDecoder
-    , patchEncoder
-    , patchListDecoder
-    , patchListEncoder
+    , decoder
+    , encoder
+    , init
+    , listDecoder
+    , listEncoder
     )
 
 import Json.Decode as JD exposing (Decoder)
@@ -28,8 +28,8 @@ type alias TodoPatch =
     }
 
 
-patchDecoder : Decoder TodoPatch
-patchDecoder =
+decoder : Decoder TodoPatch
+decoder =
     JD.succeed TodoPatch
         |> JDP.required "todoId" TodoId.decoder
         |> JDP.required "key" JD.string
@@ -37,8 +37,8 @@ patchDecoder =
         |> JDP.required "modifiedAt" JD.int
 
 
-patchEncoder : TodoPatch -> Value
-patchEncoder { todoId, key, value, modifiedAt } =
+encoder : TodoPatch -> Value
+encoder { todoId, key, value, modifiedAt } =
     JE.object
         [ ( "todoId", TodoId.encoder todoId )
         , ( "key", JE.string key )
@@ -47,8 +47,8 @@ patchEncoder { todoId, key, value, modifiedAt } =
         ]
 
 
-createPatch : TodoId -> Todo.Msg -> Millis -> TodoPatch
-createPatch todoId todoMsg now =
+init : TodoId -> Todo.Msg -> Millis -> TodoPatch
+init todoId todoMsg now =
     let
         ( key, value ) =
             Todo.msgKVEncoder todoMsg
@@ -56,11 +56,11 @@ createPatch todoId todoMsg now =
     TodoPatch todoId key value now
 
 
-patchListDecoder : Decoder TodoPatchList
-patchListDecoder =
-    JD.list patchDecoder
+listDecoder : Decoder TodoPatchList
+listDecoder =
+    JD.list decoder
 
 
-patchListEncoder : TodoPatchList -> Value
-patchListEncoder =
-    JE.list patchEncoder
+listEncoder : TodoPatchList -> Value
+listEncoder =
+    JE.list encoder

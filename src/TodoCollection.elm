@@ -62,7 +62,7 @@ modelDecoder : Decoder TodoCollection
 modelDecoder =
     JD.succeed TodoCollection
         |> JDP.required "dict" (JD.dict Todo.decoder)
-        |> JDP.required "patches" TP.patchListDecoder
+        |> JDP.required "patches" TP.listDecoder
 
 
 decoder : Decoder TodoCollection
@@ -77,13 +77,13 @@ encoder : TodoCollection -> Value
 encoder { dict, patches } =
     JE.object
         [ ( "dict", JE.dict identity Todo.encoder dict )
-        , ( "patches", TP.patchListEncoder patches )
+        , ( "patches", TP.listEncoder patches )
         ]
 
 
 getEncodedPatches : TodoCollection -> Value
 getEncodedPatches model =
-    model.patches |> TP.patchListEncoder
+    model.patches |> TP.listEncoder
 
 
 
@@ -236,7 +236,7 @@ insertWithPatch : Todo -> Todo.Msg -> Millis -> TodoCollection -> TodoCollection
 insertWithPatch todo todoMsg now model =
     { model
         | dict = Dict.insert todo.id todo model.dict
-        , patches = model.patches ++ [ TP.createPatch todo.id todoMsg now ]
+        , patches = model.patches ++ [ TP.init todo.id todoMsg now ]
     }
 
 
