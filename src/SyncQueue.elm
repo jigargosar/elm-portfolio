@@ -1,8 +1,8 @@
-module TodoPatchQueue exposing
-    ( TodoPatchQueue
+module SyncQueue exposing
+    ( SyncQueue
+    , decoder
+    , encoder
     , init
-    , queueDecoder
-    , queueEncoder
     )
 
 import Json.Decode as JD exposing (Decoder)
@@ -10,21 +10,21 @@ import Json.Encode as JE exposing (Value)
 import TodoPatch exposing (TodoPatch)
 
 
-type TodoPatchQueue
+type SyncQueue
     = TodoPatchQueue (List TodoPatch)
 
 
-init : TodoPatchQueue
+init : SyncQueue
 init =
     TodoPatchQueue []
 
 
-queueDecoder : Decoder TodoPatchQueue
-queueDecoder =
+decoder : Decoder SyncQueue
+decoder =
     JD.list TodoPatch.decoder
         |> JD.map TodoPatchQueue
 
 
-queueEncoder : TodoPatchQueue -> Value
-queueEncoder (TodoPatchQueue list) =
+encoder : SyncQueue -> Value
+encoder (TodoPatchQueue list) =
     JE.list TodoPatch.encoder list
