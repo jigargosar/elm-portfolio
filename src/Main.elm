@@ -33,9 +33,6 @@ import Url exposing (Url)
 -- PORTS
 
 
-port cacheTodoList : Value -> Cmd msg
-
-
 port cacheEdit : Value -> Cmd msg
 
 
@@ -439,16 +436,10 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        ( todos, todoPatchList ) =
+        todos =
             TC.update updateConfig now model.todos
     in
     setAndCacheTodos todos model
-        |> andThen (appendTodoPatchList todoPatchList)
-
-
-appendTodoPatchList : TC.PatchList -> Model -> Return
-appendTodoPatchList tpl model =
-    pure { model | tpl = model.tpl ++ tpl }
 
 
 clearTPL : Model -> Return
@@ -462,8 +453,7 @@ setAndCacheTodos todos model =
         ( model, Cmd.none )
 
     else
-        { model | todos = todos }
-            |> (pure >> effect cacheTodosEffect)
+        { model | todos = todos } |> pure
 
 
 setAndCacheProjects : ProjectCollection -> Model -> Return
@@ -512,11 +502,6 @@ updateTodoCmd updateConfig =
 
 updateTodoThenUpdateEditCmd updateConfig editConfig =
     withNow (UpdateTodosThenUpdateEdit updateConfig editConfig)
-
-
-cacheTodosEffect : Model -> Cmd Msg
-cacheTodosEffect model =
-    cacheTodoList (Dict.values model.todos |> JE.list Todo.encoder)
 
 
 prependError : String -> Model -> Model

@@ -34,75 +34,8 @@ import TodoId
 -- MODEL
 
 
-type alias TodoCollection =
+type alias TodoDict =
     Dict TodoId Todo
-
-
-initial : TodoCollection
-initial =
-    Dict.empty
-
-
-decoder : Decoder TodoCollection
-decoder =
-    JD.oneOf
-        [ JD.dict Todo.decoder
-        , Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
-        ]
-
-
-encoder : TodoCollection -> Value
-encoder model =
-    JE.dict identity Todo.encoder model
-
-
-
--- QUERY
-
-
-filterSort f s model =
-    model |> Dict.values |> Todo.filterSort f s
-
-
-pendingList : TodoCollection -> List Todo
-pendingList =
-    filterSort Todo.Pending [ Todo.ByIdx ]
-
-
-completedList : TodoCollection -> List Todo
-completedList =
-    filterSort Todo.Completed [ Todo.ByRecentlyModified ]
-
-
-pendingWithProjectId pid model =
-    pendingList model
-        |> Todo.filter (Todo.AndFilter Todo.Pending (Todo.BelongsToProject pid))
-
-
-completedForProjectList pid model =
-    completedList model
-        |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
-
-
-pendingWithId : TodoId -> TodoCollection -> Maybe Todo
-pendingWithId todoId =
-    Dict.get todoId
-        >> Maybe.andThen (Todo.filterSingle Todo.Pending)
-
-
-
--- UPDATE
-
-
-type alias Update =
-    ( List TodoId, List Msg )
-
-
-type Msg
-    = MarkComplete
-    | MarkPending
-    | SetTitle String
-    | MoveToProject ProjectId
 
 
 type alias PatchList =
@@ -155,11 +88,111 @@ patchListEncoder =
     JE.list patchEncoder
 
 
+type alias TodoCollection =
+    { dict : TodoDict, patches : PatchList }
+
+
+initial : TodoCollection
+initial =
+    { dict = Dict.empty, patches = [] }
+
+
+fromDict : TodoDict -> TodoCollection
+fromDict dict =
+    { dict = dict, patches = [] }
+
+
+dictDecoder : Decoder TodoDict
+dictDecoder =
+    JD.oneOf
+        [ JD.dict Todo.decoder
+        , Todo.listDecoder |> JD.map (Dict.Extra.fromListBy .id)
+        ]
+
+
+modelDecoder : Decoder TodoCollection
+modelDecoder =
+    JD.succeed TodoCollection
+        |> JDP.required "dict" (JD.dict Todo.decoder)
+        |> JDP.required "patches" patchListDecoder
+
+
+decoder : Decoder TodoCollection
+decoder =
+    JD.oneOf
+        [ modelDecoder
+        , dictDecoder |> JD.map fromDict
+        ]
+
+
+encoder : TodoCollection -> Value
+encoder { dict, patches } =
+    JE.object
+        [ ( "dict", JE.dict identity Todo.encoder dict )
+        , ( "patches", patchListEncoder patches )
+        ]
+
+
+
+-- QUERY
+
+
+filterSort : Todo.Filter -> List Todo.CompareBy -> TodoCollection -> TodoList
+filterSort f s model =
+    model |> .dict |> Dict.values |> Todo.filterSort f s
+
+
+pendingList : TodoCollection -> TodoList
+pendingList =
+    filterSort Todo.Pending [ Todo.ByIdx ]
+
+
+completedList : TodoCollection -> TodoList
+completedList =
+    filterSort Todo.Completed [ Todo.ByRecentlyModified ]
+
+
+pendingWithProjectId pid model =
+    pendingList model
+        |> Todo.filter (Todo.AndFilter Todo.Pending (Todo.BelongsToProject pid))
+
+
+completedForProjectList pid model =
+    completedList model
+        |> Todo.filter (Todo.AndFilter Todo.Completed (Todo.BelongsToProject pid))
+
+
+get : TodoId -> TodoCollection -> Maybe Todo
+get todoId =
+    .dict >> Dict.get todoId
+
+
+pendingWithId : TodoId -> TodoCollection -> Maybe Todo
+pendingWithId todoId =
+    get todoId
+        >> Maybe.andThen (Todo.filterSingle Todo.Pending)
+
+
+
+-- UPDATE
+
+
+type alias Update =
+    ( List TodoId, List Msg )
+
+
+type Msg
+    = MarkComplete
+    | MarkPending
+    | SetTitle String
+    | MoveToProject ProjectId
+
+
 type alias Return =
-    ( TodoCollection, PatchList )
+    TodoCollection
 
 
-updateFromServerResponse : List Todo -> TodoCollection -> TodoCollection
+updateFromServerResponse : TodoList -> TodoCollection -> TodoCollection
 updateFromServerResponse todoList model =
     todoList |> List.foldl insert model
 
@@ -167,7 +200,7 @@ updateFromServerResponse todoList model =
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
     idList
-        |> List.foldl (updateWithMsgList now msgList) ( model, [] )
+        |> List.foldl (updateWithMsgList now msgList) model
 
 
 updateWithMsgList : Millis -> List Msg -> TodoId -> Return -> Return
@@ -223,8 +256,8 @@ modifyTodo :
     -> (( Todo, TodoCollection ) -> Todo.Msg)
     -> Return
     -> Maybe Return
-modifyTodo now todoId computeTodoMsg ( model, patches ) =
-    Dict.get todoId model
+modifyTodo now todoId computeTodoMsg model =
+    get todoId model
         |> Maybe.andThen
             (\todo ->
                 let
@@ -234,13 +267,21 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
                 Todo.modify todoMsg now todo
                     |> Maybe.map
                         (\newTodo ->
-                            ( insert newTodo model
-                            , patches ++ [ createPatch todo.id todoMsg now ]
-                            )
+                            insertWithPatch newTodo todoMsg now model
                         )
             )
 
 
+insertWithPatch : Todo -> Todo.Msg -> Millis -> TodoCollection -> TodoCollection
+insertWithPatch todo todoMsg now model =
+    { model
+        | dict = Dict.insert todo.id todo model.dict
+        , patches = model.patches ++ [ createPatch todo.id todoMsg now ]
+    }
+
+
 insert : Todo -> TodoCollection -> TodoCollection
-insert todo =
-    Dict.insert todo.id todo
+insert todo model =
+    { model
+        | dict = Dict.insert todo.id todo model.dict
+    }
