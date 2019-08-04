@@ -25,7 +25,7 @@ import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Todo exposing (Todo, TodoId, TodoList)
-import TodoPatch as TP exposing (TodoPatchQueue)
+import TodoPatch as TP exposing (TodoPatch)
 
 
 
@@ -37,7 +37,7 @@ type alias TodoDict =
 
 
 type alias TodoCollection =
-    { dict : TodoDict, patches : TodoPatchQueue }
+    { dict : TodoDict, patches : List TodoPatch }
 
 
 initial : TodoCollection
@@ -62,7 +62,7 @@ modelDecoder : Decoder TodoCollection
 modelDecoder =
     JD.succeed TodoCollection
         |> JDP.required "dict" (JD.dict Todo.decoder)
-        |> JDP.required "patches" TP.queueDecoder
+        |> JDP.required "patches" (JD.list TP.decoder)
 
 
 decoder : Decoder TodoCollection
@@ -77,13 +77,13 @@ encoder : TodoCollection -> Value
 encoder { dict, patches } =
     JE.object
         [ ( "dict", JE.dict identity Todo.encoder dict )
-        , ( "patches", TP.queueEncoder patches )
+        , ( "patches", JE.list TP.encoder patches )
         ]
 
 
 getEncodedPatches : TodoCollection -> Value
 getEncodedPatches model =
-    model.patches |> TP.queueEncoder
+    model.patches |> JE.list TP.encoder
 
 
 
