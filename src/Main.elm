@@ -151,11 +151,12 @@ routeToPage route =
 hydrate : Value -> Model -> Return
 hydrate encodedModelCache model =
     case JD.decodeValue modelCacheDecoder encodedModelCache of
-        Ok flags ->
+        Ok modelCache ->
             { model
-                | todos = flags.todos
-                , projects = flags.projects
-                , edit = flags.edit
+                | todos = modelCache.todos
+                , projects = modelCache.projects
+                , edit = modelCache.edit
+                , syncQueue = modelCache.syncQueue
             }
                 |> pure
 
