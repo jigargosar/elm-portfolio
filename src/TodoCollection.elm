@@ -25,7 +25,7 @@ import List.Extra
 import Now exposing (Millis)
 import ProjectId exposing (ProjectId)
 import Todo exposing (Todo, TodoId, TodoList)
-import TodoId
+import TodoPatch as TP exposing (TodoPatchList)
 
 
 
@@ -36,58 +36,8 @@ type alias TodoDict =
     Dict TodoId Todo
 
 
-type alias PatchList =
-    List TodoPatch
-
-
-type alias TodoPatch =
-    { todoId : TodoId
-    , key : String
-    , value : Value
-    , modifiedAt : Int
-    }
-
-
-patchDecoder : Decoder TodoPatch
-patchDecoder =
-    JD.succeed TodoPatch
-        |> JDP.required "todoId" TodoId.decoder
-        |> JDP.required "key" JD.string
-        |> JDP.required "value" JD.value
-        |> JDP.required "modifiedAt" JD.int
-
-
-patchEncoder : TodoPatch -> Value
-patchEncoder { todoId, key, value, modifiedAt } =
-    JE.object
-        [ ( "todoId", TodoId.encoder todoId )
-        , ( "key", JE.string key )
-        , ( "value", value )
-        , ( "modifiedAt", JE.int modifiedAt )
-        ]
-
-
-createPatch : TodoId -> Todo.Msg -> Millis -> TodoPatch
-createPatch todoId todoMsg now =
-    let
-        ( key, value ) =
-            Todo.msgKVEncoder todoMsg
-    in
-    TodoPatch todoId key value now
-
-
-patchListDecoder : Decoder PatchList
-patchListDecoder =
-    JD.list patchDecoder
-
-
-patchListEncoder : PatchList -> Value
-patchListEncoder =
-    JE.list patchEncoder
-
-
 type alias TodoCollection =
-    { dict : TodoDict, patches : PatchList }
+    { dict : TodoDict, patches : TodoPatchList }
 
 
 initial : TodoCollection
@@ -112,7 +62,7 @@ modelDecoder : Decoder TodoCollection
 modelDecoder =
     JD.succeed TodoCollection
         |> JDP.required "dict" (JD.dict Todo.decoder)
-        |> JDP.required "patches" patchListDecoder
+        |> JDP.required "patches" TP.patchListDecoder
 
 
 decoder : Decoder TodoCollection
@@ -127,13 +77,13 @@ encoder : TodoCollection -> Value
 encoder { dict, patches } =
     JE.object
         [ ( "dict", JE.dict identity Todo.encoder dict )
-        , ( "patches", patchListEncoder patches )
+        , ( "patches", TP.patchListEncoder patches )
         ]
 
 
 getEncodedPatches : TodoCollection -> Value
 getEncodedPatches model =
-    model.patches |> patchListEncoder
+    model.patches |> TP.patchListEncoder
 
 
 
@@ -286,7 +236,7 @@ insertWithPatch : Todo -> Todo.Msg -> Millis -> TodoCollection -> TodoCollection
 insertWithPatch todo todoMsg now model =
     { model
         | dict = Dict.insert todo.id todo model.dict
-        , patches = model.patches ++ [ createPatch todo.id todoMsg now ]
+        , patches = model.patches ++ [ TP.createPatch todo.id todoMsg now ]
     }
 
 
