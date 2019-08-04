@@ -436,7 +436,7 @@ updateFromDB db model =
             PC.updateFromServerResponse db.projectList model.projects
     in
     setTodos todos model
-        |> andThen (setAndCacheProjects projects)
+        |> andThen (setProjects projects)
 
 
 updateTodos :
@@ -462,14 +462,13 @@ setTodos todos model =
         pure { model | todos = todos }
 
 
-setAndCacheProjects : ProjectCollection -> Model -> Return
-setAndCacheProjects projects model =
+setProjects : ProjectCollection -> Model -> Return
+setProjects projects model =
     if projects == model.projects then
         ( model, Cmd.none )
 
     else
-        { model | projects = projects }
-            |> (pure {- >> effect cacheProjectsEffect -})
+        pure { model | projects = projects }
 
 
 cacheModel oldModel model =

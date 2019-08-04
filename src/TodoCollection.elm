@@ -139,8 +139,7 @@ type alias Return =
 
 updateFromServerResponse : TodoList -> TodoCollection -> TodoCollection
 updateFromServerResponse todoList model =
-    todoList
-        |> List.foldl insert model
+    todoList |> List.foldl insert model
 
 
 update : Update -> Millis -> TodoCollection -> Return
