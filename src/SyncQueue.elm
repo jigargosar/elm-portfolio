@@ -1,14 +1,20 @@
 module SyncQueue exposing
-    ( SyncQueue
+    ( Msg(..)
+    , OutMsg(..)
+    , SyncQueue
     , decoder
     , encoder
     , initial
     , update
     )
 
+import Http
 import Json.Decode as JD exposing (Decoder)
+import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
+import Project exposing (Project)
 import Return
+import Todo exposing (Todo)
 import TodoPatch exposing (TodoPatch)
 
 
@@ -40,19 +46,49 @@ appendTodoPatches newList (SyncQueue list) =
 
 
 type alias Return =
-    Return.Return Msg SyncQueue
+    ( SyncQueue, Cmd Msg, Maybe OutMsg )
+
+
+type alias DB =
+    { projectList : List Project
+    , todoList : List Todo
+    }
+
+
+dbDecoder : Decoder DB
+dbDecoder =
+    JD.succeed DB
+        |> JDP.required "projectList" Project.listDecoder
+        |> JDP.required "todoList" Todo.listDecoder
 
 
 type Msg
     = Init
     | AppendTodoPatches (List TodoPatch)
+    | OnHttpResponse (Result Http.Error DB)
+
+
+type OutMsg
+    = SyncResponse DB
 
 
 update : Msg -> SyncQueue -> Return
 update msg model =
     case msg of
         Init ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
         AppendTodoPatches newList ->
-            ( appendTodoPatches newList model, Cmd.none )
+            ( appendTodoPatches newList model, Cmd.none, Nothing )
+
+        OnHttpResponse result ->
+            case result of
+                Ok db ->
+                    ( model, Cmd.none, SyncResponse db |> Just )
+
+                Err e ->
+                    let
+                        _ =
+                            Debug.log "http db get error" e
+                    in
+                    ( model, Cmd.none, Nothing )
