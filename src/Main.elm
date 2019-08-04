@@ -212,9 +212,16 @@ syncEffect : Model -> Cmd Msg
 syncEffect model =
     Http.post
         { url = "/api/sync"
-        , body = Http.jsonBody (TC.getEncodedPatches model.todos)
+        , body = Http.jsonBody (syncJsonBody model)
         , expect = Http.expectJson OnSyncResponse dbDecoder
         }
+
+
+syncJsonBody : Model -> Value
+syncJsonBody model =
+    JE.object
+        [ ( "todos", TC.getEncodedPatches model.todos )
+        ]
 
 
 activeProjectList projects =
