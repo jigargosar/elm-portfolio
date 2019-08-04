@@ -3,7 +3,7 @@ module SyncQueue exposing
     , appendTodoPatches
     , decoder
     , encoder
-    , init
+    , initial
     )
 
 import Json.Decode as JD exposing (Decoder)
@@ -15,8 +15,8 @@ type SyncQueue
     = SyncQueue (List TodoPatch)
 
 
-init : SyncQueue
-init =
+initial : SyncQueue
+initial =
     SyncQueue []
 
 

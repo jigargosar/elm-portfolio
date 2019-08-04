@@ -22,6 +22,7 @@ import Return
 import Route exposing (Route)
 import Set exposing (Set)
 import Size exposing (Size)
+import SyncQueue exposing (SyncQueue)
 import Task
 import Time
 import Todo exposing (Todo, TodoId)
@@ -76,6 +77,7 @@ type Page
 type alias Model =
     { todos : TodoCollection
     , projects : ProjectCollection
+    , syncQueue : SyncQueue
     , errors : List Error
     , edit : Edit
     , page : Page
@@ -89,14 +91,20 @@ type alias Model =
 type alias ModelCache =
     { todos : TodoCollection
     , projects : ProjectCollection
+    , syncQueue : SyncQueue
     , edit : Edit
     , isSidebarOpen : Bool
     }
 
 
 toModelCache : Model -> ModelCache
-toModelCache { todos, projects, edit, isSidebarOpen } =
-    ModelCache todos projects edit isSidebarOpen
+toModelCache { todos, projects, syncQueue, edit, isSidebarOpen } =
+    { todos = todos
+    , projects = projects
+    , syncQueue = syncQueue
+    , edit = edit
+    , isSidebarOpen = isSidebarOpen
+    }
 
 
 modelCacheDecoder : Decoder ModelCache
@@ -104,15 +112,17 @@ modelCacheDecoder =
     JD.succeed ModelCache
         |> JDP.optional "todos" TC.decoder TC.initial
         |> JDP.optional "projects" PC.decoder PC.initial
+        |> JDP.optional "syncQueue" SyncQueue.decoder SyncQueue.initial
         |> JDP.optional "edit" Edit.decoder Edit.initial
         |> JDP.optional "isSidebarOpen" JD.bool False
 
 
 modelCacheEncoder : ModelCache -> Value
-modelCacheEncoder { todos, projects, edit, isSidebarOpen } =
+modelCacheEncoder { todos, projects, syncQueue, edit, isSidebarOpen } =
     JE.object
         [ ( "todos", TC.encoder todos )
         , ( "projects", PC.encoder projects )
+        , ( "syncQueue", SyncQueue.encoder syncQueue )
         , ( "edit", Edit.encoder edit )
         , ( "isSidebarOpen", JE.bool isSidebarOpen )
         ]
@@ -165,6 +175,7 @@ init flags url key =
         model =
             { todos = TC.initial
             , projects = PC.initial
+            , syncQueue = SyncQueue.initial
             , edit = Edit.initial
             , isSidebarOpen = False
             , errors = []
