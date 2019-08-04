@@ -1,6 +1,5 @@
 module TodoCollection exposing
     ( Msg(..)
-    , PatchList
     , Return
     , TodoCollection
     , Update
@@ -8,9 +7,8 @@ module TodoCollection exposing
     , completedList
     , decoder
     , encoder
+    , getEncodedPatches
     , initial
-    , patchListDecoder
-    , patchListEncoder
     , pendingList
     , pendingWithId
     , pendingWithProjectId
@@ -133,6 +131,11 @@ encoder { dict, patches } =
         ]
 
 
+getEncodedPatches : TodoCollection -> Value
+getEncodedPatches model =
+    model.patches |> patchListEncoder
+
+
 
 -- QUERY
 
@@ -194,7 +197,14 @@ type alias Return =
 
 updateFromServerResponse : TodoList -> TodoCollection -> TodoCollection
 updateFromServerResponse todoList model =
-    todoList |> List.foldl insert model
+    todoList
+        |> List.foldl insert model
+        |> clearPatches
+
+
+clearPatches : TodoCollection -> TodoCollection
+clearPatches model =
+    { model | patches = [] }
 
 
 update : Update -> Millis -> TodoCollection -> Return

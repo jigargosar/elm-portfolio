@@ -76,7 +76,6 @@ type Page
 type alias Model =
     { todos : TodoCollection
     , projects : ProjectCollection
-    , tpl : TC.PatchList
     , errors : List Error
     , edit : Edit
     , page : Page
@@ -90,15 +89,14 @@ type alias Model =
 type alias ModelCache =
     { todos : TodoCollection
     , projects : ProjectCollection
-    , tpl : TC.PatchList
     , edit : Edit
     , isSidebarOpen : Bool
     }
 
 
 toModelCache : Model -> ModelCache
-toModelCache { todos, projects, tpl, edit, isSidebarOpen } =
-    ModelCache todos projects tpl edit isSidebarOpen
+toModelCache { todos, projects, edit, isSidebarOpen } =
+    ModelCache todos projects edit isSidebarOpen
 
 
 modelCacheDecoder : Decoder ModelCache
@@ -106,17 +104,15 @@ modelCacheDecoder =
     JD.succeed ModelCache
         |> JDP.optional "todos" TC.decoder TC.initial
         |> JDP.optional "projects" PC.decoder PC.initial
-        |> JDP.optional "tpl" TC.patchListDecoder []
         |> JDP.optional "edit" Edit.decoder Edit.initial
         |> JDP.optional "isSidebarOpen" JD.bool False
 
 
 modelCacheEncoder : ModelCache -> Value
-modelCacheEncoder { todos, projects, tpl, edit, isSidebarOpen } =
+modelCacheEncoder { todos, projects, edit, isSidebarOpen } =
     JE.object
         [ ( "todos", TC.encoder todos )
         , ( "projects", PC.encoder projects )
-        , ( "tpl", TC.patchListEncoder tpl )
         , ( "edit", Edit.encoder edit )
         , ( "isSidebarOpen", JE.bool isSidebarOpen )
         ]
@@ -149,7 +145,6 @@ hydrate encodedModelCache model =
             { model
                 | todos = flags.todos
                 , projects = flags.projects
-                , tpl = flags.tpl
                 , edit = flags.edit
             }
                 |> pure
@@ -165,19 +160,21 @@ init flags url key =
     (let
         route =
             Route.fromUrl url
+
+        model : Model
+        model =
+            { todos = TC.initial
+            , projects = PC.initial
+            , edit = Edit.initial
+            , isSidebarOpen = False
+            , errors = []
+            , page = routeToPage route
+            , key = key
+            , route = route
+            , size = { width = 0, height = 0 }
+            }
      in
-     { todos = TC.initial
-     , projects = PC.initial
-     , tpl = []
-     , edit = Edit.initial
-     , isSidebarOpen = False
-     , errors = []
-     , page = routeToPage route
-     , key = key
-     , route = route
-     , size = { width = 0, height = 0 }
-     }
-        |> hydrate flags.modelCache
+     model |> hydrate flags.modelCache
     )
         |> command
             (Cmd.batch
@@ -215,7 +212,7 @@ syncEffect : Model -> Cmd Msg
 syncEffect model =
     Http.post
         { url = "/api/sync"
-        , body = Http.jsonBody (TC.patchListEncoder model.tpl)
+        , body = Http.jsonBody (TC.getEncodedPatches model.todos)
         , expect = Http.expectJson OnSyncResponse dbDecoder
         }
 
@@ -404,7 +401,6 @@ update message model =
             case result of
                 Ok db ->
                     updateFromDB db model
-                        |> andThen clearTPL
 
                 Err e ->
                     let
@@ -440,11 +436,6 @@ updateTodos updateConfig now model =
             TC.update updateConfig now model.todos
     in
     setAndCacheTodos todos model
-
-
-clearTPL : Model -> Return
-clearTPL model =
-    pure { model | tpl = [] }
 
 
 setAndCacheTodos : TodoCollection -> Model -> Return
