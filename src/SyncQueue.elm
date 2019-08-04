@@ -22,6 +22,10 @@ type SyncQueue
     = SyncQueue (List TodoPatch)
 
 
+type alias Model =
+    SyncQueue
+
+
 initial : SyncQueue
 initial =
     SyncQueue []
@@ -76,7 +80,11 @@ update : Msg -> SyncQueue -> Return
 update msg model =
     case msg of
         Init ->
-            ( model, Cmd.none, Nothing )
+            let
+                cmd =
+                    syncEffect model
+            in
+            ( model, cmd, Nothing )
 
         AppendTodoPatches newList ->
             ( appendTodoPatches newList model, Cmd.none, Nothing )
@@ -84,7 +92,7 @@ update msg model =
         OnHttpResponse result ->
             case result of
                 Ok db ->
-                    ( model, Cmd.none, SyncResponse db |> Just )
+                    ( initial, Cmd.none, SyncResponse db |> Just )
 
                 Err e ->
                     let
@@ -92,3 +100,19 @@ update msg model =
                             Debug.log "http db get error" e
                     in
                     ( model, Cmd.none, Nothing )
+
+
+syncEffect : Model -> Cmd Msg
+syncEffect model =
+    Http.post
+        { url = "/api/sync"
+        , body = Http.jsonBody (syncJsonBody model)
+        , expect = Http.expectJson OnHttpResponse dbDecoder
+        }
+
+
+syncJsonBody : Model -> Value
+syncJsonBody (SyncQueue list) =
+    JE.object
+        [ ( "todos", JE.list TodoPatch.encoder list )
+        ]

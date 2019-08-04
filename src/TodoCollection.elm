@@ -7,7 +7,6 @@ module TodoCollection exposing
     , completedList
     , decoder
     , encoder
-    , getEncodedPatches
     , initial
     , pendingList
     , pendingWithId
@@ -37,17 +36,17 @@ type alias TodoDict =
 
 
 type alias TodoCollection =
-    { dict : TodoDict, patches : List TodoPatch }
+    { dict : TodoDict }
 
 
 initial : TodoCollection
 initial =
-    { dict = Dict.empty, patches = [] }
+    { dict = Dict.empty }
 
 
 fromDict : TodoDict -> TodoCollection
 fromDict dict =
-    { dict = dict, patches = [] }
+    { dict = dict }
 
 
 dictDecoder : Decoder TodoDict
@@ -62,7 +61,6 @@ modelDecoder : Decoder TodoCollection
 modelDecoder =
     JD.succeed TodoCollection
         |> JDP.required "dict" (JD.dict Todo.decoder)
-        |> JDP.required "patches" (JD.list TP.decoder)
 
 
 decoder : Decoder TodoCollection
@@ -74,16 +72,10 @@ decoder =
 
 
 encoder : TodoCollection -> Value
-encoder { dict, patches } =
+encoder { dict } =
     JE.object
         [ ( "dict", JE.dict identity Todo.encoder dict )
-        , ( "patches", JE.list TP.encoder patches )
         ]
-
-
-getEncodedPatches : TodoCollection -> Value
-getEncodedPatches model =
-    model.patches |> JE.list TP.encoder
 
 
 
@@ -142,25 +134,19 @@ type Msg
 
 
 type alias Return =
-    TodoCollection
+    ( TodoCollection, List TodoPatch )
 
 
 updateFromServerResponse : TodoList -> TodoCollection -> TodoCollection
 updateFromServerResponse todoList model =
     todoList
         |> List.foldl insert model
-        |> clearPatches
-
-
-clearPatches : TodoCollection -> TodoCollection
-clearPatches model =
-    { model | patches = [] }
 
 
 update : Update -> Millis -> TodoCollection -> Return
 update ( idList, msgList ) now model =
     idList
-        |> List.foldl (updateWithMsgList now msgList) model
+        |> List.foldl (updateWithMsgList now msgList) ( model, [] )
 
 
 updateWithMsgList : Millis -> List Msg -> TodoId -> Return -> Return
@@ -216,7 +202,7 @@ modifyTodo :
     -> (( Todo, TodoCollection ) -> Todo.Msg)
     -> Return
     -> Maybe Return
-modifyTodo now todoId computeTodoMsg model =
+modifyTodo now todoId computeTodoMsg ( model, patches ) =
     get todoId model
         |> Maybe.andThen
             (\todo ->
@@ -227,17 +213,18 @@ modifyTodo now todoId computeTodoMsg model =
                 Todo.modify todoMsg now todo
                     |> Maybe.map
                         (\newTodo ->
-                            insertWithPatch newTodo todoMsg now model
+                            insertWithPatch newTodo todoMsg now ( model, patches )
                         )
             )
 
 
-insertWithPatch : Todo -> Todo.Msg -> Millis -> TodoCollection -> TodoCollection
-insertWithPatch todo todoMsg now model =
-    { model
+insertWithPatch : Todo -> Todo.Msg -> Millis -> Return -> Return
+insertWithPatch todo todoMsg now ( model, patches ) =
+    ( { model
         | dict = Dict.insert todo.id todo model.dict
-        , patches = model.patches ++ [ TP.init todo.id todoMsg now ]
-    }
+      }
+    , patches ++ [ TP.init todo.id todoMsg now ]
+    )
 
 
 insert : Todo -> TodoCollection -> TodoCollection

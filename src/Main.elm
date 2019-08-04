@@ -196,44 +196,13 @@ init flags url key =
                 --                , fetchDBCmd
                 ]
             )
-        |> effect syncEffect
+        |> andThen (updateSyncQueue SyncQueue.Init)
 
 
 type alias DB =
     { projectList : List Project
     , todoList : List Todo
     }
-
-
-dbDecoder : Decoder DB
-dbDecoder =
-    JD.succeed DB
-        |> JDP.required "projectList" Project.listDecoder
-        |> JDP.required "todoList" Todo.listDecoder
-
-
-fetchDBCmd : Cmd Msg
-fetchDBCmd =
-    Http.get
-        { url = "/api/db"
-        , expect = Http.expectJson OnDBResponse dbDecoder
-        }
-
-
-syncEffect : Model -> Cmd Msg
-syncEffect model =
-    Http.post
-        { url = "/api/sync"
-        , body = Http.jsonBody (syncJsonBody model)
-        , expect = Http.expectJson OnSyncResponse dbDecoder
-        }
-
-
-syncJsonBody : Model -> Value
-syncJsonBody model =
-    JE.object
-        [ ( "todos", TC.getEncodedPatches model.todos )
-        ]
 
 
 activeProjectList projects =
@@ -273,6 +242,7 @@ type Msg
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
     | OnDBResponse (Result Http.Error DB)
     | OnSyncResponse (Result Http.Error DB)
+    | WrapSyncQueueMsg SyncQueue.Msg
 
 
 
@@ -427,8 +397,20 @@ update message model =
                             Debug.log "http db get error" e
                     in
                     pure model
+
+        WrapSyncQueueMsg msg ->
+            updateSyncQueue msg model
     )
         |> andThen (cacheModel model)
+
+
+updateSyncQueue : SyncQueue.Msg -> Model -> Return
+updateSyncQueue msg model =
+    let
+        ( newSyncQueue, cmd, out ) =
+            SyncQueue.update msg model.syncQueue
+    in
+    ( { model | syncQueue = newSyncQueue }, Cmd.map WrapSyncQueueMsg cmd )
 
 
 updateFromDB : DB -> Model -> Return
@@ -440,7 +422,7 @@ updateFromDB db model =
         projects =
             PC.updateFromServerResponse db.projectList model.projects
     in
-    setAndCacheTodos todos model
+    setTodos todos model
         |> andThen (setAndCacheProjects projects)
 
 
@@ -451,19 +433,20 @@ updateTodos :
     -> Return
 updateTodos updateConfig now model =
     let
-        todos =
+        ( todos, patches ) =
             TC.update updateConfig now model.todos
     in
-    setAndCacheTodos todos model
+    setTodos todos model
+        |> andThen (updateSyncQueue (SyncQueue.AppendTodoPatches patches))
 
 
-setAndCacheTodos : TodoCollection -> Model -> Return
-setAndCacheTodos todos model =
+setTodos : TodoCollection -> Model -> Return
+setTodos todos model =
     if todos == model.todos then
         ( model, Cmd.none )
 
     else
-        { model | todos = todos } |> pure
+        pure { model | todos = todos }
 
 
 setAndCacheProjects : ProjectCollection -> Model -> Return
