@@ -50,7 +50,7 @@ appendTodoPatches newList (SyncQueue list) =
 
 
 type alias Return =
-    ( SyncQueue, Cmd Msg, Maybe OutMsg )
+    ( SyncQueue, Cmd Msg, OutMsg )
 
 
 type alias DB =
@@ -73,7 +73,8 @@ type Msg
 
 
 type OutMsg
-    = SyncResponse DB
+    = NoOutMsg
+    | SyncResponse DB
 
 
 update : Msg -> SyncQueue -> Return
@@ -84,22 +85,22 @@ update msg model =
                 cmd =
                     syncEffect model
             in
-            ( model, cmd, Nothing )
+            ( model, cmd, NoOutMsg )
 
         AppendTodoPatches newList ->
-            ( appendTodoPatches newList model, Cmd.none, Nothing )
+            ( appendTodoPatches newList model, Cmd.none, NoOutMsg )
 
         OnHttpResponse result ->
             case result of
                 Ok db ->
-                    ( initial, Cmd.none, SyncResponse db |> Just )
+                    ( initial, Cmd.none, SyncResponse db )
 
                 Err e ->
                     let
                         _ =
                             Debug.log "http db get error" e
                     in
-                    ( model, Cmd.none, Nothing )
+                    ( model, Cmd.none, NoOutMsg )
 
 
 syncEffect : Model -> Cmd Msg

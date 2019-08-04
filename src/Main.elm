@@ -410,7 +410,20 @@ updateSyncQueue msg model =
         ( newSyncQueue, cmd, out ) =
             SyncQueue.update msg model.syncQueue
     in
-    ( { model | syncQueue = newSyncQueue }, Cmd.map WrapSyncQueueMsg cmd )
+    ( { model | syncQueue = newSyncQueue }
+    , Cmd.map WrapSyncQueueMsg cmd
+    )
+        |> andThen (handleSyncQueueOutMsg out)
+
+
+handleSyncQueueOutMsg : SyncQueue.OutMsg -> Model -> Return
+handleSyncQueueOutMsg out model =
+    case out of
+        SyncQueue.NoOutMsg ->
+            ( model, Cmd.none )
+
+        SyncQueue.SyncResponse db ->
+            updateFromDB db model
 
 
 updateFromDB : DB -> Model -> Return
