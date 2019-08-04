@@ -6,11 +6,7 @@ module TodoPatchQueue exposing
     )
 
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
-import Now exposing (Millis)
-import Todo exposing (Todo, TodoId, TodoList)
-import TodoId
 import TodoPatch exposing (TodoPatch)
 
 
