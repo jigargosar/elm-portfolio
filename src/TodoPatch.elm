@@ -1,4 +1,12 @@
-module TodoPatch exposing (TodoPatch, TodoPatchList, createPatch, patchDecoder, patchEncoder, patchListDecoder, patchListEncoder)
+module TodoPatch exposing
+    ( TodoPatch
+    , TodoPatchList
+    , createPatch
+    , patchDecoder
+    , patchEncoder
+    , patchListDecoder
+    , patchListEncoder
+    )
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
