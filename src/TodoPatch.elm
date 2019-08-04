@@ -1,11 +1,11 @@
 module TodoPatch exposing
     ( TodoPatch
-    , TodoPatchList
+    , TodoPatchQueue
     , decoder
     , encoder
     , init
-    , listDecoder
-    , listEncoder
+    , queueDecoder
+    , queueEncoder
     )
 
 import Json.Decode as JD exposing (Decoder)
@@ -16,7 +16,7 @@ import Todo exposing (Todo, TodoId, TodoList)
 import TodoId
 
 
-type alias TodoPatchList =
+type alias TodoPatchQueue =
     List TodoPatch
 
 
@@ -56,11 +56,11 @@ init todoId todoMsg now =
     TodoPatch todoId key value now
 
 
-listDecoder : Decoder TodoPatchList
-listDecoder =
+queueDecoder : Decoder TodoPatchQueue
+queueDecoder =
     JD.list decoder
 
 
-listEncoder : TodoPatchList -> Value
-listEncoder =
+queueEncoder : TodoPatchQueue -> Value
+queueEncoder =
     JE.list encoder
