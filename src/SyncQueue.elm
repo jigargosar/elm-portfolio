@@ -1,5 +1,6 @@
 module SyncQueue exposing
     ( SyncQueue
+    , appendTodoPatches
     , decoder
     , encoder
     , init
@@ -11,20 +12,27 @@ import TodoPatch exposing (TodoPatch)
 
 
 type SyncQueue
-    = TodoPatchQueue (List TodoPatch)
+    = SyncQueue (List TodoPatch)
 
 
 init : SyncQueue
 init =
-    TodoPatchQueue []
+    SyncQueue []
 
 
 decoder : Decoder SyncQueue
 decoder =
     JD.list TodoPatch.decoder
-        |> JD.map TodoPatchQueue
+        |> JD.map SyncQueue
 
 
 encoder : SyncQueue -> Value
-encoder (TodoPatchQueue list) =
+encoder (SyncQueue list) =
     JE.list TodoPatch.encoder list
+
+
+appendTodoPatches : List TodoPatch -> SyncQueue -> SyncQueue
+appendTodoPatches newList (SyncQueue list) =
+    list
+        ++ newList
+        |> SyncQueue
