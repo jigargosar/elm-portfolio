@@ -1,4 +1,4 @@
-const { fromPairs, values } = require('ramda')
+const { fromPairs, values, where, is } = require('ramda')
 
 const { mergeRight, times } = require('ramda')
 const nanoid = require('nanoid')
@@ -10,7 +10,7 @@ const router = require('koa-router')()
 const koaBody = require('koa-body')
 
 const Koa = require('koa')
-const app = module.exports = new Koa()
+const app = (module.exports = new Koa())
 
 const config = new Conf({
   cwd: process.cwd(),
@@ -21,13 +21,11 @@ const config = new Conf({
   },
 })
 
-
 // console.log(config.get('db'))
 
 // middleware
 
 app.use(logger())
-
 
 app.use(koaBody())
 
@@ -39,15 +37,14 @@ router.get('/db', async ctx => {
   ctx.body = config.get('db')
 })
 router.post('/db', ctx => {
-    const reqBodyString = ctx.request.body
-    const db = JSON.parse(reqBodyString)
-    console.log('parsed body', db)
+  const reqBodyString = ctx.request.body
+  const db = JSON.parse(reqBodyString)
+  console.log('parsed body', db)
 
-    config.set('db.projectList', db.projectList)
-    config.set('db.todoList', db.todoList)
-    ctx.body = db
-  },
-)
+  config.set('db.projectList', db.projectList)
+  config.set('db.todoList', db.todoList)
+  ctx.body = db
+})
 
 function getTodoDict() {
   const todoList = config.get('db.todoList')
@@ -59,32 +56,30 @@ function setTodoDict(todoDict) {
 }
 
 router.post('/sync', ctx => {
-    const sync = ctx.request.body
+  const sync = ctx.request.body
+  const isValidRequest = where({ todos: is(Array) })
 
-    // console.log('sync: parsed body patchList', patchList)
+  // console.log('sync: parsed body patchList', patchList)
 
-    const todoDict = getTodoDict()
+  const todoDict = getTodoDict()
 
-    sync.todos.forEach(p => {
-      if (p.todoId) {
-        const todo = todoDict[p.todoId]
-        todo[p.key] = p.value
-        todo.modifiedAt = p.modifiedAt
-      }
-    })
+  sync.todos.forEach(p => {
+    if (p.todoId) {
+      const todo = todoDict[p.todoId]
+      todo[p.key] = p.value
+      todo.modifiedAt = p.modifiedAt
+    }
+  })
 
+  setTodoDict(todoDict)
 
-    setTodoDict(todoDict)
-
-    ctx.body = config.get('db')
-  },
-)
+  ctx.body = config.get('db')
+})
 // .get('/post/new', add)
 // .get('/post/:id', show)
 // .post('/post', create);
 
 app.use(router.routes())
-
 
 async function hello(ctx) {
   // await ctx.render('list', { posts: posts })
@@ -94,35 +89,40 @@ async function hello(ctx) {
 
 if (!module.parent) app.listen(3000)
 
-
 function createFakeTask(overrides) {
   const now = Date.now()
-  return mergeRight({
-    id: nanoid(),
-    title: faker.hacker.phrase(),
-    sortIdx: 0,
-    projectId: '',
-    isDone: faker.random.boolean(),
-    createdAt: now,
-    modifiedAt: now,
-  }, overrides)
+  return mergeRight(
+    {
+      id: nanoid(),
+      title: faker.hacker.phrase(),
+      sortIdx: 0,
+      projectId: '',
+      isDone: faker.random.boolean(),
+      createdAt: now,
+      modifiedAt: now,
+    },
+    overrides,
+  )
 }
 
 function createFakeProject(overrides) {
   const now = Date.now()
 
-  return mergeRight({
-    id: nanoid(),
-    title:
-      faker.hacker.verb() +
-      ' ' +
-      faker.hacker.ingverb() +
-      ' ' +
-      faker.hacker.noun(),
-    sortIdx: 0,
-    createdAt: now,
-    modifiedAt: now,
-  }, overrides)
+  return mergeRight(
+    {
+      id: nanoid(),
+      title:
+        faker.hacker.verb() +
+        ' ' +
+        faker.hacker.ingverb() +
+        ' ' +
+        faker.hacker.noun(),
+      sortIdx: 0,
+      createdAt: now,
+      modifiedAt: now,
+    },
+    overrides,
+  )
 }
 
 function createFakeDB() {
