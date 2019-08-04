@@ -37,10 +37,10 @@ type alias TodoDict =
 
 
 type alias PatchList =
-    List Patch
+    List TodoPatch
 
 
-type alias Patch =
+type alias TodoPatch =
     { todoId : TodoId
     , key : String
     , value : Value
@@ -48,16 +48,16 @@ type alias Patch =
     }
 
 
-patchDecoder : Decoder Patch
+patchDecoder : Decoder TodoPatch
 patchDecoder =
-    JD.succeed Patch
+    JD.succeed TodoPatch
         |> JDP.required "todoId" TodoId.decoder
         |> JDP.required "key" JD.string
         |> JDP.required "value" JD.value
         |> JDP.required "modifiedAt" JD.int
 
 
-patchEncoder : Patch -> Value
+patchEncoder : TodoPatch -> Value
 patchEncoder { todoId, key, value, modifiedAt } =
     JE.object
         [ ( "todoId", TodoId.encoder todoId )
@@ -67,13 +67,13 @@ patchEncoder { todoId, key, value, modifiedAt } =
         ]
 
 
-createPatch : TodoId -> Todo.Msg -> Millis -> Patch
+createPatch : TodoId -> Todo.Msg -> Millis -> TodoPatch
 createPatch todoId todoMsg now =
     let
         ( key, value ) =
             Todo.msgKVEncoder todoMsg
     in
-    Patch todoId key value now
+    TodoPatch todoId key value now
 
 
 patchListDecoder : Decoder PatchList
