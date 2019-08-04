@@ -1,13 +1,14 @@
 module SyncQueue exposing
     ( SyncQueue
-    , appendTodoPatches
     , decoder
     , encoder
     , initial
+    , update
     )
 
 import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
+import Return
 import TodoPatch exposing (TodoPatch)
 
 
@@ -36,3 +37,22 @@ appendTodoPatches newList (SyncQueue list) =
     list
         ++ newList
         |> SyncQueue
+
+
+type alias Return =
+    Return.Return Msg SyncQueue
+
+
+type Msg
+    = Init
+    | AppendTodoPatches (List TodoPatch)
+
+
+update : Msg -> SyncQueue -> Return
+update msg model =
+    case msg of
+        Init ->
+            ( model, Cmd.none )
+
+        AppendTodoPatches newList ->
+            ( appendTodoPatches newList model, Cmd.none )
