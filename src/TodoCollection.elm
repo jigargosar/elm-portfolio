@@ -220,9 +220,7 @@ modifyTodo now todoId computeTodoMsg ( model, patches ) =
 
 insertWithPatch : Todo -> Todo.Msg -> Millis -> Return -> Return
 insertWithPatch todo todoMsg now ( model, patches ) =
-    ( { model
-        | dict = Dict.insert todo.id todo model.dict
-      }
+    ( insert todo model
     , patches ++ [ TP.init todo.id todoMsg now ]
     )
 
