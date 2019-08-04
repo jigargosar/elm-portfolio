@@ -13,7 +13,6 @@ import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
 import Project exposing (Project)
-import Return
 import Todo exposing (Todo)
 import TodoPatch exposing (TodoPatch)
 

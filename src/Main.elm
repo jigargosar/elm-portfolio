@@ -9,7 +9,6 @@ import Edit exposing (Edit)
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class, classList, href, title, value)
 import Html.Events exposing (onClick, onInput)
-import Http
 import Json.Decode as JD exposing (Decoder)
 import Json.Decode.Pipeline as JDP
 import Json.Encode as JE exposing (Value)
@@ -42,21 +41,6 @@ port cacheKeyValue : ( String, Value ) -> Cmd msg
 
 
 -- FLAGS
---type alias Flags =
---    { todos : TodoCollection
---    , projects : ProjectCollection
---    , edit : Edit
---    }
---
---
---flagsDecoder : Decoder Flags
---flagsDecoder =
---    JD.succeed Flags
---        |> JDP.required "todos" TC.decoder
---        |> JDP.required "projects" PC.decoder
---        |> JDP.required "edit" Edit.decoder
---
---
 
 
 type alias Flags =
@@ -240,8 +224,6 @@ type Msg
     | OnBulkMoveToProjectSelected ProjectId
     | UpdateTodos TC.Update Millis
     | UpdateTodosThenUpdateEdit TC.Update Edit Millis
-    | OnDBResponse (Result Http.Error DB)
-    | OnSyncResponse (Result Http.Error DB)
     | WrapSyncQueueMsg SyncQueue.Msg
 
 
@@ -373,30 +355,6 @@ update message model =
         UpdateTodosThenUpdateEdit updateConfig editConfig now ->
             updateTodos updateConfig now model
                 |> andThen (updateEdit editConfig)
-
-        OnDBResponse result ->
-            case result of
-                Ok db ->
-                    updateFromDB db model
-
-                Err e ->
-                    let
-                        _ =
-                            Debug.log "http db get error" e
-                    in
-                    pure model
-
-        OnSyncResponse result ->
-            case result of
-                Ok db ->
-                    updateFromDB db model
-
-                Err e ->
-                    let
-                        _ =
-                            Debug.log "http db get error" e
-                    in
-                    pure model
 
         WrapSyncQueueMsg msg ->
             updateSyncQueue msg model
