@@ -58,7 +58,11 @@ function setTodoDict(todoDict) {
 router.post('/sync', ctx => {
   const sync = ctx.request.body
   const isValidRequest = where({ todos: is(Array) })
-
+  if(!isValidRequest(sync)){
+    ctx.status = 400
+    ctx.body = "Invalid req"
+    return
+  }
   // console.log('sync: parsed body patchList', patchList)
 
   const todoDict = getTodoDict()
